@@ -25,16 +25,31 @@ services:
     image: ghcr.io/rs-python/rs-server_services-cadip:latest
     container_name: rs-server
     restart: always
-    command: python -m uvicorn rs_server.CADIP.cadip_backend:app --host 0.0.0.0 --port 8000
+    # entrypoint: python -m uvicorn rs_server.CADIP.cadip_backend:app --host 0.0.0.0 --port 8000
     # variables are set in the .env file
     environment:
+      # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: postgres # = the docker compose service name
+      POSTGRES_HOST: postgres_${POSTGRES_DB} # host = the docker container name
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
-    depends_on:
+      # cadip station
+      CADIP_STATION_USER: ${CADIP_STATION_USER}
+      CADIP_STATION_PASSWORD: ${CADIP_STATION_PASSWORD}
+      CADIP_STATION_HOST: cadip-station-mock # host = the docker container name
+    links:
       - postgres
       - cadip-station-mock
     ports:
       - 8000:8000
+    # do this to test your local rs-server github repository from the docker image
+    # so you don't have to rebuild it everytime. Use absolute paths. 
+    # DO NOT COMMIT !
+    # volumes:
+    #   - /my/local/rs-server/rs_server:/usr/local/lib/python3.11/site-packages/rs_server
+    #   - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
+    #   - /my/local/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
+    #   - /my/local/rs-server/services/cadip/config:/usr/local/lib/python3.11/site-packages/config
+    #   - /my/local/.vscode/launch.json:/usr/local/lib/python3.11/site-packages/.vscode/launch.json
+
