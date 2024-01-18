@@ -3,29 +3,51 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: postgres_${POSTGRES_DB}
-    restart: always
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
     # variables are set in the .env file
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
 
+  # Use minio for temp s3 storage
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    # variables are set in the .env file
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESSKEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRETKEY}
+    command: server --console-address ":9001" /data
+
+  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station-mock:
     image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
     container_name: cadip-station-mock
-    restart: always
     ports:
       - 5000:5000
 
-  rs-server:
-    image: ghcr.io/rs-python/rs-server_services-cadip:latest
-    container_name: rs-server
-    restart: always
-    # entrypoint: python -m uvicorn rs_server.CADIP.cadip_backend:app --host 0.0.0.0 --port 8000
+  # Local Jupyter server.
+  # The logs will show shomething like: http://127.0.0.1:8888/lab?token=<token-value> in your terminal.
+  # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
+  jupyter:
+    image: jupyter/minimal-notebook:latest
+    container_name: jupyter
+    ports:
+      - 8888:8888
+    links:
+      - postgres
+      - minio
+      - rs-server
+    volumes: 
+      - ../sprints:/home/jovyan/rspy-demos
     # variables are set in the .env file
     environment:
       # postgres
@@ -34,15 +56,37 @@ services:
       POSTGRES_HOST: postgres_${POSTGRES_DB} # host = the docker container name
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: http://minio:9000 # host = the docker container name
+
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
+  rs-server:
+    image: ghcr.io/rs-python/rs-server_services-cadip:latest
+    container_name: rs-server
+    ports:
+      - 8000:8000
+    links:
+      - postgres
+      - minio
+      - cadip-station-mock
+    # variables are set in the .env file
+    environment:
+      # postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres_${POSTGRES_DB} # host = the docker container name
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: http://minio:9000 # host = the docker container name
       # cadip station
       CADIP_STATION_USER: ${CADIP_STATION_USER}
       CADIP_STATION_PASSWORD: ${CADIP_STATION_PASSWORD}
       CADIP_STATION_HOST: cadip-station-mock # host = the docker container name
-    links:
-      - postgres
-      - cadip-station-mock
-    ports:
-      - 8000:8000
     # do this to test your local rs-server github repository from the docker image
     # so you don't have to rebuild it everytime. Use absolute paths. 
     # DO NOT COMMIT !
@@ -53,3 +97,5 @@ services:
     #   - /my/local/rs-server/services/cadip/config:/usr/local/lib/python3.11/site-packages/config
     #   - /my/local/.vscode/launch.json:/usr/local/lib/python3.11/site-packages/.vscode/launch.json
 
+volumes:
+  minio_storage: {}

@@ -26,10 +26,24 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - run: |
-          # docker login https://github.com/RS-PYTHON
+
+          # Run the docker compose services and list them.
+          docker compose pull
           docker compose up -d
           docker compose ls
           docker compose ps
+
+          
+
+          curl -X 'GET' 'http://localhost:8000/cadip/CADIP/cadu/list?start_date=2014-01-01T12:00:00.000Z&stop_date=2023-12-30T12:00:00.000Z' -H 'accept: application/json'
+
+          curl -X 'GET' 'http://localhost:8000/cadip/CADIP/cadu?name=DCS_04_S1A_20231121072204051312_ch1_DSDB_00001.raw&obs=s3%3A%2F%2Fmy-bucket' -H 'accept: application/json'
+
+          curl -X 'GET' 'http://localhost:8000/cadip/CADIP/cadu?name=DCS_04_S1A_20231121072204051312_ch1_DSDB_00004.raw&obs=s3%3A%2F%2Fmy-bucket' -H 'accept: application/json'
+
+          minio console: http://127.0.0.1:9001/browser
+
+
           docker compose down
         shell: bash
         working-directory: ./resources
