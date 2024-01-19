@@ -34,6 +34,15 @@ services:
     ports:
       - 5000:5000
 
+  # For the demo, run a container as root that will give write access to everyone to the named volume local_download
+  write_permissions:
+    image: bash:latest
+    container_name: write_permissions
+    user: root
+    volumes:
+      - local_download:${RSPY_LOCAL_DOWNLOAD}
+    command: -c "chmod 777 ${RSPY_LOCAL_DOWNLOAD}"
+
   # Local Jupyter server.
   # The logs will show shomething like: http://127.0.0.1:8888/lab?token=<token-value> in your terminal.
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
@@ -43,30 +52,28 @@ services:
     ports:
       - 8888:8888
     links:
-      - postgres
-      - minio
       - rs-server
-    volumes: 
-      - ../sprints:/home/jovyan/rspy-demos
+      - minio # used to check manually the s3 bucket contents
     # variables are set in the .env file
     environment:
-      # postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: postgres_${POSTGRES_DB} # host = the docker container name
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
+      RSPY_LOCAL_DOWNLOAD: ${RSPY_LOCAL_DOWNLOAD}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: http://minio:9000 # host = the docker container name
+    volumes: 
+      - ../sprints:/home/jovyan/rspy-demos
+      - local_download:${RSPY_LOCAL_DOWNLOAD}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server:
     image: ghcr.io/rs-python/rs-server_services-cadip:latest
+    # image: python:3.11
     container_name: rs-server
     ports:
       - 8000:8000
+    depends_on:
+      - write_permissions
     links:
       - postgres
       - minio
@@ -87,15 +94,19 @@ services:
       CADIP_STATION_USER: ${CADIP_STATION_USER}
       CADIP_STATION_PASSWORD: ${CADIP_STATION_PASSWORD}
       CADIP_STATION_HOST: cadip-station-mock # host = the docker container name
+    volumes:
+      - local_download:${RSPY_LOCAL_DOWNLOAD}
     # do this to test your local rs-server github repository from the docker image
     # so you don't have to rebuild it everytime. Use absolute paths. 
     # DO NOT COMMIT !
-    # volumes:
     #   - /my/local/rs-server/rs_server:/usr/local/lib/python3.11/site-packages/rs_server
     #   - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
     #   - /my/local/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
-    #   - /my/local/rs-server/services/cadip/config:/usr/local/lib/python3.11/site-packages/config
-    #   - /my/local/.vscode/launch.json:/usr/local/lib/python3.11/site-packages/.vscode/launch.json
+    #   - and other config files ...
+      - /home/jgaucher/projects/rspy/github/rs-server/rs_server:/usr/local/lib/python3.11/site-packages/rs_server
+      - /home/jgaucher/projects/rspy/github/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
+      - /home/jgaucher/projects/rspy/github/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
 
 volumes:
   minio_storage: {}
+  local_download: {} # used for local download of products using rs-server
