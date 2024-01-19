@@ -103,9 +103,6 @@ services:
     #   - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
     #   - /my/local/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
     #   - and other config files ...
-      - /home/jgaucher/projects/rspy/github/rs-server/rs_server:/usr/local/lib/python3.11/site-packages/rs_server
-      - /home/jgaucher/projects/rspy/github/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
-      - /home/jgaucher/projects/rspy/github/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
 
 volumes:
   minio_storage: {}
