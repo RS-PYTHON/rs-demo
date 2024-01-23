@@ -56,7 +56,7 @@ On the left, in the file explorer, the demos are under /rspy-demos.
 docker compose down
 
 # Remove docker named volumes
-docker volume rm resources_local_download resources_minio_storage
+docker volume rm resources_rspy_working_dir resources_minio_storage
 ```
 
 ## How does it work

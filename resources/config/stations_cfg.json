@@ -1,0 +1,10 @@
+{
+    "comment": "hosts and ports defined in docker-compose.yml",
+    "INS": "http://<undefined>:5100/Files",
+    "MPS": "http://<undefined>:5101/Files",
+    "MTI": "http://<undefined>:5102/Files",
+    "NSG": "http://<undefined>:5103/Files",
+    "SGS": "http://<undefined>:5104/Files",
+    "ADGS": "http://adgs-station:5001/Products",
+    "CADIP": "http://cadip-station:5002/Files"
+}
