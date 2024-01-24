@@ -57,6 +57,7 @@ docker compose down
 
 # Remove docker named volumes
 docker volume rm resources_rspy_working_dir resources_minio_storage
+# or 'docker volume prune -f' to be sure to remove all old volumes
 ```
 
 ## How does it work

@@ -4,18 +4,47 @@ services:
   # RS-SERVER #
   #############
 
-  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
-  rs-server:
-    image: ghcr.io/rs-python/rs-server_services-cadip:latest
-    container_name: rs-server
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
+  rs-server-adgs:
+    image: ghcr.io/rs-python/rs-server-adgs:latest
+    container_name: rs-server-adgs
     ports:
-      - 8000:8000
+      - 8001:8000
     depends_on:
       - rspy-pre-actions
     links:
       - postgres
       - minio
       - adgs-station
+    # variables are set in the .env file
+    environment:
+      # postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres_${POSTGRES_DB} # host = the docker container name
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: http://minio:9000 # host = the docker container name
+      # Config files
+      RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
+      EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
+  rs-server-cadip:
+    image: ghcr.io/rs-python/rs-server-cadip:latest
+    container_name: rs-server-cadip
+    ports:
+      - 8002:8000
+    depends_on:
+      - rspy-pre-actions
+    links:
+      - postgres
+      - minio
       - cadip-station
     # variables are set in the .env file
     environment:
@@ -29,10 +58,9 @@ services:
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: http://minio:9000 # host = the docker container name
-      # cadip station
-      EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
-      EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
+      # Config files
       RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
+      EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
@@ -64,11 +92,9 @@ services:
     container_name: rspy-pre-actions
     privileged: true
     volumes:
+      - .:/docker/compose/dir
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      - ./.env:/tmp/.env
-      - ./config:/tmp/config
-      - ./rspy-pre-actions.sh:/tmp/rspy-pre-actions.sh
-    entrypoint: /tmp/rspy-pre-actions.sh
+    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
 
   ##########
   # OTHERS #
@@ -110,7 +136,8 @@ services:
     ports:
       - 8888:8888
     links:
-      - rs-server
+      - rs-server-adgs
+      - rs-server-cadip
       - minio # used to check manually the s3 bucket contents
     # variables are set in the .env file
     environment:
@@ -125,5 +152,10 @@ services:
 
 # Docker named volumes
 volumes:
+  # Used by the minio container
   minio_storage: {}
-  rspy_working_dir: {} # used for local download of products using rs-server
+
+  # Used to:
+  #   - store the config files (stations url and port ...)
+  #   - for the demo, download files locally in laptop mode (downloaded by rs-server, read by jupyter)
+  rspy_working_dir: {}
