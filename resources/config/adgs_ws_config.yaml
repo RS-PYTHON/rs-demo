@@ -1,6 +1,6 @@
 # Values from docker-compose:
 # adgs-station = docker container name
-# 5001 = port mapped to 5000
+# 5000 = port used by the application, as seen internally from the docker compose network.
 
 ADGS:
   auth:
@@ -15,7 +15,7 @@ ADGS:
 
   search:
     type: ODataV4Search
-    api_endpoint: 'http://adgs-station:5001/Products'
+    api_endpoint: 'http://adgs-station:5000/Products'
     need_auth: true
     results_entry: responses
     metadata_mapping:
@@ -35,7 +35,7 @@ ADGS:
         size:
             - null
             - '$.Size'
-        downloadLink: 'http://adgs-station:5001/Products({id})/$value'
+        downloadLink: 'http://adgs-station:5000/Products({id})/$value'
         title: '$.Name'
 
     free_text_search_operations:
@@ -54,7 +54,7 @@ ADGS:
 
   download:
     type: HTTPDownload
-    base_uri: 'https://adgs-station:5001/Products'
+    base_uri: 'https://adgs-station:5000/Products'
     metadata_mapping:
         uid: '$.Id'
-        downloadLink: 'http://adgs-station:5001/Products({uid})/$value'
+        downloadLink: 'http://adgs-station:5000/Products({uid})/$value'

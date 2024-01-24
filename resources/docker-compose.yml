@@ -33,6 +33,9 @@ services:
       EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+      # to debug your local code:
+      - /home/jgaucher/projects/rspy/github/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
+      - /home/jgaucher/projects/rspy/github/rs-server/services/adgs/rs_server_adgs:/usr/local/lib/python3.11/site-packages/rs_server_adgs
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
@@ -63,6 +66,12 @@ services:
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+      # to debug your local code:
+      - /home/jgaucher/projects/rspy/github/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
+      - /home/jgaucher/projects/rspy/github/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
+      - /home/jgaucher/projects/rspy/github/.vscode/launch.json:/usr/local/lib/python3.11/site-packages/.vscode/launch.json
+    entrypoint: tail
+    command: -F anything
 
   ############
   # STATIONS #
