@@ -1,0 +1,57 @@
+###
+### A complete description of a Prefect Deployment for flow 'main_flow'
+###
+name: demo
+description: null
+version: 18df562174ec32ec8532b9bd78a7c2e0
+# The work queue that will handle this deployment's runs
+work_queue_name: default
+work_pool_name: null
+tags: []
+parameters: {}
+schedule: null
+is_schedule_active: null
+infra_overrides: {}
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  block_type_slug: process
+  _block_type_slug: process
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: main_flow
+manifest_path: null
+storage: null
+path: /home/jovyan/rspy-demos/sprint4
+entrypoint: adgs_prefect.py:working
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties:
+    save_to_s3:
+      title: save_to_s3
+      default: true
+      position: 0
+      type: boolean
+    date_start:
+      title: date_start
+      default: '2014-01-01T12:00:00.000Z'
+      position: 1
+      type: string
+    date_end:
+      title: date_end
+      default: '2023-12-30T12:00:00.000Z'
+      position: 2
+      type: string
+  required: null
+  definitions: null
+timestamp: '2024-01-26T16:31:21.430872+00:00'
+triggers: []
+enforce_parameter_schema: null

@@ -71,14 +71,18 @@ services:
     container_name: prefect-server 
     ports:
       - 4200:4200
+    links: 
+      - prefect-agent
     command: prefect server start
 
-  prefect-worker:
+
+  prefect-agent:
     image: prefecthq/prefect:2-python3.10
-    container_name: prefect-worker
+    container_name: prefect-agent
     ports:
       - 8080:8080
     command: prefect agent start -q 'default'
+
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server:
