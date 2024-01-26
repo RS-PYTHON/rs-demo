@@ -1,0 +1,60 @@
+# Values from docker-compose:
+# adgs-station = docker container name
+# 5000 = port used by the application, as seen internally from the docker compose network.
+
+ADGS:
+  auth:
+    type: GenericAuth
+    method: basic
+    credentials:
+        username: test
+        password: test
+  products:
+    GENERIC_PRODUCT_TYPE:
+      productType: '{productType}'
+
+  search:
+    type: ODataV4Search
+    api_endpoint: 'http://adgs-station:5000/Products'
+    need_auth: true
+    results_entry: responses
+    metadata_mapping:
+        id:
+            - null
+            - '$.Id'
+        startTimeFromAscendingNode:
+            - null
+            - '$.PublicationDate'
+        completionTimeFromAscendingNode:
+            - null
+            - '$.PublicationDate'
+        geometry: 'POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))'
+        Name:
+            - null
+            - '$.Name'
+        size:
+            - null
+            - '$.Size'
+        downloadLink: 'http://adgs-station:5000/Products({id})/$value'
+        title: '$.Name'
+
+    free_text_search_operations:
+      $filter:
+        union: ' OR '
+        wrapper: '"{}"'
+        operations:
+            and:
+              - 'PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}'
+              - 'PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}'
+
+    pagination:
+      next_page_url_tpl: '{url}?{search}'
+      max_items_per_page: 20
+      total_items_nb_key_path: '$.total'
+
+  download:
+    type: HTTPDownload
+    base_uri: 'https://adgs-station:5000/Products'
+    metadata_mapping:
+        uid: '$.Id'
+        downloadLink: 'http://adgs-station:5000/Products({uid})/$value'

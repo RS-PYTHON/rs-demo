@@ -1,0 +1,12 @@
+{
+    "comment": "Hosts and ports are defined in docker-compose.yml. Port 5000 is seen internally from the docker compose network.",
+
+    "INS": "http://cadip-station:5100/Files",
+    "MPS": "http://cadip-station:5101/Files",
+    "MTI": "http://cadip-station:5102/Files",
+    "NSG": "http://cadip-station:5103/Files",
+    "SGS": "http://cadip-station:5104/Files",
+    "CADIP": "http://cadip-station:5000/Files",
+
+    "ADGS": "http://adgs-station:5000/Products"
+}

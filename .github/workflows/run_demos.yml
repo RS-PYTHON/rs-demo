@@ -1,0 +1,46 @@
+name: Run all demos
+
+on:
+  push:
+  workflow_dispatch:
+
+    # TODO versions as parameters
+    # https://damienaicheh.github.io/github/actions/2022/01/20/set-dynamic-parameters-github-workflows-en.html
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    name: Run all demos
+    if: ${{ false }} # TODO: run the notebooks, see e.g. https://github.com/marketplace/actions/run-notebook
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log into Docker registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+
+          # Pull the latest Docker images
+          docker compose pull
+
+          # Run the docker compose services and list them          
+          docker compose up -d
+          docker compose ls
+          docker compose ps
+
+          # Execute all the notebooks
+          jupyter execute $(find .. -type f -name "*.ipynb" -not -path "*checkpoints*"  | sort)
+          
+          # Shutdown docker services
+          docker compose down
+
+        shell: bash
+        working-directory: ./resources
