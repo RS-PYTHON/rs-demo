@@ -14,10 +14,14 @@ source /docker/compose/dir/.env
 for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG} ${RSPY_STATION_CONFIG}; do
 
     # The source config file is in ./config with the same filename
-    source_config=/docker/compose/dir/config/$(basename ${target_config})
+    source_config=/docker/compose/dir/main/config/$(basename ${target_config})
 
     # Create target directory and copy file
     mkdir -p $(dirname ${target_config})
     (set -x; cp -f ${source_config} ${target_config})
     
 done
+
+# Wait for the stac service to be up. 
+# It is defined in rs-demo/resources/stac/stac-fastapi-pgstac/docker-compose.yml
+/docker/compose/dir/stac/stac-fastapi-pgstac/scripts/wait-for-it.sh stac-fastapi-pgstac:8082

@@ -1,3 +1,10 @@
+version: '3'
+
+# Use the same network as the stac docker compose
+networks:
+  default:
+    name: stac-fastapi-network
+
 services:
 
   #############
@@ -96,7 +103,7 @@ services:
     volumes:
       - .:/docker/compose/dir
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
+    entrypoint: /docker/compose/dir/main/scripts/rspy-pre-actions.sh
 
   ##########
   # OTHERS #
