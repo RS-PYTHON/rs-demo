@@ -1,5 +1,107 @@
 services:
 
+  #############
+  # RS-SERVER #
+  #############
+
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
+  rs-server-adgs:
+    image: ghcr.io/rs-python/rs-server-adgs:latest
+    container_name: rs-server-adgs
+    ports:
+      - 8001:8000
+    depends_on:
+      - rspy-pre-actions
+    links:
+      - postgres
+      - minio
+      - adgs-station
+    # variables are set in the .env file
+    environment:
+      # postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+      # Config files
+      RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
+      EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
+  rs-server-cadip:
+    image: ghcr.io/rs-python/rs-server-cadip:latest
+    container_name: rs-server-cadip
+    ports:
+      - 8002:8000
+    depends_on:
+      - rspy-pre-actions
+    links:
+      - postgres
+      - minio
+      - cadip-station
+    # variables are set in the .env file
+    environment:
+      # postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+      # Config files
+      RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
+      EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+
+  ############
+  # STATIONS #
+  ############
+
+  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/ADGS/Dockerfile
+  adgs-station:
+    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
+    container_name: adgs-station
+    ports:
+      - 5001:5000
+
+  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
+  cadip-station:
+    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
+    container_name: cadip-station
+    ports:
+      - 5002:5000
+
+  ###############
+  # PRE-ACTIONS #
+  ###############
+
+  # Run a bash container as root to run custom pre-actions
+  rspy-pre-actions:
+    image: bash:latest
+    container_name: rspy-pre-actions
+    privileged: true
+    volumes:
+      - .:/docker/compose/dir
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
+
+  ##########
+  # OTHERS #
+  ##########
+
   postgres:
     image: postgres:15-alpine
     container_name: postgres_${POSTGRES_DB}
@@ -20,28 +122,12 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_storage:/data
+      - minio_storage:/data # docker named volume
     # variables are set in the .env file
     environment:
       MINIO_ROOT_USER: ${S3_ACCESSKEY}
       MINIO_ROOT_PASSWORD: ${S3_SECRETKEY}
     command: server --console-address ":9001" /data
-
-  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
-  cadip-station-mock:
-    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
-    container_name: cadip-station-mock
-    ports:
-      - 5000:5000
-
-  # For the demo, run a container as root that will give write access to everyone to the named volume local_download
-  write_permissions:
-    image: bash:latest
-    container_name: write_permissions
-    user: root
-    volumes:
-      - local_download:${RSPY_LOCAL_DOWNLOAD}
-    command: -c "chmod 777 ${RSPY_LOCAL_DOWNLOAD}"
 
   # Local Jupyter server.
   # The logs will show shomething like: http://127.0.0.1:8888/lab?token=<token-value> in your terminal.
@@ -52,19 +138,25 @@ services:
     ports:
       - 8888:8888
     links:
-      - rs-server
+      - rs-server-adgs
+      - rs-server-cadip
       - minio # used to check manually the s3 bucket contents
       - prefect-server
     # variables are set in the .env file
     environment:
-      RSPY_LOCAL_DOWNLOAD: ${RSPY_LOCAL_DOWNLOAD}
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: http://minio:9000 # host = the docker container name
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
-      - local_download:${RSPY_LOCAL_DOWNLOAD}
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+
+  ###########
+  # PREFECT #
+  ###########
 
   prefect-server:
     image: prefecthq/prefect:2-python3.10
@@ -84,45 +176,12 @@ services:
     command: prefect agent start -q 'default'
 
 
-  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
-  rs-server:
-    image: ghcr.io/rs-python/rs-server_services-cadip:latest
-    # image: python:3.11
-    container_name: rs-server
-    ports:
-      - 8000:8000
-    depends_on:
-      - write_permissions
-    links:
-      - postgres
-      - minio
-      - cadip-station-mock
-    # variables are set in the .env file
-    environment:
-      # postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: postgres_${POSTGRES_DB} # host = the docker container name
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      # s3 bucket
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: http://minio:9000 # host = the docker container name
-      # cadip station
-      CADIP_STATION_USER: ${CADIP_STATION_USER}
-      CADIP_STATION_PASSWORD: ${CADIP_STATION_PASSWORD}
-      CADIP_STATION_HOST: cadip-station-mock # host = the docker container name
-    volumes:
-      - local_download:${RSPY_LOCAL_DOWNLOAD}
-    # do this to test your local rs-server github repository from the docker image
-    # so you don't have to rebuild it everytime. Use absolute paths. 
-    # DO NOT COMMIT !
-    #   - /my/local/rs-server/rs_server:/usr/local/lib/python3.11/site-packages/rs_server
-    #   - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
-    #   - /my/local/rs-server/services/cadip/rs_server_cadip:/usr/local/lib/python3.11/site-packages/rs_server_cadip
-    #   - and other config files ...
-
+# Docker named volumes
 volumes:
+  # Used by the minio container
   minio_storage: {}
-  local_download: {} # used for local download of products using rs-server
+
+  # Used to:
+  #   - store the config files (stations url and port ...)
+  #   - for the demo, download files locally in laptop mode (downloaded by rs-server, read by jupyter)
+  rspy_working_dir: {}
