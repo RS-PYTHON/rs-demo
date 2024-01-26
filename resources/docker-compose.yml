@@ -54,6 +54,7 @@ services:
     links:
       - rs-server
       - minio # used to check manually the s3 bucket contents
+      - prefect-server
     # variables are set in the .env file
     environment:
       RSPY_LOCAL_DOWNLOAD: ${RSPY_LOCAL_DOWNLOAD}
@@ -64,6 +65,20 @@ services:
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
       - local_download:${RSPY_LOCAL_DOWNLOAD}
+
+  prefect-server:
+    image: prefecthq/prefect:2-python3.10
+    container_name: prefect-server 
+    ports:
+      - 4200:4200
+    command: prefect server start
+
+  prefect-worker:
+    image: prefecthq/prefect:2-python3.10
+    container_name: prefect-worker
+    ports:
+      - 8080:8080
+    command: prefect agent start -q 'default'
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server:
