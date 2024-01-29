@@ -1,3 +1,10 @@
+version: '3'
+
+# Use the same network as the stac docker compose
+networks:
+  default:
+    name: stac-fastapi-network
+
 services:
 
   #############
@@ -88,7 +95,10 @@ services:
   # PRE-ACTIONS #
   ###############
 
-  # Run a bash container as root to run custom pre-actions
+  # Run a bash container as root to run custom pre-actions:
+  #   - Give all permissions to the docker named volumes "rspy_working_dir"
+  #   - Copy stations configuration files
+  #   - Wait for the stac service to be up
   rspy-pre-actions:
     image: bash:latest
     container_name: rspy-pre-actions
@@ -96,7 +106,27 @@ services:
     volumes:
       - .:/docker/compose/dir
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
+    entrypoint: /docker/compose/dir/main/scripts/rspy-pre-actions.sh
+
+  ########
+  # STAC #
+  ########
+
+  # Note: the stac-fastapi-pgstac service is implemented in
+  # rs-demo/resources/stac/stac-fastapi-pgstac/docker-compose.yml
+
+  stac-browser:
+    image: stac-browser:v1
+    container_name: stac-browser
+    ports: 
+      - ${STAC_BROWSER_PORT}:8080
+    depends_on:
+      - rspy-pre-actions # wait for the stac service to be up
+    build:
+      context: ./stac/stac-browser
+      dockerfile: ./Dockerfile # relative to the context above
+      args:
+        catalogURL: stac-fastapi-pgstac:8082
 
   ##########
   # OTHERS #
