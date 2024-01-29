@@ -98,6 +98,49 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
     entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
 
+  ###########
+  # PREFECT #
+  ###########
+
+  # See: https://github.com/rpeden/prefect-docker-compose/blob/main/docker-compose.yml
+
+  ### Prefect Server API and UI
+  prefect-server:
+    image: prefecthq/prefect:2.11.5-python3.11
+    restart: always
+    volumes:
+      - prefect_storage:/root/.prefect
+    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "server", "start"]
+    environment:
+      - PREFECT_UI_URL=http://127.0.0.1:4200/api
+      - PREFECT_API_URL=http://127.0.0.1:4200/api
+      # If you want to access Prefect Server UI from anywhere other than the Docker host machine, you will need to change
+      # PREFECT_UI_URL and PREFECT_API_URL to match the external hostname/IP of the host machine. For example:
+      #- PREFECT_UI_URL=http://external-ip:4200/api
+      #- PREFECT_API_URL=http://external-ip:4200/api
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_${POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # Uncomment the following line if you want to use the 'S3 Bucket' storage block instead of the older 'S3' storage
+      # - EXTRA_PIP_PACKAGES=prefect-aws
+    ports:
+      - 4200:4200
+    links:
+      - postgres
+    # profiles: ["server"]
+
+  ## Prefect Agent
+  prefect-agent:
+    image: prefecthq/prefect:2.11.5-python3.11
+    restart: always
+    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "agent", "start", "-q", "YOUR_WORK_QUEUE_NAME"]
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+#       Use PREFECT_API_KEY if connecting the agent to Prefect Cloud
+#     - PREFECT_API_KEY=YOUR_API_KEY
+    links:
+      - prefect-server
+    # profiles: ["agent"]
+
   ##########
   # OTHERS #
   ##########
@@ -142,6 +185,7 @@ services:
       - rs-server-cadip
       - minio # used to check manually the s3 bucket contents
       - prefect-server
+      - prefect-agent
     # variables are set in the .env file
     environment:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
@@ -150,36 +194,17 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
+      # prefect
+      PREFECT_API_URL: http://prefect-server:4200/api
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
-  ###########
-  # PREFECT #
-  ###########
-
-  prefect-server:
-    image: prefecthq/prefect:2-python3.10
-    container_name: prefect-server 
-    ports:
-      - 4200:4200
-    links: 
-      - prefect-agent
-    command: prefect server start
-
-
-  prefect-agent:
-    image: prefecthq/prefect:2-python3.10
-    container_name: prefect-agent
-    ports:
-      - 8080:8080
-    command: prefect agent start -q 'default'
-
 
 # Docker named volumes
 volumes:
-  # Used by the minio container
   minio_storage: {}
+  prefect_storage: {}
 
   # Used to:
   #   - store the config files (stations url and port ...)
