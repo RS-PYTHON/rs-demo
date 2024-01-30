@@ -51,7 +51,9 @@ Then to run the demos:
 # Still from the resources directory, if you're not there yet
 cd ./resources
 
-# Run all services:
+# Run all services.
+# Note: in case of port conflicts, you can kill all your running docker containers with:
+# docker rm -f $(docker ps -aq)
 docker compose down; docker compose up # -d for detached
 
 # Note: we always need to call 'down' before 'up' or we'll have errors
