@@ -46,20 +46,8 @@ jobs:
           docker compose ls
           sleep 5 # wait that all services are up before running the notebooks
 
-          # For each demo notebook
-          for notebook in $(find ${GITHUB_WORKSPACE}/sprints -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
-
-            docker compose ps
-
-            # Run the notebook from a container, in the same network than the docker-compose,
-            # with the same options than the jupyter service in the docker-compose.
-            # Read the environment variables before running the notebook.
-            docker run --rm \
-              --network stac-fastapi-network \
-              -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} -v rspy-demo_rspy_working_dir:/rspy/working/dir \
-              jupyter/minimal-notebook \
-              bash -c "source ${GITHUB_WORKSPACE}/resources/.env && jupyter execute $notebook"
-          done
+          # Run all demos
+          ${GITHUB_WORKSPACE}/scripts/run-notebooks.sh
           
           # Shutdown docker services and volumes
           docker compose down -v
