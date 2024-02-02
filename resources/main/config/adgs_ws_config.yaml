@@ -22,6 +22,21 @@ ADGS:
         id:
             - null
             - '$.Id'
+        Name:
+          - null
+          - '$.Name'
+        ContentLength:
+          - null
+          - '$.ContentLength'
+        PublicationDate:
+          - null
+          - '$.PublicationDate'
+        Start:
+          - null
+          - '$.ContentDate.Start'
+        End:
+          - null
+          - '$.ContentDate.End'
         startTimeFromAscendingNode:
             - null
             - '$.PublicationDate'
@@ -29,12 +44,6 @@ ADGS:
             - null
             - '$.PublicationDate'
         geometry: 'POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))'
-        Name:
-            - null
-            - '$.Name'
-        size:
-            - null
-            - '$.Size'
         downloadLink: 'http://adgs-station:5000/Products({id})/$value'
         title: '$.Name'
 
@@ -48,8 +57,8 @@ ADGS:
               - 'PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}'
 
     pagination:
-      next_page_url_tpl: '{url}?{search}'
-      max_items_per_page: 20
+      max_items_per_page: 1000
+      next_page_url_tpl: '{url}?{search}&$top={items_per_page}'
       total_items_nb_key_path: '$.total'
 
   download:

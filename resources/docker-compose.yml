@@ -50,6 +50,7 @@ services:
       - 8002:8000
     depends_on:
       - rspy-pre-actions
+      - rs-server-adgs # start servers one after another to avoid concurrent table creation in the database
     links:
       - postgres
       - minio

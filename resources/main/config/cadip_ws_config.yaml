@@ -22,6 +22,34 @@ CADIP:
         id:
             - null
             - '$.Id'
+        Name:
+            - null
+            - '$.Name'
+        SessionID:
+            - null
+            - '$.SessionID'
+        Channel:
+            - null
+            - '$.Channel'
+        BlockNumber:
+            - null
+            - '$.BlockNumber'
+        FinalBlock:
+            - null
+            - '$.FinalBlock'
+        PublicationDate:
+            - null
+            - '$.PublicationDate'
+        EvictionDate:
+            - null
+            - '$.EvictionDate'
+        Size:
+            - null
+            - '$.Size'
+        Retransfer:
+            - null
+            - '$.Retransfer'
+        # Eodag Specific map
         startTimeFromAscendingNode:
             - null
             - '$.PublicationDate'
@@ -29,12 +57,6 @@ CADIP:
             - null
             - '$.PublicationDate'
         geometry: 'POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))'
-        Name:
-            - null
-            - '$.Name'
-        size:
-            - null
-            - '$.Size'
         downloadLink: 'http://cadip-station:5000/Files({id})/$value'
         title: '$.Name'
 
@@ -48,9 +70,8 @@ CADIP:
               - 'PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}'
 
     pagination:
-      next_page_url_tpl: '{url}?{search}'
-      max_items_per_page: 20
-      # TODO this isn't the true pagination mechanism of CADIP
+      max_items_per_page: 1000
+      next_page_url_tpl: '{url}?{search}&$top={items_per_page}'
       total_items_nb_key_path: '$.total'
 
   download:
