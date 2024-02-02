@@ -17,7 +17,7 @@ CADIP:
     type: ODataV4Search
     api_endpoint: 'http://cadip-station:5000/Files'
     need_auth: true
-    results_entry: responses
+    results_entry: responses | $
     metadata_mapping:
         id:
             - null

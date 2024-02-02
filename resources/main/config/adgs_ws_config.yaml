@@ -17,7 +17,7 @@ ADGS:
     type: ODataV4Search
     api_endpoint: 'http://adgs-station:5000/Products'
     need_auth: true
-    results_entry: responses
+    results_entry: responses | $
     metadata_mapping:
         id:
             - null
