@@ -54,7 +54,7 @@ cd ./resources
 # Run all services.
 # Note: in case of port conflicts, you can kill all your running docker containers with:
 # docker rm -f $(docker ps -aq)
-docker compose down; docker compose up # -d for detached
+docker compose down -v; docker compose up # -d for detached
 
 # Note: we always need to call 'down' before 'up' or we'll have errors
 # when the stac database will initialize a second time.
@@ -105,15 +105,33 @@ These containers are run locally (not on a cluster). The Jupyter notebooks acces
 
 ## [TIP] to run your local rs-server code in this environment
 
-It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image.
+It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. To do this:
 
-If your local github repository is under `/my/local/rs-server`,  modify the [docker-compose.yml](resources/docker-compose.yml) file to mount into the `rs-server` services. Use absolute paths. Don't commit this modification !
-```yaml
-# e.g.
-rs-server-adgs:
-  # ...
-  volumes:
-    - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
-    - /my/local/rs-server/services/adgs/rs_server_adgs:/usr/local/lib/python3.11/site-packages/rs_server_adgs
-    # - and other config files ...
-```
+1. Go to the [./resources](resources) directory and run: `cp 'docker-compose.yml' 'docker-compose-debug.yml'`
+
+1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:
+
+    ```yaml
+    # e.g.
+    rs-server-adgs:
+      # ...
+      volumes:
+        - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
+        - /my/local/rs-server/services/adgs/rs_server_adgs:/usr/local/lib/python3.11/site-packages/rs_server_adgs
+        - /my/local/rs-server/services/adgs/config:/usr/local/lib/python3.11/site-packages/config
+        # - and any other useful files ...
+    ```
+
+1. Run the demo with:
+
+    ```bash
+    # Still from the resources directory, if you're not there yet
+    cd ./resources
+
+    # Run all services
+    docker compose down -v; \
+      docker compose \
+        -f docker-compose-debug.yml \
+        -f ./stac/stac-fastapi-pgstac/docker-compose.yml \
+        up # -d for detached
+    ```
