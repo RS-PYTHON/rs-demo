@@ -25,6 +25,7 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -50,13 +51,13 @@ services:
       - 8002:8000
     depends_on:
       - rspy-pre-actions
-      - rs-server-adgs # start servers one after another to avoid concurrent table creation in the database
     links:
       - postgres
       - minio
       - cadip-station
     # variables are set in the .env file
     environment:
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
