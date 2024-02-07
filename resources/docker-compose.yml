@@ -25,6 +25,7 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -56,6 +57,7 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

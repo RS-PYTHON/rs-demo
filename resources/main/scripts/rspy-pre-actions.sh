@@ -9,6 +9,9 @@ source /docker/compose/dir/.env
 # This is for the docker containers that will be run as non-root.
 (set -x; chmod 777 ${RSPY_WORKING_DIR})
 
+# Remove the filelock files (even if they should not cause trouble anyway)
+(set -x; rm -f ${RSPY_WORKING_DIR}/rs_server_common.db.database.lock)
+
 # The .env file defines the config file paths as they should be installed
 # inside the Docker container.
 for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG} ${RSPY_STATION_CONFIG}; do
