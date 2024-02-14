@@ -25,7 +25,6 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -57,7 +56,6 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -92,6 +90,21 @@ services:
     container_name: cadip-station
     ports:
       - 5002:5000
+
+  ##############
+  # SIMULATORS #
+  ##############
+
+  dpr-simulator:
+    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest
+    container_name: dpr-simulator
+    environment:
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   ###############
   # PRE-ACTIONS #
@@ -218,6 +231,7 @@ services:
       - minio # used to check manually the s3 bucket contents
       - prefect-server
       - prefect-agent
+      - dpr-simulator
     # variables are set in the .env file
     environment:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
@@ -230,6 +244,7 @@ services:
       PREFECT_API_URL: http://prefect-server:4200/api
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
+      - ../../rs-testmeans/src/DPR:/home/jovyan/rspy-demos/sprint5/src/DPR
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
 
