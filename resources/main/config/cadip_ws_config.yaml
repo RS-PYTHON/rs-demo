@@ -2,13 +2,11 @@
 # cadip-station = docker container name
 # 5000 = port used by the application, as seen internally from the docker compose network.
 
-CADIP:
+cadip:
   auth:
     type: GenericAuth
     method: basic
-    credentials:
-        username: test
-        password: test
+    # credentials: # set using EODAG__cadip__auth__credentials__username and __password env vars
   products:
     GENERIC_PRODUCT_TYPE:
       productType: '{productType}'
