@@ -37,9 +37,11 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
-      # Config files
+      # EODAG
       RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
       EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
+      EODAG__adgs__auth__credentials__username: test
+      EODAG__adgs__auth__credentials__password: test
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
@@ -69,9 +71,11 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
-      # Config files
+      # EODAG
       RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
+      EODAG__cadip__auth__credentials__username: test
+      EODAG__cadip__auth__credentials__password: test
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
@@ -168,7 +172,7 @@ services:
       #- PREFECT_UI_URL=http://external-ip:4200/api
       #- PREFECT_API_URL=http://external-ip:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_${POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-${POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
       # Uncomment the following line if you want to use the 'S3 Bucket' storage block instead of the older 'S3' storage
       # - EXTRA_PIP_PACKAGES=prefect-aws
     ports:
@@ -196,7 +200,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: postgres_${POSTGRES_DB}
+    container_name: postgres-${POSTGRES_DB}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     # variables are set in the .env file
