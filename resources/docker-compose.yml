@@ -151,7 +151,7 @@ services:
       #- PREFECT_UI_URL=http://external-ip:4200/api
       #- PREFECT_API_URL=http://external-ip:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_${POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-${POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
       # Uncomment the following line if you want to use the 'S3 Bucket' storage block instead of the older 'S3' storage
       # - EXTRA_PIP_PACKAGES=prefect-aws
     ports:
@@ -179,7 +179,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: postgres_${POSTGRES_DB}
+    container_name: postgres-${POSTGRES_DB}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     # variables are set in the .env file
