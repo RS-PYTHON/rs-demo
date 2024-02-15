@@ -25,6 +25,7 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -56,6 +57,7 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
+      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -105,6 +107,8 @@ services:
       S3_REGION: ${S3_REGION}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    ports:
+      - 6002:8000
 
   ###############
   # PRE-ACTIONS #
