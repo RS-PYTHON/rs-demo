@@ -11,6 +11,16 @@ services:
   # RS-SERVER #
   #############
 
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
+  rs-server-frontend:
+    image: ghcr.io/rs-python/rs-server-frontend:latest
+    container_name: rs-server-frontend
+    ports:
+      - 8000:8000
+    depends_on:
+      - rs-server-adgs
+      - rs-server-cadip
+
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
     image: ghcr.io/rs-python/rs-server-adgs:latest
