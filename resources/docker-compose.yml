@@ -79,6 +79,40 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
+
+  rs-server-catalog:
+    image: ghcr.io/rs-python/rs-server-catalog:catalog
+    container_name: rs-server-catalog
+    ports:
+      - 8003:8000
+    depends_on:
+      - catalog-db
+    links:
+      - catalog-db
+    # variables are set in the .env file
+    environment:
+      APP_HOST: ${APP_HOST}
+      APP_PORT: ${APP_PORT}
+      RELOAD: ${RELOAD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      POSTGRES_PASS: ${PGSTAC_PASS}
+      POSTGRES_HOST_READER: ${PGSTAC_HOST_READER}
+      POSTGRES_HOST_WRITER: ${PGSTAC_HOST_WRITER}
+      POSTGRES_DBNAME: ${PGSTAC_DBNAME}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY}
+      VSI_CACHE: ${VSI_CACHE}
+      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: ${GDAL_HTTP_MERGE_CONSECUTIVE_RANGES}
+      GDAL_DISABLE_READDIR_ON_OPEN: ${GDAL_DISABLE_READDIR_ON_OPEN}
+      DB_MIN_CONN_SIZE: ${DB_MIN_CONN_SIZE}
+      DB_MAX_CONN_SIZE: ${DB_MAX_CONN_SIZE}
+      USE_API_HYDRATE: ${USE_API_HYDRATE}
+      POSTGRES_USER: ${PGSTAC_USER}
+      POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
+      POSTGRES_HOST: ${PGSTAC_HOST}
+      POSTGRES_PORT: ${PGSTAC_HOST}
+      POSTGRES_DB: ${PGSTAC_DB}
+
+
   ############
   # STATIONS #
   ############
@@ -104,7 +138,6 @@ services:
   # Run a bash container as root to run custom pre-actions:
   #   - Give all permissions to the docker named volumes "rspy_working_dir"
   #   - Copy stations configuration files
-  #   - Wait for the stac service to be up
   rspy-pre-actions:
     image: bash:latest
     container_name: rspy-pre-actions
@@ -133,6 +166,20 @@ services:
       dockerfile: ./Dockerfile # relative to the context above
       args:
         catalogURL: stac-fastapi-pgstac:8082
+
+  catalog-db:
+    container_name: catalog-db
+    image: ghcr.io/stac-utils/pgstac:v0.7.10
+    environment:
+      POSTGRES_USER: ${PGSTAC_USER}
+      POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
+      POSTGRES_DB: ${PGSTAC_DB}
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGDATABASE: ${PGSTAC_DB}
+    ports:
+      - ${PGSTAC_PORT}:5432
+    command: postgres -N 500
 
   ###########
   # PREFECT #
