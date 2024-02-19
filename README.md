@@ -6,7 +6,10 @@ Prerequisites to run the demos locally using Jupyter Notebook:
 
   * You have Docker installed on your system, see: https://docs.docker.com/engine/install/
   * You have access to the RSPY project on GitHub: https://github.com/RS-PYTHON
-  * You have created a personnal access token (PAT) on GitHub: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+  * You have created a personal access token (PAT) on GitHub: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+
+    This access token is used to retrieve the rs-server product on the github repository.
+    You may want to create a classic PAT withthe read:packages permissions.
   * You have checked out this git project and submodules and built docker images:
 
     ```bash
@@ -19,12 +22,6 @@ Prerequisites to run the demos locally using Jupyter Notebook:
 
     # Checkout the git stac submodules (can take a few minutes)
     git submodule update --init --recursive
-
-    # We need to be in the right directory to run docker compose build
-    # to build the stac docker image
-    cd ./resources/stac/stac-fastapi-pgstac
-    docker compose build # can take a few minutes
-    cd - # back to previous dir
     ```
 
 ## Run the demos
