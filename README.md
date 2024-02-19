@@ -9,7 +9,7 @@ Prerequisites to run the demos locally using Jupyter Notebook:
   * You have created a personal access token (PAT) on GitHub: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 
     This access token is used to retrieve the rs-server product on the github repository.
-    You may want to create a classic PAT withthe read:packages permissions.
+    You may want to create a classic PAT with the read:packages permissions.
   * You have checked out this git project and submodules and built docker images:
 
     ```bash

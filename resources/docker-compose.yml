@@ -109,7 +109,7 @@ services:
       POSTGRES_USER: ${PGSTAC_USER}
       POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
       POSTGRES_HOST: ${PGSTAC_HOST}
-      POSTGRES_PORT: ${PGSTAC_HOST}
+      POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_DB: ${PGSTAC_DB}
 
 
@@ -171,6 +171,8 @@ services:
     container_name: catalog-db
     image: ghcr.io/stac-utils/pgstac:v0.7.10
     environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
       POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
       POSTGRES_DB: ${PGSTAC_DB}
