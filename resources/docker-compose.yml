@@ -79,9 +79,8 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
-
   rs-server-catalog:
-    image: ghcr.io/rs-python/rs-server-catalog:catalog
+    image: ghcr.io/rs-python/rs-server-catalog:latest
     container_name: rs-server-catalog
     ports:
       - 8003:8000
