@@ -24,7 +24,3 @@ for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG} ${RSPY_STATION_C
     (set -x; cp -f ${source_config} ${target_config})
     
 done
-
-# Wait for the stac service to be up. 
-# It is defined in rs-demo/resources/stac/stac-fastapi-pgstac/docker-compose.yml
-/docker/compose/dir/stac/stac-fastapi-pgstac/scripts/wait-for-it.sh stac-fastapi-pgstac:8082
