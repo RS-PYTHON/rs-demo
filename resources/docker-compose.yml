@@ -89,6 +89,24 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
+  #########################
+  # RS-SERVER WHL INSTALL #
+  #########################
+
+  # From: https://github.com/RS-PYTHON/rs-server-libraries/blob/feat/add-ci-for-github/rs_workflows/.github/Dockerfile
+  rs-workflows:
+    image: ghcr.io/rs-python/rs-server-libraries-rs_workflows:latest
+    container_name: rs-workflows
+    depends_on:
+      - rspy-pre-actions    
+    environment:
+      RSPY_WHL_DIR: ${RSPY_WHL_DIR} # = ${RSPY_WORKING_DIR}/whl (variables are set in the .env file)
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    # Copy the .whl files from the docker image into the volume
+    entrypoint: /bin/bash
+    command: -c "set -x; mkdir -p ${RSPY_WHL_DIR} && cp -t ${RSPY_WHL_DIR} /dist/whl/*.whl"
+
   ############
   # STATIONS #
   ############
@@ -235,6 +253,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
