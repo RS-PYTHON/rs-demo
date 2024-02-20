@@ -86,32 +86,32 @@ services:
     ports:
       - 8003:8000
     depends_on:
-      - catalog-db
+      catalog-db:
+        condition: service_healthy
     links:
       - catalog-db
     # variables are set in the .env file
     environment:
-      APP_HOST: ${APP_HOST}
-      APP_PORT: ${APP_PORT}
-      RELOAD: ${RELOAD}
-      ENVIRONMENT: ${ENVIRONMENT}
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+#      RELOAD: false
+#      ENVIRONMENT: local
       POSTGRES_PASS: ${PGSTAC_PASS}
-      POSTGRES_HOST_READER: ${PGSTAC_HOST_READER}
-      POSTGRES_HOST_WRITER: ${PGSTAC_HOST_WRITER}
-      POSTGRES_DBNAME: ${PGSTAC_DBNAME}
-      WEB_CONCURRENCY: ${WEB_CONCURRENCY}
-      VSI_CACHE: ${VSI_CACHE}
-      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: ${GDAL_HTTP_MERGE_CONSECUTIVE_RANGES}
-      GDAL_DISABLE_READDIR_ON_OPEN: ${GDAL_DISABLE_READDIR_ON_OPEN}
-      DB_MIN_CONN_SIZE: ${DB_MIN_CONN_SIZE}
-      DB_MAX_CONN_SIZE: ${DB_MAX_CONN_SIZE}
-      USE_API_HYDRATE: ${USE_API_HYDRATE}
+      POSTGRES_HOST_READER: ${PGSTAC_HOST}
+      POSTGRES_HOST_WRITER: ${PGSTAC_HOST}
+      POSTGRES_DBNAME: ${PGSTAC_DB}
+#      WEB_CONCURRENCY: 10
+#      VSI_CACHE: TRUE
+      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
+      GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
+      DB_MIN_CONN_SIZE: 1
+      DB_MAX_CONN_SIZE: 1
+      USE_API_HYDRATE: false
       POSTGRES_USER: ${PGSTAC_USER}
       POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
       POSTGRES_HOST: ${PGSTAC_HOST}
-      POSTGRES_PORT: ${PGSTAC_PORT}
+      POSTGRES_PORT: 5432
       POSTGRES_DB: ${PGSTAC_DB}
-
 
   ############
   # STATIONS #
@@ -182,6 +182,11 @@ services:
     ports:
       - ${PGSTAC_PORT}:5432
     command: postgres -N 500
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   ###########
   # PREFECT #
