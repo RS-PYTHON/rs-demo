@@ -1,6 +1,3 @@
 [submodule "resources/stac/stac-browser"]
 	path = resources/stac/stac-browser
 	url = https://github.com/radiantearth/stac-browser.git
-[submodule "resources/stac/stac-fastapi-pgstac"]
-	path = resources/stac/stac-fastapi-pgstac
-	url = https://github.com/stac-utils/stac-fastapi-pgstac.git

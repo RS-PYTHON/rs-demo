@@ -11,6 +11,16 @@ services:
   # RS-SERVER #
   #############
 
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
+  rs-server-frontend:
+    image: ghcr.io/rs-python/rs-server-frontend:latest
+    container_name: rs-server-frontend
+    ports:
+      - 8000:8000
+    depends_on:
+      - rs-server-adgs
+      - rs-server-cadip
+
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
     image: ghcr.io/rs-python/rs-server-adgs:latest
@@ -79,6 +89,57 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
+  rs-server-catalog:
+    image: ghcr.io/rs-python/rs-server-catalog:latest
+    container_name: rs-server-catalog
+    ports:
+      - 8003:8000
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    links:
+      - catalog-db
+    # variables are set in the .env file
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+#      RELOAD: false
+#      ENVIRONMENT: local
+      POSTGRES_PASS: ${PGSTAC_PASS}
+      POSTGRES_HOST_READER: ${PGSTAC_HOST}
+      POSTGRES_HOST_WRITER: ${PGSTAC_HOST}
+      POSTGRES_DBNAME: ${PGSTAC_DB}
+#      WEB_CONCURRENCY: 10
+#      VSI_CACHE: TRUE
+      GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
+      GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
+      DB_MIN_CONN_SIZE: 1
+      DB_MAX_CONN_SIZE: 1
+      USE_API_HYDRATE: false
+      POSTGRES_USER: ${PGSTAC_USER}
+      POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
+      POSTGRES_HOST: ${PGSTAC_HOST}
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${PGSTAC_DB}
+
+  #########################
+  # RS-SERVER WHL INSTALL #
+  #########################
+
+  # From: https://github.com/RS-PYTHON/rs-server-libraries/blob/feat/add-ci-for-github/rs_workflows/.github/Dockerfile
+  rs-workflows:
+    image: ghcr.io/rs-python/rs-server-libraries-rs_workflows:latest
+    container_name: rs-workflows
+    depends_on:
+      - rspy-pre-actions    
+    environment:
+      RSPY_WHL_DIR: ${RSPY_WHL_DIR} # = ${RSPY_WORKING_DIR}/whl (variables are set in the .env file)
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    # Copy the .whl files from the docker image into the volume
+    entrypoint: /bin/bash
+    command: -c "set -x; mkdir -p ${RSPY_WHL_DIR} && cp -t ${RSPY_WHL_DIR} /dist/whl/*.whl"
+
   ############
   # STATIONS #
   ############
@@ -121,7 +182,6 @@ services:
   # Run a bash container as root to run custom pre-actions:
   #   - Give all permissions to the docker named volumes "rspy_working_dir"
   #   - Copy stations configuration files
-  #   - Wait for the stac service to be up
   rspy-pre-actions:
     image: bash:latest
     container_name: rspy-pre-actions
@@ -150,6 +210,27 @@ services:
       dockerfile: ./Dockerfile # relative to the context above
       args:
         catalogURL: stac-fastapi-pgstac:8082
+
+  catalog-db:
+    container_name: catalog-db
+    image: ghcr.io/stac-utils/pgstac:v0.7.10
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${PGSTAC_PORT}
+      POSTGRES_USER: ${PGSTAC_USER}
+      POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
+      POSTGRES_DB: ${PGSTAC_DB}
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGDATABASE: ${PGSTAC_DB}
+    ports:
+      - ${PGSTAC_PORT}:5432
+    command: postgres -N 500
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   ###########
   # PREFECT #
@@ -243,6 +324,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
