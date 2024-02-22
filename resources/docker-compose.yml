@@ -335,8 +335,6 @@ services:
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      - ../../rs-server/libraries/rs_workflows/:/home/jovyan/rspy-demos/sprint5/rs_workflows/
-
 
 # Docker named volumes
 volumes:
