@@ -165,7 +165,7 @@ services:
       context: ./stac/stac-browser
       dockerfile: ./Dockerfile # relative to the context above
       args:
-        catalogURL: stac-fastapi-pgstac:8082
+        catalogURL: "http://127.0.0.1:8003/catalog/esmeralda"
 
   catalog-db:
     container_name: catalog-db
