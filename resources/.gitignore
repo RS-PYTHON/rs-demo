@@ -1,2 +1,3 @@
  # local modifications for debugging
+/docker-compose-auth.yml
 /docker-compose-debug.yml
