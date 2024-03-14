@@ -126,6 +126,11 @@ services:
       POSTGRES_HOST: ${PGSTAC_HOST}
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${PGSTAC_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
 
   #########################
   # RS-SERVER WHL INSTALL #
