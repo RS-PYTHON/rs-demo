@@ -11,6 +11,18 @@ services:
   # RS-SERVER #
   #############
 
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
+  rs-server-frontend:
+    image: ghcr.io/rs-python/rs-server-frontend:latest
+    container_name: rs-server-frontend
+    ports:
+      - 8000:8000
+    depends_on:
+      - rs-server-adgs
+      - rs-server-cadip
+    environment:
+      RSPY_LOCAL_MODE: 1
+
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
     image: ghcr.io/rs-python/rs-server-adgs:latest
@@ -25,6 +37,7 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -59,6 +72,7 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -79,9 +93,8 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
-
   rs-server-catalog:
-    image: ghcr.io/rs-python/rs-server-catalog:catalog
+    image: ghcr.io/rs-python/rs-server-catalog:latest
     container_name: rs-server-catalog
     ports:
       - 8003:8000
@@ -92,6 +105,7 @@ services:
       - catalog-db
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
 #      RELOAD: false
@@ -113,6 +127,24 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${PGSTAC_DB}
 
+  #########################
+  # RS-SERVER WHL INSTALL #
+  #########################
+
+  # From: https://github.com/RS-PYTHON/rs-server-libraries/blob/feat/add-ci-for-github/rs_workflows/.github/Dockerfile
+  rs-workflows:
+    image: ghcr.io/rs-python/rs-server-libraries-rs_workflows:latest
+    container_name: rs-workflows
+    depends_on:
+      - rspy-pre-actions    
+    environment:
+      RSPY_WHL_DIR: ${RSPY_WHL_DIR} # = ${RSPY_WORKING_DIR}/whl (variables are set in the .env file)
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    # Copy the .whl files from the docker image into the volume
+    entrypoint: /bin/bash
+    command: -c "set -x; mkdir -p ${RSPY_WHL_DIR} && cp -t ${RSPY_WHL_DIR} /dist/whl/*.whl"
+
   ############
   # STATIONS #
   ############
@@ -130,6 +162,23 @@ services:
     container_name: cadip-station
     ports:
       - 5002:5000
+
+  ##############
+  # SIMULATORS #
+  ##############
+
+  dpr-simulator:
+    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest
+    container_name: dpr-simulator
+    environment:
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    ports:
+      - 6002:8000
 
   ###############
   # PRE-ACTIONS #
@@ -276,9 +325,11 @@ services:
       - minio # used to check manually the s3 bucket contents
       - prefect-server
       - prefect-agent
+      - dpr-simulator
     # variables are set in the .env file
     environment:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
@@ -289,7 +340,6 @@ services:
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-
 
 # Docker named volumes
 volumes:
