@@ -20,6 +20,8 @@ services:
     depends_on:
       - rs-server-adgs
       - rs-server-cadip
+    environment:
+      RSPY_LOCAL_MODE: 1
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
@@ -35,6 +37,7 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -69,6 +72,7 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -101,6 +105,7 @@ services:
       - catalog-db
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
 #      RELOAD: false
