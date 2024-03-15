@@ -4,7 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
-
+# before connecting to the catalog database, some time isneeded for the database to start
+# fix github error: failed: FATAL:  the database system is starting up
+sleep 10
 # For each demo notebook
 for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
     # The 'items' table from catalog has to be truncated before running 
