@@ -1,9 +1,8 @@
 version: '3'
 
-# Use the same network as the stac docker compose
 networks:
   default:
-    name: stac-fastapi-network
+    name: rspy-network
 
 services:
 
@@ -17,11 +16,6 @@ services:
     container_name: rs-server-frontend
     ports:
       - 8000:8000
-    depends_on:
-      - rs-server-adgs
-      - rs-server-cadip
-    environment:
-      RSPY_LOCAL_MODE: 1
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:

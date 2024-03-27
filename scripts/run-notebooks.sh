@@ -13,7 +13,7 @@ for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*ch
     # Read the environment variables before running the notebook.
     (set -x; 
         docker run --rm \
-            --network stac-fastapi-network \
+            --network rspy-network \
             -v $ROOT_DIR:$ROOT_DIR \
             -v rspy-demo_rspy_working_dir:/rspy/working/dir \
             jupyter/minimal-notebook \
