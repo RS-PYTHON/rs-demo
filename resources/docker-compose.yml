@@ -333,6 +333,7 @@ services:
       - dpr-simulator
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # s3 bucket
