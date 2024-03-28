@@ -138,7 +138,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server-libraries/blob/feat/add-ci-for-github/rs_workflows/.github/Dockerfile
   rs-workflows:
-    image: ghcr.io/rs-python/rs-server-libraries-rs_workflows:latest
+    image: ghcr.io/rs-python/rs-client-libraries-rs_workflows:latest
     container_name: rs-workflows
     depends_on:
       - rspy-pre-actions    
@@ -333,6 +333,7 @@ services:
       - dpr-simulator
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # s3 bucket
