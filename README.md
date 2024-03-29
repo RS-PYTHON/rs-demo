@@ -1,8 +1,12 @@
 # rs-demo
 
-## Prerequisites
+The demos are implemented as Jupyter notebooks.
 
-Prerequisites to run the demos locally using Jupyter Notebook: 
+## Run on local mode
+
+On local mode, docker-compose and Docker images are used to run services and libraries locally (not on a cluster). There is no authentication for this mode.
+
+### Prerequisites
 
   * You have Docker installed on your system, see: https://docs.docker.com/engine/install/
   * You have access to the RSPY project on GitHub: https://github.com/RS-PYTHON
@@ -24,7 +28,7 @@ Prerequisites to run the demos locally using Jupyter Notebook:
     git submodule update --init --recursive
     ```
 
-## Run the demos
+### Run the demos on local mode
 
 To pull the latest Docker images, run:
 
@@ -132,3 +136,32 @@ It can be helpful to use your last rs-server code version to debug it or to test
         -f ./stac/stac-fastapi-pgstac/docker-compose.yml \
         up # -d for detached
     ```
+
+## Run on cluster mode
+
+On cluster mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
+
+### Prerequisites
+
+  * You have access to the rs-server website: https://dev-rspy.esa-copernicus.eu
+  * You have saved the S3 bucket configuration in you local file: `~/.s3cfg`
+  * You have python installed on your system
+  * You have installed Jupyter Lab (`pip install jupyterlab`)
+  * You have installed the rs-client project with either:
+
+    * `pip install rs_client_libraries-*.whl` (to install a static release) or
+    * `pip install -e /path/to/local/project/rs-client-libraries` (to install dynamically from the source code, if you have access to it)
+
+  * You have generated an API key from https://dev-rspy.esa-copernicus.eu/docs
+
+### Run the demos on cluster mode
+
+From your terminal in the rs-demo, run:
+
+```bash
+cd ./scripts
+export RSPY_APIKEY=your_api_key # see the prerequisites
+./start-jupyterlab-for-cluster-mode.sh
+```
+
+The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
