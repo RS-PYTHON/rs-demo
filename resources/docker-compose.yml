@@ -199,21 +199,32 @@ services:
   # STAC #
   ########
 
-  # Note: the stac-fastapi-pgstac service is implemented in
-  # rs-demo/resources/stac/stac-fastapi-pgstac/docker-compose.yml
+  # To build it manually... then run this to push it into ghcr.io:
+  #
+  # docker tag stac-browser:v1 ghcr.io/rs-python/stac-browser:v1
+  # docker login https://ghcr.io/v2/rs-python
+  # docker push ghcr.io/rs-python/stac-browser:v1
+  #
+  # stac-browser:
+  #   image: stac-browser:v1
+  #   container_name: stac-browser
+  #   ports: 
+  #     - ${STAC_BROWSER_PORT}:8080
+  #   depends_on:
+  #     - rspy-pre-actions # wait for the stac service to be up
+  #   build:
+  #     context: ./stac/stac-browser
+  #     dockerfile: ./Dockerfile # relative to the context above
+  #     args:
+  #       catalogURL: "http://127.0.0.1:8003/catalog/any_owner"
 
   stac-browser:
-    image: stac-browser:v1
+    image: ghcr.io/rs-python/stac-browser:v1
     container_name: stac-browser
     ports: 
       - ${STAC_BROWSER_PORT}:8080
     depends_on:
       - rspy-pre-actions # wait for the stac service to be up
-    build:
-      context: ./stac/stac-browser
-      dockerfile: ./Dockerfile # relative to the context above
-      args:
-        catalogURL: "http://127.0.0.1:8003/catalog/esmeralda"
 
   catalog-db:
     container_name: catalog-db

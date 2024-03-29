@@ -33,7 +33,7 @@ jobs:
 
           # From the resources directory, pull the images
           cd ${GITHUB_WORKSPACE}/resources
-          docker compose pull || true # ignore stac warnings about the docker images we built above
+          docker compose pull || true # ignore stac warnings about the docker images we will build with 'docker compose up'
 
           # Run all services
           docker compose down; docker compose up -d
