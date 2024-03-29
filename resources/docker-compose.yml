@@ -136,7 +136,7 @@ services:
   # RS-SERVER WHL INSTALL #
   #########################
 
-  # From: https://github.com/RS-PYTHON/rs-server-libraries/blob/feat/add-ci-for-github/rs_workflows/.github/Dockerfile
+  # From: https://github.com/RS-PYTHON/rs-client-libraries/blob/develop/rs_workflows/.github/Dockerfile
   rs-workflows:
     image: ghcr.io/rs-python/rs-client-libraries-rs_workflows:latest
     container_name: rs-workflows
