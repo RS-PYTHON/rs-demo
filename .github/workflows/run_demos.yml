@@ -38,7 +38,6 @@ jobs:
           # Run all services
           docker compose down; docker compose up -d
           docker compose ls
-          sleep 5 # wait that all services are up before running the notebooks
 
           # Run all demos
           ${GITHUB_WORKSPACE}/scripts/run-notebooks.sh

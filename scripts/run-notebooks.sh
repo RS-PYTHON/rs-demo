@@ -7,9 +7,30 @@ set -euo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
 
-# before connecting to the catalog database, some time isneeded for the database to start
-# fix github error: failed: FATAL:  the database system is starting up
-sleep 10
+# By default, we are on local mode
+[[ -z "${RSPY_LOCAL_MODE:-}" ]] && export RSPY_LOCAL_MODE=1
+
+# On local mode
+if [[ "$RSPY_LOCAL_MODE" == "1" ]]; then
+
+    # Call the health endpoint until it returns a status code OK
+    wait_for_service() {
+
+        port="$1"
+        health="$2"
+        
+        local i=0
+        while [[ ! $(set -x; curl "localhost:$port/$health" 2>/dev/null) ]]; do
+            sleep 2
+            i=$((i+1)); ((i>=10)) && >&2 echo "Error reaching 'localhost:$port/$health'" && exit 1
+        done
+        return 0
+    }
+    # Same ports as in docker-compose.yml
+    wait_for_service 8001 "health" # adgs
+    wait_for_service 8002 "health" # cadip
+    wait_for_service 8003 "_mgmt/ping" # catalog
+fi
 
 # For each demo notebook
 for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
@@ -18,9 +39,12 @@ for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*ch
     # a new notebook (even if the demo is not using the catalog)
     # If this isn't done, the demos that are using the catalog and buckets will fail 
     # the second time they are run, without shutting down the containers
-    (set -x; 
-        docker exec catalog-db psql -U postgres -d catalog -c "TRUNCATE items"
-    )
+    # (set -x; 
+    #     docker exec catalog-db psql -U postgres -d catalog -c "TRUNCATE items"
+    # )
+    #
+    # Julien's note: instead, clean the catalog at the start of each demo using rspy code and http endpoints.
+    # When running on the cluster, we can't clean the database deployed on the cluster.
 
     # Run the notebook from a container, in the same network than the docker-compose,
     # with the same options than the jupyter service in the docker-compose.
@@ -28,6 +52,7 @@ for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*ch
     (set -x; 
         docker run --rm \
             --network rspy-network \
+            -e RSPY_LOCAL_MODE \
             -v $ROOT_DIR:$ROOT_DIR \
             -v rspy-demo_rspy_working_dir:/rspy/working/dir \
             jupyter/minimal-notebook \
