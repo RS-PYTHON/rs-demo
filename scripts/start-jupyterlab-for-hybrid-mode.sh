@@ -22,7 +22,7 @@ if ! python -c "import rs_workflows" >/dev/null 2>&1; then
     exit 1
 fi
 
-# As we use the cluster mode, we can set local mode to false
+# As we use the cluster, we can set local mode to false
 export RSPY_LOCAL_MODE=0
 
 # Set the URLs to use in environment variables
@@ -57,7 +57,13 @@ if [[ -z "${S3_ACCESSKEY:-}" || -z "${S3_SECRETKEY:-}" || -z "${S3_ENDPOINT:-}" 
     exit 1
 fi
 
+# Run only the stac browser locally from the docker-compose
+(cd "${ROOT_DIR}/resources" && docker compose up stac-browser -d)
+
 # Run jupyter lab on the 'sprints' directory. 
 # Run Ctrl-C to exit.
 jupyter lab "${ROOT_DIR}/sprints"
+
+# Shutdown the stac browser
+(cd "${ROOT_DIR}/resources" && docker compose down)
 
