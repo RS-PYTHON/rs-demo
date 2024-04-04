@@ -165,3 +165,5 @@ export RSPY_APIKEY=your_api_key # see the prerequisites
 ```
 
 The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
+
+*WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
