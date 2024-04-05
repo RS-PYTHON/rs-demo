@@ -27,11 +27,10 @@ export RSPY_LOCAL_MODE=0
 
 # Set the URLs to use in environment variables
 export RSPY_WEBSITE="https://dev-rspy.esa-copernicus.eu"
-export RSPY_WEBSITE_SWAGGER="${RSPY_WEBSITE}/docs"
 
 # We need an API key to authenticate to the HTTP endpoints
 if [[ -z "${RSPY_APIKEY:-}" ]]; then
-    >&2 echo "Generate an API key from '$RSPY_WEBSITE_SWAGGER' then run 'export RSPY_APIKEY=your_api_key'"
+    >&2 echo "Generate an API key from '$RSPY_WEBSITE' then run 'export RSPY_APIKEY=your_api_key'"
     exit 1
 fi
 
@@ -57,13 +56,16 @@ if [[ -z "${S3_ACCESSKEY:-}" || -z "${S3_SECRETKEY:-}" || -z "${S3_ENDPOINT:-}" 
     exit 1
 fi
 
-# Run only the stac browser locally from the docker-compose
-(cd "${ROOT_DIR}/resources" && docker compose up stac-browser -d)
+# Run docker container services (prefect and stac browser) on 'network_mode: host'
+(cd "${SCRIPT_DIR}" && docker compose down -v; docker compose up -d)
+
+# Now prefect server and agent run locally as docker containers
+export PREFECT_API_URL=http://localhost:4200/api
 
 # Run jupyter lab on the 'sprints' directory. 
 # Run Ctrl-C to exit.
 jupyter lab "${ROOT_DIR}/sprints"
 
-# Shutdown the stac browser
-(cd "${ROOT_DIR}/resources" && docker compose down)
+# Shutdown the docker containers
+(cd "${SCRIPT_DIR}" && docker compose down -v)
 

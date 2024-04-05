@@ -159,9 +159,8 @@ On cluster mode, we run the Jupyter notebooks locally, but they connect to the s
 From your terminal in the rs-demo, run:
 
 ```bash
-cd ./scripts
 export RSPY_APIKEY=your_api_key # see the prerequisites
-./start-jupyterlab-for-cluster-mode.sh
+./hybrid-mode/start-jupyterlab.sh
 ```
 
 The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
