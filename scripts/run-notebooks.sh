@@ -56,6 +56,6 @@ for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*ch
             -v $ROOT_DIR:$ROOT_DIR \
             -v rspy-demo_rspy_working_dir:/rspy/working/dir \
             jupyter/minimal-notebook \
-            bash -c "source ${ROOT_DIR}/resources/.env && jupyter execute $notebook"
+            bash -c "source ${ROOT_DIR}/local-mode/.env && jupyter execute $notebook"
     )
 done
