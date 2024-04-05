@@ -27,18 +27,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init environment and run all demos
+      - name: Init environment and run all demos in local mode
         run: |
           set -x
 
-          # From the resources directory, pull the images
-          cd ${GITHUB_WORKSPACE}/resources
-          docker compose pull || true # ignore stac warnings about the docker images we will build with 'docker compose up'
+          # From the local-mode directory, pull the images
+          cd ${GITHUB_WORKSPACE}/local-mode
+          docker compose pull
 
           # Run all services
           docker compose down; docker compose up -d
           docker compose ls
-          sleep 5 # wait that all services are up before running the notebooks
 
           # Run all demos
           ${GITHUB_WORKSPACE}/scripts/run-notebooks.sh

@@ -38,8 +38,8 @@ To pull the latest Docker images, run:
 # Password: your personnal access token (PAT) created above
 docker login https://ghcr.io/v2/rs-python
 
-# From the resources directory, pull the images
-cd ./resources
+# From the local-mode directory, pull the images
+cd ./local-mode
 docker compose pull
 
 # Note: we have a warning 'pull access denied for stac-utils/stac-fastapi-pgstac'
@@ -49,8 +49,8 @@ docker compose pull
 Then to run the demos:
 
 ```bash
-# Still from the resources directory, if you're not there yet
-cd ./resources
+# Still from the local-mode directory, if you're not there yet
+cd ./local-mode
 
 # Run all services.
 # Note: in case of port conflicts, you can kill all your running docker containers with:
@@ -90,7 +90,7 @@ docker volume prune
 
 ## How does it work
 
-The [docker-compose.yml](resources/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
+The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
 
   * The latest rs-server images available:
     * Built from the CI/CD: https://github.com/RS-PYTHON/rs-server/actions/workflows/publish-binaries.yml
@@ -108,7 +108,7 @@ These containers are run locally (not on a cluster). The Jupyter notebooks acces
 
 It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. To do this:
 
-1. Go to the [./resources](resources) directory and run: `cp 'docker-compose.yml' 'docker-compose-debug.yml'`
+1. Go to the [./local-mode](local-mode) directory and run: `cp 'docker-compose.yml' 'docker-compose-debug.yml'`
 
 1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:
 
@@ -126,8 +126,8 @@ It can be helpful to use your last rs-server code version to debug it or to test
 1. Run the demo with:
 
     ```bash
-    # Still from the resources directory, if you're not there yet
-    cd ./resources
+    # Still from the local-mode directory, if you're not there yet
+    cd ./local-mode
 
     # Run all services
     docker compose down -v; \
@@ -154,14 +154,15 @@ On cluster mode, we run the Jupyter notebooks locally, but they connect to the s
 
   * You have generated an API key from https://dev-rspy.esa-copernicus.eu/docs
 
-### Run the demos on cluster mode
+### Run the demos on hybrid mode
 
 From your terminal in the rs-demo, run:
 
 ```bash
-cd ./scripts
 export RSPY_APIKEY=your_api_key # see the prerequisites
-./start-jupyterlab-for-cluster-mode.sh
+./hybrid-mode/start-jupyterlab.sh
 ```
 
 The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
+
+*WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
