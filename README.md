@@ -41,9 +41,6 @@ docker login https://ghcr.io/v2/rs-python
 # From the local-mode directory, pull the images
 cd ./local-mode
 docker compose pull
-
-# Note: we have a warning 'pull access denied for stac-utils/stac-fastapi-pgstac'
-# that is normal: we built this image manually in the prerequisites.
 ```
 
 Then to run the demos:
