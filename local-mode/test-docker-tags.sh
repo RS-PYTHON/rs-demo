@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Run on a modified local mode to test new Docker image tags
+# Run a modified local mode to test new Docker image tags
 
 set -euo pipefail
 
@@ -14,8 +14,8 @@ if [[ -z "$tag" || "$tag" == *"-h"* ]]; then
     exit 1
 fi
 
-# Manual login to our container registry
-docker login https://ghcr.io/v2/rs-python
+# Manual login to our container registry (only from a terminal)
+[[ -t 1 ]] && docker login https://ghcr.io/v2/rs-python
 
 # Go to the local-mode directory, copy the docker-compose.yml file.
 cd "${ROOT_DIR}/local-mode"
@@ -28,6 +28,8 @@ cp "docker-compose.yml" "$dc_file"
 # Get all these docker images
 all_images=$(sed -n "s|.*image:\s*\(ghcr.io/rs-python.\S*\).*|\1|p" ../local-mode/docker-compose.yml)
 echo -e "\nCheck for docker image tag '$tag' for:\n$all_images\n"
+
+echo -e "NOTE: if the below 'docker manifest inspect' commands freeze, hit ctrl-c and run the script again.\n"
 
 # For each line
 while IFS= read -r old_image ; do
@@ -61,6 +63,8 @@ done <<< "$all_images"
 
 # Pull these images
 (set -x; docker compose -f "$dc_file" pull)
+
+# Show usage
 echo -e "\nRun with:
 cd '$(pwd)'
 docker compose -f $dc_file down -v; docker compose -f $dc_file up # -d for detached\n"
