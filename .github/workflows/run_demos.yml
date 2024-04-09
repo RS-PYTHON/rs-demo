@@ -4,9 +4,6 @@ on:
   push:
   workflow_dispatch:
 
-    # TODO ? versions as parameters
-    # https://damienaicheh.github.io/github/actions/2022/01/20/set-dynamic-parameters-github-workflows-en.html
-
 env:
   DOCKER_REGISTRY: ghcr.io
 
@@ -31,16 +28,28 @@ jobs:
         run: |
           set -x
 
-          # From the local-mode directory, pull the images
+          # We want to use docker images with tag=this_branch_name.
+          branch_name=${{ github.ref_name }}
+
+          # For main or develop, use the :latest image tags
+          if [[ "$branch_name" == "main" || "$branch_name" == "develop" ]]; then
+            docker_tag=latest
+
+          # Else, replace special characters by -
+          else
+            docker_tag=$(sed "s/[^a-zA-Z0-9]/-/g" <<< "$branch_name")
+          fi
+
+          # Run the rs-demo local mode using these docker images, if they exist
           cd ${GITHUB_WORKSPACE}/local-mode
-          docker compose pull
+          ./test-docker-tags.sh "$docker_tag"
 
           # Run all services
           docker compose down; docker compose up -d
           docker compose ls
 
           # Run all demos
-          ${GITHUB_WORKSPACE}/scripts/run-notebooks.sh
+          ./run-notebooks.sh
           
           # Shutdown docker services and volumes
           docker compose down -v
