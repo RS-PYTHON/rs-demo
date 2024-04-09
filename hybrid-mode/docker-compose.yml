@@ -1,12 +1,11 @@
-
-# Note: we use the same container as for the local mode
-# but we run them on network:host
+networks:
+  default:
+    name: rspy-network
 
 services:
 
   stac-browser:
     image: ghcr.io/rs-python/stac-browser:v1
-    network_mode: host
     container_name: stac-browser
     ports: 
       - ${STAC_BROWSER_PORT}:8080
@@ -14,7 +13,6 @@ services:
   ### Prefect Server API and UI
   prefect-server:
     image: prefecthq/prefect:2.11.5-python3.11
-    network_mode: host
     restart: always
     volumes:
       - prefect_storage:/root/.prefect
@@ -27,36 +25,31 @@ services:
       #- PREFECT_UI_URL=http://external-ip:4200/api
       #- PREFECT_API_URL=http://external-ip:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
-      # note: with 'network_mode: host', use localhost instead of postgres container name
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-${POSTGRES_DB}:${POSTGRES_PORT}/${POSTGRES_DB}
       # Uncomment the following line if you want to use the 'S3 Bucket' storage block instead of the older 'S3' storage
       # - EXTRA_PIP_PACKAGES=prefect-aws
     ports:
       - 4200:4200
-    depends_on: # note: with 'network_mode: host', use 'depends_on' instead of 'links'
-      postgres:
-        condition: service_healthy
+    links:
+      - postgres
     # profiles: ["server"]
 
   ## Prefect Agent
   prefect-agent:
     image: prefecthq/prefect:2.11.5-python3.11
-    network_mode: host
     restart: always
     entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "agent", "start", "-q", "YOUR_WORK_QUEUE_NAME"]
     environment:
-      # note: with 'network_mode: host', use localhost instead of prefect-server container name
-      - PREFECT_API_URL=http://localhost:4200/api
+      - PREFECT_API_URL=http://prefect-server:4200/api
 #       Use PREFECT_API_KEY if connecting the agent to Prefect Cloud
 #     - PREFECT_API_KEY=YOUR_API_KEY
-    depends_on: # note: with 'network_mode: host', use 'depends_on' instead of 'links'
+    links:
       - prefect-server
     # profiles: ["agent"]
 
   # Used only by prefect
   postgres:
     image: postgres:15-alpine
-    network_mode: host
     container_name: postgres-${POSTGRES_DB}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
