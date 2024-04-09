@@ -18,7 +18,7 @@ prefect-dask = "^0.2.6"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
+pytest = "^8.1.0"
 
 [build-system]
 requires = ["poetry-core"]

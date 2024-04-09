@@ -1,0 +1,2 @@
+ # local modifications for debugging
+/docker-compose-debug*.yml
