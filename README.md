@@ -23,9 +23,6 @@ On local mode, docker-compose and Docker images are used to run services and lib
     # Get last version
     cd rs-demo
     git checkout main
-
-    # Checkout the git stac submodules (can take a few minutes)
-    git submodule update --init --recursive
     ```
 
 ### Run the demos on local mode
@@ -85,7 +82,7 @@ docker compose down -v
 docker volume prune
 ```
 
-## How does it work
+### How does it work
 
 The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
 
@@ -101,7 +98,7 @@ The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images 
 
 These containers are run locally (not on a cluster). The Jupyter notebooks accessed from http://127.0.0.1:8888 are run from the containerized Jupyter server, not from your local environment. This Jupyter environment contains all the Python modules required to call the rs-server HTTP endpoints.
 
-## [TIP] to run your local rs-server code in this environment
+### [TIP] to run your local rs-server code in this environment
 
 It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. To do this:
 
@@ -170,8 +167,12 @@ From your terminal in the rs-demo, run:
 ```bash
 export RSPY_APIKEY=your_api_key # see the prerequisites
 
+# NOTE: at CS France premises, use this to deactivate the proxy which causes random errors
+unset no_proxy ftp_proxy https_proxy http_proxy
+
 # To use your local rs-client-libraries source code
 cd /path/to/rs-client-libraries
+# git checkout develop && git pull # maybe take the latest default branch
 poetry run /path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
 
 # Or if you have installed it from rs_client_libraries-*.whl, 
@@ -183,7 +184,7 @@ The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser.
 
 *WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
 
-### Tip: check your Python interpreter used in notebooks
+### [TIP] check your Python interpreter used in notebooks
 
 In a notebook cell, run: 
 ```python
