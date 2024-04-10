@@ -197,11 +197,9 @@ services:
   # STAC #
   ########
 
-  # To build it manually... then run this to push it into ghcr.io:
-  #
-  # docker tag stac-browser:v1 ghcr.io/rs-python/stac-browser:v1
-  # docker login https://ghcr.io/v2/rs-python
-  # docker push ghcr.io/rs-python/stac-browser:v1
+  # To build it manually... 
+  # Run: git submodule update --init --recursive
+  # Then uncomment below code:
   #
   # stac-browser:
   #   image: stac-browser:v1
@@ -213,7 +211,14 @@ services:
   #     dockerfile: ./Dockerfile # relative to the context above
   #     args:
   #       catalogURL: "http://127.0.0.1:8003/catalog/any_owner"
+  #
+  # Then push the image into ghcr.io:
+  #
+  # docker tag stac-browser:v1 ghcr.io/rs-python/stac-browser:v1
+  # docker login https://ghcr.io/v2/rs-python
+  # docker push ghcr.io/rs-python/stac-browser:v1
 
+  # To use the previously built image
   stac-browser:
     image: ghcr.io/rs-python/stac-browser:v1
     container_name: stac-browser

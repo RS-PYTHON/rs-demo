@@ -23,9 +23,6 @@ On local mode, docker-compose and Docker images are used to run services and lib
     # Get last version
     cd rs-demo
     git checkout main
-
-    # Checkout the git stac submodules (can take a few minutes)
-    git submodule update --init --recursive
     ```
 
 ### Run the demos on local mode
@@ -85,7 +82,7 @@ docker compose down -v
 docker volume prune
 ```
 
-## How does it work
+### How does it work
 
 The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
 
@@ -101,7 +98,7 @@ The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images 
 
 These containers are run locally (not on a cluster). The Jupyter notebooks accessed from http://127.0.0.1:8888 are run from the containerized Jupyter server, not from your local environment. This Jupyter environment contains all the Python modules required to call the rs-server HTTP endpoints.
 
-## [TIP] to run your local rs-server code in this environment
+### [TIP] to run your local rs-server code in this environment
 
 It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. To do this:
 
@@ -134,22 +131,34 @@ It can be helpful to use your last rs-server code version to debug it or to test
         up # -d for detached
     ```
 
-## Run on cluster mode
+## Run on hybrid mode
 
-On cluster mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
+On hybrid mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
 
 ### Prerequisites
 
   * You have access to the rs-server website: https://dev-rspy.esa-copernicus.eu
+  * You have generated an API key from the rs-server website
   * You have saved the S3 bucket configuration in you local file: `~/.s3cfg`
   * You have python installed on your system
-  * You have installed Jupyter Lab (`pip install jupyterlab`)
-  * You have installed the rs-client project with either:
 
-    * `pip install rs_client_libraries-*.whl` (to install a static release) or
-    * `pip install -e /path/to/local/project/rs-client-libraries` (to install dynamically from the source code, if you have access to it)
+You also need the rs-client-libraries project:
 
-  * You have generated an API key from https://dev-rspy.esa-copernicus.eu/docs
+  * If you have its source code, install it with:
+
+```bash
+cd /path/to/rs-client-libraries
+pip install poetry
+poetry install --with dev
+```
+
+  * Or if you only have its .whl package, install it with: 
+
+```bash
+pip install rs_client_libraries-*.whl
+# then install jupyter lab
+pip install jupyterlab
+```
 
 ### Run the demos on hybrid mode
 
@@ -157,9 +166,33 @@ From your terminal in the rs-demo, run:
 
 ```bash
 export RSPY_APIKEY=your_api_key # see the prerequisites
-./hybrid-mode/start-jupyterlab.sh
+
+# NOTE: at CS France premises, use this to deactivate the proxy which causes random errors
+unset no_proxy ftp_proxy https_proxy http_proxy
+
+# To use your local rs-client-libraries source code
+cd /path/to/rs-client-libraries
+# git checkout develop && git pull # maybe take the latest default branch
+poetry run /path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
+
+# Or if you have installed it from rs_client_libraries-*.whl, 
+# just run
+/path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
 ```
 
 The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
 
 *WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
+
+### [TIP] check your Python interpreter used in notebooks
+
+In a notebook cell, run: 
+```python
+import sys
+print(sys.executable)
+```
+
+If you use the rs-client-libraries poetry environment, it should show something like:
+```bash
+${HOME}/.cache/pypoetry/virtualenvs/rs-client-libraries-xxxxxxxx-py3.11/bin/python
+```
