@@ -42,7 +42,7 @@ jobs:
 
           # Run the rs-demo local mode using these docker images, if they exist
           cd ${GITHUB_WORKSPACE}/local-mode
-          ./test-docker-tags.sh "$docker_tag"
+          ./test-docker-tag.sh "$docker_tag"
 
           # Run all services
           docker compose down; docker compose up -d
