@@ -148,14 +148,14 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/ADGS/Dockerfile
   adgs-station:
-    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:enrich-data
     container_name: adgs-station
     ports:
       - 5001:5000
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
-    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:enrich-data
     container_name: cadip-station
     ports:
       - 5002:5000
@@ -165,7 +165,7 @@ services:
   ##############
 
   dpr-simulator:
-    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:enrich-data
     container_name: dpr-simulator
     environment:
       S3_ACCESSKEY: ${S3_ACCESSKEY}
