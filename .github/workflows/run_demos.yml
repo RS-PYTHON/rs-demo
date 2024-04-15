@@ -45,13 +45,12 @@ jobs:
           ./test-docker-tag.sh "$docker_tag"
 
           # Run all services
-          docker compose down; docker compose up -d
-          docker compose ls
+          docker compose -f docker-compose-test-tag.yml up -d
 
           # Run all demos
           ./run-notebooks.sh
           
           # Shutdown docker services and volumes
-          docker compose down -v
+          docker compose -f docker-compose-test-tag.yml down -v
 
         shell: bash
