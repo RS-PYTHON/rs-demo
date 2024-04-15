@@ -32,6 +32,8 @@ if [[ "$RSPY_LOCAL_MODE" == "1" ]]; then
     wait_for_service 8003 "_mgmt/ping" # catalog
 fi
 
+all_errors=
+
 # For each demo notebook
 for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
 
@@ -50,12 +52,16 @@ for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*ch
     # with the same options than the jupyter service in the docker-compose.
     # Read the environment variables before running the notebook.
     (set -x; 
-        docker run --rm \
+        time docker run --rm \
             --network rspy-network \
             -e RSPY_LOCAL_MODE \
             -v $ROOT_DIR:$ROOT_DIR \
             -v rspy-demo_rspy_working_dir:/rspy/working/dir \
             jupyter/minimal-notebook \
-            bash -c "source ${ROOT_DIR}/local-mode/.env && jupyter execute $notebook"
-    )
+            bash -c "source ${ROOT_DIR}/local-mode/.env && jupyter execute $notebook") \
+    || all_errors="${all_errors:-}  - '$(realpath $notebook --relative-to $ROOT_DIR)'\n"
 done
+
+if [[ -n "$all_errors" ]]; then
+    >&2 echo -e "\nERRORS ON NOTEBOOKS:\n${all_errors}"
+fi
