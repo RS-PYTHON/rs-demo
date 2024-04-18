@@ -1,9 +1,6 @@
-version: '3'
-
-# Use the same network as the stac docker compose
 networks:
   default:
-    name: stac-fastapi-network
+    name: rspy-network
 
 services:
 
@@ -17,11 +14,6 @@ services:
     container_name: rs-server-frontend
     ports:
       - 8000:8000
-    depends_on:
-      - rs-server-adgs
-      - rs-server-cadip
-    environment:
-      RSPY_LOCAL_MODE: 1
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
@@ -205,21 +197,33 @@ services:
   # STAC #
   ########
 
-  # Note: the stac-fastapi-pgstac service is implemented in
-  # rs-demo/resources/stac/stac-fastapi-pgstac/docker-compose.yml
+  # To build it manually... 
+  # Run: git submodule update --init --recursive
+  # Then uncomment below code:
+  #
+  # stac-browser:
+  #   image: stac-browser:v1
+  #   container_name: stac-browser
+  #   ports: 
+  #     - ${STAC_BROWSER_PORT}:8080
+  #   build:
+  #     context: ./stac/stac-browser
+  #     dockerfile: ./Dockerfile # relative to the context above
+  #     args:
+  #       catalogURL: "http://127.0.0.1:8003/catalog/any_owner"
+  #
+  # Then push the image into ghcr.io:
+  #
+  # docker tag stac-browser:v1 ghcr.io/rs-python/stac-browser:v1
+  # docker login https://ghcr.io/v2/rs-python
+  # docker push ghcr.io/rs-python/stac-browser:v1
 
+  # To use the previously built image
   stac-browser:
-    image: stac-browser:v1
+    image: ghcr.io/rs-python/stac-browser:v1
     container_name: stac-browser
     ports: 
       - ${STAC_BROWSER_PORT}:8080
-    depends_on:
-      - rspy-pre-actions # wait for the stac service to be up
-    build:
-      context: ./stac/stac-browser
-      dockerfile: ./Dockerfile # relative to the context above
-      args:
-        catalogURL: "http://127.0.0.1:8003/catalog/esmeralda"
 
   catalog-db:
     container_name: catalog-db
@@ -300,6 +304,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Use minio for temp s3 storage
   minio:

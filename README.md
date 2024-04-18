@@ -1,8 +1,12 @@
 # rs-demo
 
-## Prerequisites
+The demos are implemented as Jupyter notebooks.
 
-Prerequisites to run the demos locally using Jupyter Notebook: 
+## Run on local mode
+
+On local mode, docker-compose and Docker images are used to run services and libraries locally (not on a cluster). There is no authentication for this mode.
+
+### Prerequisites
 
   * You have Docker installed on your system, see: https://docs.docker.com/engine/install/
   * You have access to the RSPY project on GitHub: https://github.com/RS-PYTHON
@@ -19,12 +23,9 @@ Prerequisites to run the demos locally using Jupyter Notebook:
     # Get last version
     cd rs-demo
     git checkout main
-
-    # Checkout the git stac submodules (can take a few minutes)
-    git submodule update --init --recursive
     ```
 
-## Run the demos
+### Run the demos on local mode
 
 To pull the latest Docker images, run:
 
@@ -34,19 +35,16 @@ To pull the latest Docker images, run:
 # Password: your personnal access token (PAT) created above
 docker login https://ghcr.io/v2/rs-python
 
-# From the resources directory, pull the images
-cd ./resources
+# From the local-mode directory, pull the images
+cd ./local-mode
 docker compose pull
-
-# Note: we have a warning 'pull access denied for stac-utils/stac-fastapi-pgstac'
-# that is normal: we built this image manually in the prerequisites.
 ```
 
 Then to run the demos:
 
 ```bash
-# Still from the resources directory, if you're not there yet
-cd ./resources
+# Still from the local-mode directory, if you're not there yet
+cd ./local-mode
 
 # Run all services.
 # Note: in case of port conflicts, you can kill all your running docker containers with:
@@ -84,9 +82,9 @@ docker compose down -v
 docker volume prune
 ```
 
-## How does it work
+### How does it work
 
-The [docker-compose.yml](resources/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
+The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
 
   * The latest rs-server images available:
     * Built from the CI/CD: https://github.com/RS-PYTHON/rs-server/actions/workflows/publish-binaries.yml
@@ -100,11 +98,11 @@ The [docker-compose.yml](resources/docker-compose.yml) file uses Docker images t
 
 These containers are run locally (not on a cluster). The Jupyter notebooks accessed from http://127.0.0.1:8888 are run from the containerized Jupyter server, not from your local environment. This Jupyter environment contains all the Python modules required to call the rs-server HTTP endpoints.
 
-## [TIP] to run your local rs-server code in this environment
+### [TIP] to run your local rs-server code in this environment
 
 It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. To do this:
 
-1. Go to the [./resources](resources) directory and run: `cp 'docker-compose.yml' 'docker-compose-debug.yml'`
+1. Go to the [./local-mode](local-mode) directory and run: `cp 'docker-compose.yml' 'docker-compose-debug.yml'`
 
 1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:
 
@@ -122,8 +120,8 @@ It can be helpful to use your last rs-server code version to debug it or to test
 1. Run the demo with:
 
     ```bash
-    # Still from the resources directory, if you're not there yet
-    cd ./resources
+    # Still from the local-mode directory, if you're not there yet
+    cd ./local-mode
 
     # Run all services
     docker compose down -v; \
@@ -132,3 +130,69 @@ It can be helpful to use your last rs-server code version to debug it or to test
         -f ./stac/stac-fastapi-pgstac/docker-compose.yml \
         up # -d for detached
     ```
+
+## Run on hybrid mode
+
+On hybrid mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
+
+### Prerequisites
+
+  * You have access to the rs-server website: https://dev-rspy.esa-copernicus.eu
+  * You have generated an API key from the rs-server website
+  * You have saved the S3 bucket configuration in you local file: `~/.s3cfg`
+  * You have python installed on your system
+
+You also need the rs-client-libraries project:
+
+  * If you have its source code, install it with:
+
+```bash
+cd /path/to/rs-client-libraries
+pip install poetry
+poetry install --with dev
+```
+
+  * Or if you only have its .whl package, install it with: 
+
+```bash
+pip install rs_client_libraries-*.whl
+# then install jupyter lab
+pip install jupyterlab
+```
+
+### Run the demos on hybrid mode
+
+From your terminal in the rs-demo, run:
+
+```bash
+export RSPY_APIKEY=your_api_key # see the prerequisites
+
+# NOTE: at CS France premises, use this to deactivate the proxy which causes random errors
+unset no_proxy ftp_proxy https_proxy http_proxy
+
+# To use your local rs-client-libraries source code
+cd /path/to/rs-client-libraries
+# git checkout develop && git pull # maybe take the latest default branch
+poetry run /path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
+
+# Or if you have installed it from rs_client_libraries-*.whl, 
+# just run
+/path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
+```
+
+The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
+
+*WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
+
+### [TIP] check your Python interpreter used in notebooks
+
+In a notebook cell, run: 
+```python
+import sys
+print(sys.executable)
+```
+
+If you use the rs-client-libraries poetry environment, it should show something like:
+```bash
+${HOME}/.cache/pypoetry/virtualenvs/rs-client-libraries-xxxxxxxx-py3.11/bin/python
+```
