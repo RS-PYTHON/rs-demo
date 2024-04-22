@@ -332,7 +332,6 @@ services:
       - ./config/tempo.yaml:/etc/tempo.yaml
     ports:
       - 4317:4317
-    #   - 8000:8000 # needed ?
 
   ##########
   # OTHERS #
