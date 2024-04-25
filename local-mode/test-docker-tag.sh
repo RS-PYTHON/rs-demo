@@ -9,7 +9,7 @@ ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
 
 # One single argument = the docker image tag to test
 tag=${1:-}
-if [[ -z "$tag" || "$tag" == *"-h"* ]]; then
+if [[ -z "$tag" || "$tag" == "-h" || "$tag" == "--help" ]]; then
     echo "usage: '$(basename $0)' DOCKER_TAG"
     exit 1
 fi
