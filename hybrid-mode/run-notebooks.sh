@@ -22,4 +22,5 @@ done
 
 if [[ -n "$all_errors" ]]; then
     >&2 echo -e "\nERRORS ON NOTEBOOKS:\n${all_errors}"
+    exit 1
 fi
