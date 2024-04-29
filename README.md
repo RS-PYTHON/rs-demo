@@ -82,6 +82,22 @@ docker compose down -v
 docker volume prune
 ```
 
+### Quick links for local mode: 
+
+  * Swagger UI:
+
+    * http://localhost:8000/docs (frontend, only for visualization, not functional)
+    * http://localhost:8001/docs (adgs)
+    * http://localhost:8002/docs (cadip)
+    * http://localhost:8003/api.html (catalog)
+  
+  * Prefect dashboard: http://localhost:4200
+  * Grafana: http://localhost:3000/explore
+  * Minio s3 bucket: http://localhost:9001/browser with:
+
+    * Username: `_minio_`
+    * Password: `_Strong#Pass#1234_`
+
 ### How does it work
 
 The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
@@ -150,6 +166,7 @@ You also need the rs-client-libraries project:
 cd /path/to/rs-client-libraries
 pip install poetry
 poetry install --with dev
+poetry run opentelemetry-bootstrap -a install
 ```
 
   * Or if you only have its .whl package, install it with: 
@@ -183,6 +200,11 @@ poetry run /path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
 The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
 
 *WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
+
+### Quick links for local mode: 
+
+  * RS-Server website (Swagger UI): https://dev-rspy.esa-copernicus.eu   
+  * Prefect dashboard: https://processing.dev-rspy.esa-copernicus.eu
 
 ### [TIP] check your Python interpreter used in notebooks
 

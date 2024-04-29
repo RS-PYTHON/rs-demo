@@ -1,3 +1,2 @@
  # local modifications for debugging
-/docker-compose-debug*.yml
-/docker-compose-test-tag.yml
+/docker-compose-*.yml

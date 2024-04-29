@@ -8,6 +8,7 @@ services:
   # RS-SERVER #
   #############
 
+  # NOTE: tt's only for showning the aggregated endpoints, they don't work in this docker compose.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
   rs-server-frontend:
     image: ghcr.io/rs-python/rs-server-frontend:latest
@@ -43,10 +44,12 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
       # EODAG
-      RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
       EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
       EODAG__adgs__auth__credentials__username: test
       EODAG__adgs__auth__credentials__password: test
+      # opentelemetry
+      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
+      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
@@ -78,10 +81,12 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
       # EODAG
-      RSPY_STATION_CONFIG: ${RSPY_STATION_CONFIG}
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
       EODAG__cadip__auth__credentials__username: test
       EODAG__cadip__auth__credentials__password: test
+      # opentelemetry
+      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
+      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
@@ -123,6 +128,11 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
+      # opentelemetry
+      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
+      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   #########################
   # RS-SERVER WHL INSTALL #
@@ -191,7 +201,7 @@ services:
     volumes:
       - .:/docker/compose/dir
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-    entrypoint: /docker/compose/dir/main/scripts/rspy-pre-actions.sh
+    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
 
   ########
   # STAC #
@@ -289,6 +299,40 @@ services:
       - prefect-server
     # profiles: ["agent"]
 
+  #################
+  # OPENTELEMETRY #
+  #################
+
+  # See: https://github.com/softwarebloat/python-tracing-demo/tree/main
+
+  grafana:
+    image: grafana/grafana:8.2.0
+    ports:
+      - 3000:3000
+    volumes:
+      - ./config/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    links:
+      - tempo
+
+  loki:
+    image: grafana/loki:2.3.0
+    ports:
+      - 3100:3100
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:1.2.0
+    command: [ "-search.enabled=true", "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - 4317:4317
+
   ##########
   # OTHERS #
   ##########
@@ -352,6 +396,9 @@ services:
       S3_REGION: ${S3_REGION}
       # prefect
       PREFECT_API_URL: http://prefect-server:4200/api
+      # opentelemetry
+      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
+      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes: 
       - ../sprints:/home/jovyan/rspy-demos
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
