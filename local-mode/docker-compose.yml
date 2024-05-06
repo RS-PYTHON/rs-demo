@@ -389,10 +389,10 @@ services:
       RSPY_LOCAL_MODE: 1
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
-      # rs-server
-      RSPY_HOST_ADGS: http://rs-server-adgs:8000
-      RSPY_HOST_CADIP: http://rs-server-cadip:8000
-      RSPY_HOST_CATALOG: http://rs-server-catalog:8000
+      # rs-server urls
+      RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
+      RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
+      RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
