@@ -165,7 +165,7 @@ You also need the rs-client-libraries project:
 ```bash
 cd /path/to/rs-client-libraries
 pip install poetry
-poetry install --with dev
+poetry install --with dev,demo
 poetry run opentelemetry-bootstrap -a install
 ```
 

@@ -48,7 +48,7 @@ jobs:
           docker compose -f docker-compose-test-tag.yml up -d
 
           # Run all demos
-          ./run-notebooks.sh
+          ./run-notebooks.sh "$docker_tag"
           
           # Shutdown docker services and volumes
           docker compose -f docker-compose-test-tag.yml down -v
