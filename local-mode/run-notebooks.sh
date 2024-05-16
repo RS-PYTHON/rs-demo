@@ -18,27 +18,27 @@ docker_image="ghcr.io/rs-python/rs-client-libraries_jupyter"
 # Docker tag to use = 1st parameter passed to the script, or latest by default.
 docker_tag=${1:-latest}
 
-(
-    set +e # allow errors here
+set +e # allow errors here
 
-    # Check if the docker image exists in the registry
-    error_message=$(set -x; docker manifest inspect "${docker_image}:${docker_tag}" 2>&1)
-    error=$?
+# Check if the docker image exists in the registry
+error_message=$(set -x; docker manifest inspect "${docker_image}:${docker_tag}" 2>&1)
+error=$?
 
-    # If yes, use it to run the notebooks
-    if [[ "$error" == 0 ]]; then
-        (set -x; docker_image_tag="${docker_image}:${docker_tag}")
+# If yes, use it to run the notebooks
+if [[ "$error" == 0 ]]; then
+    (set -x; docker_image_tag="${docker_image}:${docker_tag}")
 
-    # If not found, use the default tag
-    elif [[ "$error_message" == "manifest unknown" ]]; then
-        (set -x; docker_image_tag="${docker_image}:latest")
+# If not found, use the default tag
+elif [[ "$error_message" == "manifest unknown" ]]; then
+    (set -x; docker_image_tag="${docker_image}:latest")
 
-    # For any other error, exit the script
-    else
-            >&2 echo "$error_message"
-            exit 1
-    fi
-)
+# For any other error, exit the script
+else
+    >&2 echo "$error_message"
+    exit 1
+fi
+
+set -e # restore checking errors
 
 #
 # Run services

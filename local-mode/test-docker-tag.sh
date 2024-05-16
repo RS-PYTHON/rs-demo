@@ -55,8 +55,8 @@ while IFS= read -r old_image ; do
 
         # For any other error, exit the script
         else
-             >&2 echo "$error_message"
-             exit 1
+            >&2 echo "$error_message"
+            exit 1
         fi
     )
 done <<< "$all_images"
