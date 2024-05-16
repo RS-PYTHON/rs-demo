@@ -22,7 +22,7 @@ On local mode, docker-compose and Docker images are used to run services and lib
 
     # Get last version
     cd rs-demo
-    git checkout main
+    git checkout develop
     ```
 
 ### Run the demos on local mode
