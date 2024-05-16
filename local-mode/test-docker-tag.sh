@@ -41,7 +41,7 @@ while IFS= read -r old_image ; do
         set +e # allow errors here
 
         # Check if the docker image exists in the registry
-        message=$(set -x; docker manifest inspect "$new_image" 2>&1)
+        error_message=$(set -x; docker manifest inspect "$new_image" 2>&1)
         error=$?
 
         # If yes, use it in the docker-compose file
@@ -50,13 +50,13 @@ while IFS= read -r old_image ; do
             sed -i "s|$old_image|$new_image|g" "$dc_file"
 
         # If not found, use the default tag
-        elif [[ "$message" == "manifest unknown" ]]; then
+        elif [[ "$error_message" == "manifest unknown" ]]; then
             echo "Use default '$old_image'"
 
         # For any other error, exit the script
         else
-             >&2 echo "$message"
-             exit 1
+            >&2 echo "$error_message"
+            exit 1
         fi
     )
 done <<< "$all_images"
