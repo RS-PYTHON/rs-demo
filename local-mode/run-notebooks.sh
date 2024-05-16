@@ -26,11 +26,11 @@ error=$?
 
 # If yes, use it to run the notebooks
 if [[ "$error" == 0 ]]; then
-    (set -x; docker_image_tag="${docker_image}:${docker_tag}")
+    docker_image_tag="${docker_image}:${docker_tag}"
 
 # If not found, use the default tag
 elif [[ "$error_message" == "manifest unknown" ]]; then
-    (set -x; docker_image_tag="${docker_image}:latest")
+    docker_image_tag="${docker_image}:latest"
 
 # For any other error, exit the script
 else
@@ -39,6 +39,7 @@ else
 fi
 
 set -e # restore checking errors
+echo "docker_image_tag=$docker_image_tag"
 
 #
 # Run services
