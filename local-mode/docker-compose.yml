@@ -387,7 +387,7 @@ services:
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes: 
-      - ../sprints:/home/jovyan/rspy-demos
+      - ../notebooks:/home/jovyan/rspy-notebooks
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
 # Docker named volumes

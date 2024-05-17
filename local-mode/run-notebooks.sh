@@ -68,7 +68,7 @@ wait_for_service 8003 "_mgmt/ping" # catalog
 all_errors=
 
 # For each demo notebook
-for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
+for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
 
     # Run the notebook from a container, in the same network than the docker-compose,
     # with the same options than the jupyter service in the docker-compose.
