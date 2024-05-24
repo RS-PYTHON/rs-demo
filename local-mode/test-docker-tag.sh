@@ -26,7 +26,7 @@ cp "docker-compose.yml" "$dc_file"
 # the tag :latest with the tag passed as a parameter of this script.
 
 # Get all these docker images
-all_images=$(sed -n "s|.*image:\s*\(ghcr.io/rs-python.\S*\).*|\1|p" ../local-mode/docker-compose.yml)
+all_images=$(sed -n "s|.*image:\s*\(ghcr.io/rs-python.\S*:latest\).*|\1|p" ../local-mode/docker-compose.yml)
 echo -e "\nCheck for docker image tag '$tag' for:\n$all_images\n"
 
 echo -e "NOTE: if the below 'docker manifest inspect' commands freeze, hit ctrl-c and run the script again.\n"
