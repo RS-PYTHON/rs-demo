@@ -80,7 +80,8 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
             -v $ROOT_DIR:$ROOT_DIR \
             -v rspy-demo_rspy_working_dir:/rspy/working/dir \
             "${docker_image_tag}" \
-            bash -c "source ${ROOT_DIR}/local-mode/.env && jupyter execute $notebook") \
+            bash -c "source ${ROOT_DIR}/local-mode/.env && cd $(dirname $notebook) && set -x && \
+            papermill $(basename $notebook) /tmp/out.ipynb") \
     || all_errors="${all_errors:-}  - '$(realpath $notebook --relative-to $ROOT_DIR)'\n"
 done
 
