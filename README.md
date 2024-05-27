@@ -2,7 +2,7 @@
 
 The demos are implemented as Jupyter notebooks.
 
-## Run on local mode
+## run-on-local-mode
 
 On local mode, docker-compose and Docker images are used to run services and libraries locally (not on a cluster). There is no authentication for this mode.
 
@@ -16,14 +16,14 @@ On local mode, docker-compose and Docker images are used to run services and lib
     You may want to create a classic PAT with the read:packages permissions.
   * You have checked out this git project and submodules and built docker images:
 
-    ```bash
-    git clone git@github.com:RS-PYTHON/rs-demo.git # with SSH
-    # or `git clone https://github.com/RS-PYTHON/rs-demo.git` with HTTPS
+```bash
+git clone git@github.com:RS-PYTHON/rs-demo.git # with SSH
+# or `git clone https://github.com/RS-PYTHON/rs-demo.git` with HTTPS
 
-    # Get last version
-    cd rs-demo
-    git checkout develop
-    ```
+# Get last version
+cd rs-demo
+git checkout develop
+```
 
 ### Run the demos on local mode
 
@@ -122,7 +122,7 @@ It can be helpful to use your last rs-server code version to debug it or to test
 
 1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:
 
-    ```yaml
+```yaml
     # e.g.
     rs-server-adgs:
       # ...
@@ -131,11 +131,11 @@ It can be helpful to use your last rs-server code version to debug it or to test
         - /my/local/rs-server/services/adgs/rs_server_adgs:/usr/local/lib/python3.11/site-packages/rs_server_adgs
         - /my/local/rs-server/services/adgs/config:/usr/local/lib/python3.11/site-packages/config
         # - and any other useful files ...
-    ```
+```
 
 1. Run the demo with:
 
-    ```bash
+```bash
     # Still from the local-mode directory, if you're not there yet
     cd ./local-mode
 
@@ -145,9 +145,9 @@ It can be helpful to use your last rs-server code version to debug it or to test
         -f docker-compose-debug.yml \
         -f ./stac/stac-fastapi-pgstac/docker-compose.yml \
         up # -d for detached
-    ```
+```
 
-## Run on hybrid mode
+## run-on-hybrid-mode
 
 On hybrid mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
 
