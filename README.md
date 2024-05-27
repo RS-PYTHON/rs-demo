@@ -2,7 +2,7 @@
 
 The demos are implemented as Jupyter notebooks.
 
-## run-on-local-mode
+## Run on local mode
 
 On local mode, docker-compose and Docker images are used to run services and libraries locally (not on a cluster). There is no authentication for this mode.
 
@@ -147,7 +147,7 @@ It can be helpful to use your last rs-server code version to debug it or to test
         up # -d for detached
 ```
 
-## run-on-hybrid-mode
+## Run on hybrid mode
 
 On hybrid mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
 
