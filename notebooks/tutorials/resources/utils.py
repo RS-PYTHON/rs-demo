@@ -6,8 +6,6 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 import boto3
 import os
 
-# from S3.Client.exceptions import BucketAlreadyExists, BucketAlreadyOwnedByYou
-
 def get_s3_client():
     """
     Return a boto3 s3 client from the
