@@ -1,3 +1,7 @@
 # Running a notebook
 
-There are two ways of running the notebook, either in [local](../README.md#run-on-local-mode) or in [hybrid](../README.md#run-on-hybrid-mode) modes.
+You can run the Jupyter notebooks either on: 
+
+* [Cluster mode](../README.md#run-on-cluster-mode)
+* [Local mode](../README.md#run-on-local-mode)
+* [Hybrid mode](../README.md#run-on-hybrid-mode)
