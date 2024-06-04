@@ -15,7 +15,7 @@ all_errors=
 
 # Run each demo notebook. Use a 5' timeout for each cell.
 # TODO: maybe try papermill instead of 'jupyter execute' to see verbose/progression ?
-for notebook in $(find $ROOT_DIR/sprints -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
+for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
     (set -x; time jupyter execute --timeout=300 $notebook) \
     || all_errors="${all_errors:-}  - '$(realpath $notebook --relative-to $ROOT_DIR)'\n"
 done

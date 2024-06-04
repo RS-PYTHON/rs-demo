@@ -93,7 +93,7 @@ docker volume prune
   
   * Prefect dashboard: http://localhost:4200
   * Grafana: http://localhost:3000/explore
-  * Minio s3 bucket: http://localhost:9001/browser with:
+  * Minio s3 bucket: http://localhost:9101/browser with:
 
     * Username: `_minio_`
     * Password: `_Strong#Pass#1234_`
