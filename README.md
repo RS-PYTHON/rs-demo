@@ -1,6 +1,76 @@
-# rs-demo
+# Running Modes
 
-The demos are implemented as Jupyter notebooks.
+In this page, we will see how to run the Jupyter notebooks on cluster, local and hybrid mode.
+
+### Quick links 
+
+  * On cluster mode:
+
+      * JupyterHub: <https://processing.ops.rs-python.eu/jupyter>
+      * RS-Server website (Swagger/OpenAPI): <https://rspy.ops.rs-python.eu/docs>
+      * Create an API key: <https://rspy.ops.rs-python.eu/docs#/API-Key%20Manager/create_api_key_apikeymanager_auth_api_key_new_get>
+      * Prefect dashboard (orchestrator): <https://processing.ops.rs-python.eu/>
+      * Grafana (logs, traces, metrics): <https://monitoring.ops.rs-python.eu/>
+
+  * On hybrid mode:
+
+      * RS-Server website (Swagger/OpenAPI): <https://rspy.ops.rs-python.eu/docs>
+      * Create an API key: <https://rspy.ops.rs-python.eu/docs#/API-Key%20Manager/create_api_key_apikeymanager_auth_api_key_new_get>
+      * Prefect dashboard (orchestrator): <http://localhost:4200>
+      * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
+
+  * On local mode: 
+
+      * RS-Server website (Swagger/OpenAPI):
+
+          * <http://localhost:8000/docs> (frontend, only for visualization, not functional)
+          * <http://localhost:8001/docs> (auxip)
+          * <http://localhost:8002/docs> (cadip)
+          * <http://localhost:8003/api.html> (catalog)
+      
+      * Prefect dashboard (orchestrator): <http://localhost:4200>
+      * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
+      * Minio s3 bucket: <http://localhost:9001/browser> with:
+
+          * Username: `_minio_`
+          * Password: `_Strong#Pass#1234_`
+
+## Run on cluster mode
+
+On cluster mode, we run the Jupyter notebooks from our JupyterHub session deployed on the cluster. They connect to the services deployed on the RS-Server website (=cluster). Authentication is required for this mode.
+
+### Prerequisites
+
+* You have access to JupyterHub: <https://processing.ops.rs-python.eu/jupyter>
+* You have access to the RS-Server website: <https://rspy.ops.rs-python.eu/docs>
+* You have generated an API key from the RS-Server website.
+
+### Run the demos on cluster mode
+
+* Open a JupyterHub session.
+* Open a terminal, check that `rs-client-libraries` is installed by running:
+
+    ```shell
+    pip show rs-client-libraries # should show the name, version, ...
+    ```
+
+* **Optional**: to install a new `rs-client-libraries` version from its `.whl` package, upload it to your JupyterHub session and run:
+
+    ```shell
+    pip uninstall rs-client-libraries # uninstall old version
+    pip install rs_client_libraries-<version>-py3-none-any.whl # install new version
+    ```
+
+* **Optional**: save your API key into your `~/.env` file so it is loaded automatically by your notebooks: 
+
+    ```shell
+    # Replace by your value
+    echo "export RSPY_APIKEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" >> ~/.env
+    ```
+
+* On the left, in the file explorer, go to the demos or tutorial folder and double-click a notebook to open it:
+
+![Jupyter Notebook](./doc/images/jupyter.png "Jupyter Notebook")
 
 ## Run on local mode
 
@@ -8,17 +78,18 @@ On local mode, docker-compose and Docker images are used to run services and lib
 
 ### Prerequisites
 
-  * You have Docker installed on your system, see: https://docs.docker.com/engine/install/
-  * You have access to the RSPY project on GitHub: https://github.com/RS-PYTHON
-  * You have created a personal access token (PAT) on GitHub: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+  * You have Docker installed on your system, see: <https://docs.docker.com/engine/install/>
+  * You have access to the RSPY project on GitHub: <https://github.com/RS-PYTHON>
+  * You have created a personal access token (PAT) on GitHub: <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens>
 
-    This access token is used to retrieve the rs-server product on the github repository.
-    You may want to create a classic PAT with the read:packages permissions.
-  * You have checked out this git project and submodules and built docker images:
+    * This access token is used to retrieve the rs-server product on the github repository.
+    * You may want to create a classic PAT with the ```read:packages``` permissions.
 
-    ```bash
-    git clone git@github.com:RS-PYTHON/rs-demo.git # with SSH
-    # or `git clone https://github.com/RS-PYTHON/rs-demo.git` with HTTPS
+  * You have checked out this git project:
+
+    ```shell
+    git clone git@github.com:RS-PYTHON/rs-demo.git # either with SSH
+    # git clone https://github.com/RS-PYTHON/rs-demo.git # or with HTTPS
 
     # Get last version
     cd rs-demo
@@ -29,10 +100,10 @@ On local mode, docker-compose and Docker images are used to run services and lib
 
 To pull the latest Docker images, run:
 
-```bash
+```shell
 # Login into the project ghcr.io (GitHub Container Registry)
 # Username: your GitHub login
-# Password: your personnal access token (PAT) created above
+# Password: your personal access token (PAT) created above
 docker login https://ghcr.io/v2/rs-python
 
 # From the local-mode directory, pull the images
@@ -42,7 +113,7 @@ docker compose pull
 
 Then to run the demos:
 
-```bash
+```shell
 # Still from the local-mode directory, if you're not there yet
 cd ./local-mode
 
@@ -64,15 +135,21 @@ jupyter |     ...
 jupyter |     http://127.0.0.1:8888/lab?token=612cb124335d9ab80a5a6414631a7df186b2401234050001
 ```
 
-Open (ctrl-click) the http://127.0.0.1:8888/lab?token=... link to open the Jupyter web client (=Jupyter Notebook) in your browser.
+Open (ctrl-click) the ```http://127.0.0.1:8888/lab?token=...``` link to open the Jupyter web client (=Jupyter Notebook) in your browser.
 
 __Note__: the token is auto-generated by Jupyter and changes everytime you relaunch the containers. So after relaunching, your old Jupyter web session won't be available anymore.
 
-On the left, in the file explorer, the demos are under `/rspy-demos`:
+To show the Jupyter logs from another terminal, run:
 
-![alt text](./doc/images/jupyter.png "Title")
+```shell
+docker compose logs jupyter
+```
 
-```bash
+On the left, in the file explorer, go to the demos or tutorial folder and double-click a notebook to open it:
+
+![Jupyter Notebook](./doc/images/jupyter.png "Jupyter Notebook")
+
+```shell
 # When you're done, shutdown all services and volumes (-v)
 # with Ctrl-C (if not in detached mode i.e. -d) then:
 docker compose down -v
@@ -82,45 +159,33 @@ docker compose down -v
 docker volume prune
 ```
 
-### Quick links for local mode: 
-
-  * Swagger UI:
-
-    * http://localhost:8000/docs (frontend, only for visualization, not functional)
-    * http://localhost:8001/docs (adgs)
-    * http://localhost:8002/docs (cadip)
-    * http://localhost:8003/api.html (catalog)
-  
-  * Prefect dashboard: http://localhost:4200
-  * Grafana: http://localhost:3000/explore
-  * Minio s3 bucket: http://localhost:9101/browser with:
-
-    * Username: `_minio_`
-    * Password: `_Strong#Pass#1234_`
-
 ### How does it work
 
 The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images to run all the necessary container services for the demos :
 
   * The latest rs-server images available:
-    * Built from the CI/CD: https://github.com/RS-PYTHON/rs-server/actions/workflows/publish-binaries.yml
-    * Available in the ghcr.io: https://github.com/orgs/RS-PYTHON/packages
-  * The ADGS, CADIP ... station mockups:
-    * Built from the CI/CD: https://github.com/RS-PYTHON/rs-testmeans/actions/workflows/publish-docker.yml
+    * Built from the CI/CD: <https://github.com/RS-PYTHON/rs-server/actions/workflows/publish-binaries.yml>
+    * Available in the ghcr.io: <https://github.com/orgs/RS-PYTHON/packages>
+  * The AUXIP, CADIP ... station mockups:
+    * Built from the CI/CD: <https://github.com/RS-PYTHON/rs-testmeans/actions/workflows/publish-docker.yml>
     * Also available in the ghcr.io
   * STAC PostgreSQL database
   * MinIO S3 bucket server
   * Jupyter server
 
-These containers are run locally (not on a cluster). The Jupyter notebooks accessed from http://127.0.0.1:8888 are run from the containerized Jupyter server, not from your local environment. This Jupyter environment contains all the Python modules required to call the rs-server HTTP endpoints.
+These containers are run locally (not on a cluster). The Jupyter notebooks accessed from <http://127.0.0.1:8888> are run from the containerized Jupyter server, not from your local environment. This Jupyter environment contains all the Python modules required to call the rs-server HTTP endpoints.
 
-### [TIP] to run your local rs-server code in this environment
+### How to run your local rs-server code in this environment
 
-It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. To do this:
+It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. Follow these steps:
 
-1. Go to the [./local-mode](local-mode) directory and run: `cp 'docker-compose.yml' 'docker-compose-debug.yml'`
+1. Go to the ```local-mode``` directory and run:  
 
-1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:
+    ```shell
+    cp 'docker-compose.yml' 'docker-compose-debug.yml'
+    ```
+
+1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:  
 
     ```yaml
     # e.g.
@@ -133,55 +198,51 @@ It can be helpful to use your last rs-server code version to debug it or to test
         # - and any other useful files ...
     ```
 
-1. Run the demo with:
+1. Run the demo with:  
 
-    ```bash
+    ```shell
     # Still from the local-mode directory, if you're not there yet
     cd ./local-mode
 
     # Run all services
-    docker compose down -v; \
-      docker compose \
-        -f docker-compose-debug.yml \
-        -f ./stac/stac-fastapi-pgstac/docker-compose.yml \
-        up # -d for detached
+    docker compose down -v; docker compose -f docker-compose-debug.yml up # -d for detached
     ```
 
 ## Run on hybrid mode
 
-On hybrid mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the rs-server website (=cluster). Authentication is required for this mode.
+On hybrid mode, we run the Jupyter notebooks locally, but they connect to the services deployed on the RS-Server website (=cluster). Authentication is required for this mode.
 
 ### Prerequisites
 
-  * You have access to the rs-server website: https://dev-rspy.esa-copernicus.eu
-  * You have generated an API key from the rs-server website
-  * You have saved the S3 bucket configuration in you local file: `~/.s3cfg`
-  * You have python installed on your system
+* You have access to the RS-Server website: <https://rspy.ops.rs-python.eu/docs>
+* You have generated an API key from the RS-Server website.
+* You have saved the S3 bucket configuration in you local file: `~/.s3cfg`
+* Python is installed on your system.
 
 You also need the rs-client-libraries project:
 
   * If you have its source code, install it with:
 
-```bash
-cd /path/to/rs-client-libraries
-pip install poetry
-poetry install --with dev,demo
-poetry run opentelemetry-bootstrap -a install
-```
+    ```shell
+    cd /path/to/rs-client-libraries
+    pip install poetry
+    poetry install --with dev,demo
+    poetry run opentelemetry-bootstrap -a install
+    ```
 
-  * Or if you only have its .whl package, install it with: 
+  * Or if you only have its ```.whl``` package, install it with: 
 
-```bash
-pip install rs_client_libraries-*.whl
-# then install jupyter lab
-pip install jupyterlab
-```
+    ```shell
+    pip install rs_client_libraries-*.whl
+    # then install jupyter lab
+    pip install jupyterlab
+    ```
 
 ### Run the demos on hybrid mode
 
 From your terminal in the rs-demo, run:
 
-```bash
+```shell
 export RSPY_APIKEY=your_api_key # see the prerequisites
 
 # NOTE: at CS France premises, use this to deactivate the proxy which causes random errors
@@ -201,12 +262,7 @@ The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser.
 
 *WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
 
-### Quick links for local mode: 
-
-  * RS-Server website (Swagger UI): https://dev-rspy.esa-copernicus.eu   
-  * Prefect dashboard: https://processing.dev-rspy.esa-copernicus.eu
-
-### [TIP] check your Python interpreter used in notebooks
+### How to check your Python interpreter used in notebooks
 
 In a notebook cell, run: 
 ```python
@@ -215,6 +271,6 @@ print(sys.executable)
 ```
 
 If you use the rs-client-libraries poetry environment, it should show something like:
-```bash
+```shell
 ${HOME}/.cache/pypoetry/virtualenvs/rs-client-libraries-xxxxxxxx-py3.11/bin/python
 ```
