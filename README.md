@@ -57,8 +57,12 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 * **Optional**: to install a new `rs-client-libraries` version from its `.whl` package, upload it to your JupyterHub session and run:
 
     ```shell
-    pip uninstall rs-client-libraries # uninstall old version
-    pip install rs_client_libraries-<version>-py3-none-any.whl # install new version
+    # Uninstall the old version. Note: this fails if we do it for the first time because 
+    # we try to uninstall the root installation of the library, but this this OK.
+    pip uninstall -y rs-client-libraries || true
+
+    # Install the new version for the current user.
+    pip install rs_client_libraries-<version>-py3-none-any.whl
     ```
 
 * **Optional**: save your API key into your `~/.env` file so it is loaded automatically by your notebooks: 
