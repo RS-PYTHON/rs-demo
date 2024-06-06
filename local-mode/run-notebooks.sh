@@ -7,9 +7,6 @@ set -euo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
 
-# We are always on local mode
-export RSPY_LOCAL_MODE=1
-
 #
 # Find the docker image:tag to use
 
@@ -62,30 +59,15 @@ wait_for_service 8001 "health" # adgs
 wait_for_service 8002 "health" # cadip
 wait_for_service 8003 "_mgmt/ping" # catalog
 
-#
-# Run notebooks
-
-all_errors=
-
-# For each demo notebook
-for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
-
-    # Run the notebook from a container, in the same network than the docker-compose,
-    # with the same options than the jupyter service in the docker-compose.
-    # Read the environment variables before running the notebook.
-    (set -x; 
-        time docker run --rm \
-            --network rspy-network \
-            -e RSPY_LOCAL_MODE \
-            -v $ROOT_DIR:$ROOT_DIR \
-            -v rspy-demo_rspy_working_dir:/rspy/working/dir \
-            "${docker_image_tag}" \
-            bash -c "source ${ROOT_DIR}/local-mode/.env && cd $(dirname $notebook) && set -x && \
-            papermill $(basename $notebook) /tmp/out.ipynb") \
-    || all_errors="${all_errors:-}  - '$(realpath $notebook --relative-to $ROOT_DIR)'\n"
-done
-
-if [[ -n "$all_errors" ]]; then
-    >&2 echo -e "\nERRORS ON NOTEBOOKS:\n${all_errors}"
-    exit 1
-fi
+# Run the notebook from a container, in the same network than the docker-compose,
+# with the same options than the jupyter service in the docker-compose.
+# Read the environment variables before running the notebook.
+(
+    set -x; 
+    docker run --rm \
+        --network rspy-network \
+        -v $ROOT_DIR:$ROOT_DIR \
+        -v rspy-demo_rspy_working_dir:/rspy/working/dir \
+        "${docker_image_tag}" \
+        "${SCRIPT_DIR}/scripts/run-notebooks-from-container.sh"
+)
