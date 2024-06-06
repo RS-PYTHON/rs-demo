@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 
+# This script is called by run-notebooks.sh to run all the notebooks from inside a docker container.
+
 set -euo pipefail
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
+ROOT_DIR="$(realpath $SCRIPT_DIR/../..)"
 
-# Run all the demos in hybrid mode.
-# This is meant to run the demos locally, but use the services deployed on the cluster.
+# We are always on local mode
+export RSPY_LOCAL_MODE=1
 
-# Configure environment
-source "${SCRIPT_DIR}/resources/jupyter-env.sh"
+# Read environment variables from the .env file
+source ${ROOT_DIR}/local-mode/.env
 
 all_errors=
 
-# Run each demo notebook. Use a 5' timeout for each cell.
+# For each demo notebook, sorted by name
 for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
 
     _dirname="$(dirname $notebook)"
