@@ -54,17 +54,6 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
     pip show rs-client-libraries # should show the name, version, ...
     ```
 
-* **Optional**: to install a new `rs-client-libraries` version from its `.whl` package, upload it to your JupyterHub session and run:
-
-    ```shell
-    # Uninstall the old version. Note: this fails if we do it for the first time because 
-    # we try to uninstall the root installation of the library, but this this OK.
-    pip uninstall -y rs-client-libraries || true
-
-    # Install the new version for the current user.
-    pip install rs_client_libraries-<version>-py3-none-any.whl
-    ```
-
 * **Optional**: save your API key into your `~/.env` file so it is loaded automatically by your notebooks: 
 
     ```shell
@@ -75,6 +64,31 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 * On the left, in the file explorer, go to the demos or tutorial folder and double-click a notebook to open it:
 
 ![Jupyter Notebook](./doc/images/jupyter.png "Jupyter Notebook")
+
+### Install a new `rs-client-libraries` version
+
+#### Option 1: update the JupyterHub image (affects everyone)
+
+1. Vérify in the CI/CD that the last `rs-client-libraries` modifications were merged into the `develop` branch: <https://github.com/RS-PYTHON/rs-client-libraries/actions/workflows/publish-binaries.yml>
+
+1. Ask the `rs-infrastructure` administrator to run a new CI/CD workflow to publish this `rs-client-libraries` version into a new JupyterHub image.
+
+#### Option 2: from a wheel package (affects only you)
+
+1. In the CI/CD, click on the last `rs-client-libraries` branch workflow that you want to use: <https://github.com/RS-PYTHON/rs-client-libraries/actions/workflows/publish-binaries.yml>, go to the `Artifacts` section and download the `.whl` package file.
+
+1. Or alternatively, build the wheel yourself from your local `rs-client-libraries` project by running: `poetry build --format wheel`
+
+1. Upload the `.whl` package file to your JupyterHub session, open a Terminal and run:
+
+    ```shell
+    # Uninstall the old version. Note: this fails if we do it for the first time because 
+    # we try to uninstall the root installation of the library, but this this OK.
+    pip uninstall -y rs-client-libraries || true
+
+    # Install the new version for the current user.
+    pip install rs_client_libraries-<version>-py3-none-any.whl
+    ```
 
 ## Run on local mode
 
