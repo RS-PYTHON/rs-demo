@@ -84,7 +84,15 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
     ```shell
     # Uninstall the old version. Note: this fails if we do it for the first time because 
     # we try to uninstall the root installation of the library, but this this OK.
-    pip uninstall -y rs-client-libraries || true
+    pip uninstall -y rs-client-libraries 2>/dev/null
+
+    # You may have conflicts between dependencies installed for the root user
+    # and the current user. You can uninstall all current user dependencies with:
+    # for dep in $(pip freeze | cut -d "@" -f1); do pip uninstall -y $dep 2>/dev/null; done
+
+    # The old rs-client-libraries version is still installed for the root user.
+    # This is the version you (=current user) use by default.
+    pip show rs-client-libraries | grep Location # should display: /opt/conda/lib/python3.11/site-packages
 
     # Install the new version for the current user.
     pip install rs_client_libraries-<version>-py3-none-any.whl
