@@ -56,9 +56,14 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 
 * **Optional**: save your API key into your `~/.env` file so it is loaded automatically by your notebooks: 
 
+    1. Go to the menu *View -> Show Hidden Files*
+    1. In the file browser in the left panel, check that you are in your `/` home folder.
+    1. Double-click the `.env` file to open it using the integrated text editor.
+    1. Add this line to the file, save it with *Ctrl-S* and close the editor:
+
     ```shell
     # Replace by your value
-    echo "export RSPY_APIKEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" >> ~/.env
+    export RSPY_APIKEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     ```
 
 * On the left, in the file explorer, go to the demos or tutorial folder and double-click a notebook to open it:
