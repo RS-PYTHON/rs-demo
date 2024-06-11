@@ -56,9 +56,14 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 
 * **Optional**: save your API key into your `~/.env` file so it is loaded automatically by your notebooks: 
 
+    1. Go to the menu *View -> Show Hidden Files*
+    1. In the file browser in the left panel, check that you are in your `/` home folder.
+    1. Double-click the `.env` file to open it using the integrated text editor.
+    1. Add this line to the file, save it with *Ctrl-S* and close the editor:
+
     ```shell
     # Replace by your value
-    echo "export RSPY_APIKEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" >> ~/.env
+    export RSPY_APIKEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     ```
 
 * On the left, in the file explorer, go to the demos or tutorial folder and double-click a notebook to open it:
@@ -84,7 +89,15 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
     ```shell
     # Uninstall the old version. Note: this fails if we do it for the first time because 
     # we try to uninstall the root installation of the library, but this this OK.
-    pip uninstall -y rs-client-libraries || true
+    pip uninstall -y rs-client-libraries 2>/dev/null
+
+    # You may have conflicts between dependencies installed for the root user
+    # and the current user. You can uninstall all current user dependencies with:
+    # for dep in $(pip freeze | cut -d "@" -f1); do pip uninstall -y $dep 2>/dev/null; done
+
+    # The old rs-client-libraries version is still installed for the root user.
+    # This is the version you (=current user) use by default.
+    pip show rs-client-libraries | grep Location # should display: /opt/conda/lib/python3.11/site-packages
 
     # Install the new version for the current user.
     pip install rs_client_libraries-<version>-py3-none-any.whl
