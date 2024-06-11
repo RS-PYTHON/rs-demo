@@ -384,6 +384,8 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
+      RSPY_TEMP_BUCKET: ${RSPY_TEMP_BUCKET}
+      RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
       # prefect
       PREFECT_API_URL: http://prefect-server:4200/api
       # opentelemetry
