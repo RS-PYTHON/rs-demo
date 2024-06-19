@@ -15,6 +15,9 @@ services:
     container_name: rs-server-frontend
     ports:
       - 8000:8000
+    # variables are set in the .env file
+    environment:
+      RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
