@@ -8,14 +8,14 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
 
       * JupyterHub: <https://processing.ops.rs-python.eu/jupyter>
       * RS-Server website (Swagger/OpenAPI): <https://rspy.ops.rs-python.eu/docs>
-      * Create an API key: <https://rspy.ops.rs-python.eu/docs#/API-Key%20Manager/create_api_key_apikeymanager_auth_api_key_new_get>
+      * Create an API key: <https://apikeymanager.rspy.ops.rs-python.eu/docs#/Manage%20API%20keys/create_api_key_auth_api_key_new_get>
       * Prefect dashboard (orchestrator): <https://processing.ops.rs-python.eu/>
       * Grafana (logs, traces, metrics): <https://monitoring.ops.rs-python.eu/>
 
   * On hybrid mode:
 
       * RS-Server website (Swagger/OpenAPI): <https://rspy.ops.rs-python.eu/docs>
-      * Create an API key: <https://rspy.ops.rs-python.eu/docs#/API-Key%20Manager/create_api_key_apikeymanager_auth_api_key_new_get>
+      * Create an API key: <https://apikeymanager.rspy.ops.rs-python.eu/docs#/Manage%20API%20keys/create_api_key_auth_api_key_new_get>
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
 
