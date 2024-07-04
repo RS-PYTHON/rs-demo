@@ -50,6 +50,7 @@ fi
 #     return 1
 # fi
 
+all_ok=
 all_errors=
 
 # For each demo notebook, sorted by name
@@ -57,13 +58,19 @@ for notebook in $(find $ROOT_DIR -type f -name "*.ipynb" -not -path "*checkpoint
 
     _dirname="$(dirname $notebook)"
     _filename="$(basename $notebook)"
+    _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
 
     # Run the notebook in a new shell. 
     # In case of error, save the notebook path relative to the root project.
     # NOTE: needs "pip install papermill"
-    (set -x && cd "$_dirname" && time python -m papermill "$_filename" /tmp/out.ipynb) || \
-    all_errors="${all_errors:-}  - '$(realpath $notebook --relative-to $ROOT_DIR)'\n"
+    (set -x && cd "$_dirname" && time python -m papermill "$_filename" /tmp/out.ipynb) && \
+    all_ok="${all_ok:-}  - '$_relative'\n" || \
+    all_errors="${all_errors:-}  - '$_relative'\n"
 done
+
+if [[ -n "$all_ok" ]]; then
+    >&2 echo -e "\nNOTEBOOKS HAVE RUN SUCCESSFULLY:\n${all_ok}"
+fi
 
 if [[ -n "$all_errors" ]]; then
     >&2 echo -e "\nERRORS ON NOTEBOOKS:\n${all_errors}"
