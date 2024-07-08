@@ -69,7 +69,7 @@ for notebook in $(find $ROOT_DIR -type f -name "*.ipynb" -not -path "*checkpoint
 done
 
 if [[ -n "$all_ok" ]]; then
-    >&2 echo -e "\nNOTEBOOKS HAVE RUN SUCCESSFULLY:\n${all_ok}"
+    >&2 echo -e "\nNOTEBOOKS RUN SUCCESSFULLY:\n${all_ok}"
 fi
 
 if [[ -n "$all_errors" ]]; then
