@@ -33,8 +33,11 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
-      RSPY_LOCAL_MODE: 1 # set to 0 to use the apikey-manager
+      
+      RSPY_LOCAL_MODE: 1
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -71,8 +74,11 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
-      RSPY_LOCAL_MODE: 1 # set to 0 to use the apikey-manager
+      
+      RSPY_LOCAL_MODE: 1
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -107,8 +113,11 @@ services:
       - catalog-db
     # variables are set in the .env file
     environment:
-      RSPY_LOCAL_MODE: 1 # set to 0 to use the apikey-manager
+      
+      RSPY_LOCAL_MODE: 1
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
@@ -171,10 +180,10 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
-    volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
     ports:
       - 6002:8000
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   ###############
   # PRE-ACTIONS #
@@ -376,7 +385,12 @@ services:
       - dpr-simulator
     # variables are set in the .env file
     environment:
+      
       RSPY_LOCAL_MODE: 1
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # rs-server urls
