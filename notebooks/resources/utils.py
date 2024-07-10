@@ -49,6 +49,9 @@ local_mode: bool = (os.getenv("RSPY_LOCAL_MODE") == "1")
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str = ""
 
+# "headers" field with the api key for HTTP requests
+apikey_headers: dict = {}
+
 # RsClient instances
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
@@ -82,12 +85,13 @@ def read_apikey() -> None:
     NOTE: don't return the apikey value because there is a risk that it is displayed in the 
     notebook (if this function is called from the last cell line) so this is not secured.
     """
-    global apikey
+    global apikey, apikey_headers
     apikey = os.getenv("RSPY_APIKEY")
     if (not local_mode) and (not apikey):
         import getpass
         apikey = getpass.getpass(f"Enter your API key:")
         os.environ["RSPY_APIKEY"] = apikey
+        apikey_headers = {"headers": {"x-api-key": apikey}}
 
 def get_s3_client():
     """
