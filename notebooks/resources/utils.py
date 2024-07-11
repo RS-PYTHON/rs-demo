@@ -87,15 +87,21 @@ def read_apikey() -> None:
     notebook (if this function is called from the last cell line) so this is not secured.
     """
     global apikey, apikey_headers
+
+    # No API key in local mode
+    if local_mode:
+        return
     
-    if not local_mode:
-        apikey = os.getenv("RSPY_APIKEY")
+    # In cluster mode, try to read it from an env variable
+    apikey = os.getenv("RSPY_APIKEY")
     
+    # If not set, read it from the user input
     if not apikey:
         import getpass
         apikey = getpass.getpass(f"Enter your API key:")
         os.environ["RSPY_APIKEY"] = apikey        
     
+    # Set the header to use in HTTP requests
     apikey_headers = {"headers": {"x-api-key": apikey}}
 
 def get_s3_client():
