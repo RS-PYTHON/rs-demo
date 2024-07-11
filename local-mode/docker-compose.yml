@@ -168,6 +168,12 @@ services:
     ports:
       - 5002:5000
 
+  lta-station:
+    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
+    container_name: lta-station
+    ports:
+      - 5003:5000
+
   ##############
   # SIMULATORS #
   ##############
