@@ -45,9 +45,13 @@ rs_common.logging.Logging.level = logging.INFO
 # In cluster mode, we use the services deployed on the RS-Server website.
 # This configuration is set in an environment variable.
 local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
+cluster_mode: bool = not local_mode
 
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str = ""
+
+# "headers" field with the api key for HTTP requests
+apikey_headers: dict = {}
 
 # RsClient instances
 auxip_client: AuxipClient = None
@@ -84,14 +88,24 @@ def read_apikey() -> None:
     NOTE: don't return the apikey value because there is a risk that it is displayed in the
     notebook (if this function is called from the last cell line) so this is not secured.
     """
-    global apikey
+    global apikey, apikey_headers
+
+    # No API key in local mode
+    if local_mode:
+        return
+    
+    # In cluster mode, try to read it from an env variable
     apikey = os.getenv("RSPY_APIKEY")
-    if (not local_mode) and (not apikey):
+    
+    # If not set, read it from the user input
+    if not apikey:
         import getpass
 
         apikey = getpass.getpass(f"Enter your API key:")
         os.environ["RSPY_APIKEY"] = apikey
 
+    # Set the header to use in HTTP requests
+    apikey_headers = {"headers": {"x-api-key": apikey}}
 
 def get_s3_client():
     """
@@ -170,10 +184,6 @@ def create_test_collection() -> CollectionClient:
     # Clean the existing collection, if any
     stac_client.remove_collection(TEST_COLLECTION)
 
-    # In this tutorial, after each operation, we will validate that
-    # our catalog is valid to the STAC format, but this is optional.
-    stac_client.validate_all()
-
     # Add new collection
     response = stac_client.add_collection(
         Collection(
@@ -186,7 +196,6 @@ def create_test_collection() -> CollectionClient:
         )
     )
     response.raise_for_status()
-    stac_client.validate_all()
 
     # Return the inserted collection
     inserted_collection = stac_client.get_collection(collection_id=TEST_COLLECTION)
@@ -362,7 +371,6 @@ def stage_test_item():
     )
     response = stac_client.add_item(TEST_COLLECTION, item)
     response.raise_for_status()
-    stac_client.validate_all()
 
     # Return the inserted item
     inserted_item = test_collection.get_item(item_id)
