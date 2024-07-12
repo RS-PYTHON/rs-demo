@@ -254,9 +254,13 @@ def stage_test_several_items():
             "width": WIDTH,
             "height": HEIGHT,
             "datetime": datetime.now(),
-            "proj:epsg": 3857,
             "orientation": "nadir",
         }
+
+        if count == 4:
+            properties["proj:epsg"] = 4326
+        else:
+            properties["proj:epsg"] = 3857
 
         # Add item to the STAC catalog collection, check status is OK
         # NOTE: in future versions, this pystac Item object will be returned automatically by rs-client-libraries.
