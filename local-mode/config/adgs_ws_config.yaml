@@ -11,8 +11,8 @@ adgs:
     GENERIC_PRODUCT_TYPE:
       productType: '{productType}'
     S1_SAR_RAW:
-       productType: RAW
-       collection: Sentinel1
+      productType: RAW
+      collection: Sentinel1
 
   search:
     type: ODataV4Search
