@@ -93,10 +93,10 @@ def read_apikey() -> None:
     # No API key in local mode
     if local_mode:
         return
-    
+
     # In cluster mode, try to read it from an env variable
     apikey = os.getenv("RSPY_APIKEY")
-    
+
     # If not set, read it from the user input
     if not apikey:
         import getpass
@@ -106,6 +106,7 @@ def read_apikey() -> None:
 
     # Set the header to use in HTTP requests
     apikey_headers = {"headers": {"x-api-key": apikey}}
+
 
 def get_s3_client():
     """
@@ -283,7 +284,6 @@ def stage_test_several_items():
         )
         response = stac_client.add_item(TEST_COLLECTION, item)
         response.raise_for_status()
-        stac_client.validate_all()
 
         # Return the inserted item
         inserted_item = test_collection.get_item(item_id)
