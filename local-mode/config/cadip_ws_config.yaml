@@ -8,8 +8,6 @@ cadip:
     method: basic
     # credentials: # set using EODAG__cadip__auth__credentials__username and __password env vars
   products:
-    GENERIC_PRODUCT_TYPE:
-      productType: '{productType}'
     S1_SAR_RAW:
       productType: RAW
       collection: Sentinel1
@@ -27,11 +25,11 @@ cadip:
             - null
             - '$.Name'
         SessionIds:
-           - null
-           - "$.SessionID"
+          - null
+          - "$.SessionID"
         SessionID:
-           - null
-           - "$.SessionID"
+          - null
+          - "$.SessionID"
         Channel:
             - null
             - '$.Channel'
@@ -95,8 +93,6 @@ cadip_session:
           username: test
           password: test
   products:
-    GENERIC_PRODUCT_TYPE:
-      productType: '{productType}'
     S1_SAR_RAW:
       productType: RAW
       collection: Sentinel1
@@ -171,8 +167,8 @@ cadip_session:
         - null
         - "$.DeliveryPushOK"
       Files:
-         - null
-         - "$.Files"
+        - null
+        - "$.Files"
       # Eodag Specific map
       startTimeFromAscendingNode:
         - null
