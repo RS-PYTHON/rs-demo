@@ -36,7 +36,7 @@ services:
       
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
@@ -77,7 +77,7 @@ services:
       
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
@@ -116,7 +116,7 @@ services:
       
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
       APP_HOST: 0.0.0.0
@@ -395,7 +395,7 @@ services:
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
@@ -422,7 +422,7 @@ services:
   # Optional: test the api-key manager. 
   # Uncomment these lines and, in the rs-server-xxx services: 
   #   - set RSPY_LOCAL_MODE: 0 
-  #   - set RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key
+  #   - set RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key
   # apikey-manager:
   #   image: ghcr.io/rs-python/apikey-manager:rspy15-uac
   #   container_name: apikey-manager
