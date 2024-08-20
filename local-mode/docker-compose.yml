@@ -20,7 +20,7 @@ services:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
   
   rs-server-staging:
-    image: ghcr.io/rs-python/rs-server-staging:0.0.0.post1.dev0.2eb3bda
+    image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
     ports:
       - 8100:8000
