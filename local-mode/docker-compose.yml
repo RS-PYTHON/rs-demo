@@ -18,6 +18,17 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+  
+  rs-server-staging:
+    image: ghcr.io/rs-python/rs-server-staging:latest
+    container_name: rs-server-staging
+    ports:
+      - 8100:8000
+    volumes:
+      - ./config/staging.yaml:/etc/staging.yaml
+    environment:
+      PYGEOAPI_CONFIG: /etc/staging.yaml
+      PYGEOAPI_OPENAPI: ''
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
