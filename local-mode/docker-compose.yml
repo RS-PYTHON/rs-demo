@@ -36,9 +36,10 @@ services:
       
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -77,7 +78,7 @@ services:
       
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
@@ -116,7 +117,7 @@ services:
       
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
       OIDC_AUTHORIZATION_ENDPOINT: ${OIDC_AUTHORIZATION_ENDPOINT}
@@ -401,7 +402,7 @@ services:
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key # optional
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
@@ -426,9 +427,14 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # Optional: test the api-key manager. 
-  # Uncomment these lines and, in the rs-server-xxx services: 
-  #   - set RSPY_LOCAL_MODE: 0 
-  #   - set RSPY_UAC_CHECK_URL: http://apikey-manager:8000/check/api_key
+  # Uncomment these lines and add to the rs-server-xxx services: 
+  #   RSPY_LOCAL_MODE: 0 
+  #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key
+  #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+  #   OIDC_REALM: rspy
+  #   OIDC_CLIENT_ID: fastapi_test
+  #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+  #   RSPY_COOKIE_SECRET: secret
   # apikey-manager:
   #   image: ghcr.io/rs-python/apikey-manager:rspy15-uac
   #   container_name: apikey-manager
