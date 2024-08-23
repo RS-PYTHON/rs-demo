@@ -129,6 +129,7 @@ services:
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
 
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
       OIDC_AUTHORIZATION_ENDPOINT: ${OIDC_AUTHORIZATION_ENDPOINT}

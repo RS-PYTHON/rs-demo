@@ -150,9 +150,6 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     else:
         rs_server_href = os.environ["RSPY_WEBSITE"]
 
-    # We need the API key
-    read_apikey()
-
     # Init a generic RS-Client instance. Pass the:
     #   - RS-Server website URL
     #   - API key. If not set, we try to read it from the RSPY_APIKEY environment variable.
@@ -218,7 +215,7 @@ def stage_test_several_items():
     for count, file in enumerate(files):
         first_filename = file["id"]
         s3_path = (
-            f"s3://{RSPY_TEMP_BUCKET}/{client.apikey_user_login}/{client.station_name}"
+            f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
         )
         temp_s3_file = f"{s3_path}/{first_filename}"
         local_path = None
@@ -311,7 +308,7 @@ def stage_test_item():
     # Use our API key username so avoid conflicts with other users.
     # NOTE: in future versions, this S3 path will be automatically calculated by RS-Server.
     s3_path = (
-        f"s3://{RSPY_TEMP_BUCKET}/{client.apikey_user_login}/{client.station_name}"
+        f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
     )
     temp_s3_file = f"{s3_path}/{first_filename}"
 
@@ -385,6 +382,5 @@ def stage_test_item():
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
     global apikey, auxip_client, cadip_client, stac_client
-    read_apikey()
     create_s3_buckets()
     init_rsclient(owner_id, cadip_station)
