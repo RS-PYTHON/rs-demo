@@ -11,7 +11,7 @@ services:
   # NOTE: tt's only for showning the aggregated endpoints, they don't work in this docker compose.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
   rs-server-frontend:
-    image: ghcr.io/rs-python/rs-server-frontend:latest
+    image: ghcr.io/rs-python/rs-server-frontend:fix-rspy327
     container_name: rs-server-frontend
     ports:
       - 8000:8000
@@ -21,7 +21,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
-    image: ghcr.io/rs-python/rs-server-adgs:latest
+    image: ghcr.io/rs-python/rs-server-adgs:fix-rspy327
     container_name: rs-server-adgs
     ports:
       - 8001:8000
@@ -62,7 +62,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
-    image: ghcr.io/rs-python/rs-server-cadip:latest
+    image: ghcr.io/rs-python/rs-server-cadip:fix-rspy327
     container_name: rs-server-cadip
     ports:
       - 8002:8000
@@ -102,7 +102,7 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   rs-server-catalog:
-    image: ghcr.io/rs-python/rs-server-catalog:latest
+    image: ghcr.io/rs-python/rs-server-catalog:fix-rspy327
     container_name: rs-server-catalog
     ports:
       - 8003:8000
