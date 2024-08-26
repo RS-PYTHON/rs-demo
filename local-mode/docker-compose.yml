@@ -26,6 +26,7 @@ services:
       - 8100:8000
     volumes:
       - ./config/staging.yaml:/etc/staging.yaml
+    # variables are set in the .env file
     environment:
       PYGEOAPI_CONFIG: /etc/staging.yaml
       PYGEOAPI_OPENAPI: ''
