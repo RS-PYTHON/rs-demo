@@ -15,7 +15,7 @@
 
 collections:
   # Developer test collection
-  - id: interval_cadip
+  - id: cadip_session_by_interval
     station: cadip
     query:
       PublicationDate: 1940-03-10T12:00:00Z/2024-01-01T12:00:00Z
