@@ -108,6 +108,8 @@ services:
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
       EODAG__cadip__auth__credentials__username: test
       EODAG__cadip__auth__credentials__password: test
+      # CADIP COLLECTIONS
+      RSPY_CADIP_SEARCH_CONFIG: ${RSPY_CADIP_SEARCH_CONFIG}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}

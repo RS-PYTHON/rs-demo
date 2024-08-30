@@ -245,7 +245,7 @@ def stage_test_several_items():
         item_id = os.path.basename(temp_s3_file)
 
         # The file path from the temp s3 bucket is given in the assets
-        assets = {"file": Asset(href=temp_s3_file)}
+        assets = {temp_s3_file.split("/")[-1]: Asset(href=temp_s3_file)}
 
         # Other hardcoded parameters for this demo
         geometry = {
@@ -338,7 +338,7 @@ def stage_test_item():
     item_id = os.path.basename(temp_s3_file)
 
     # The file path from the temp s3 bucket is given in the assets
-    assets = {"file": Asset(href=temp_s3_file)}
+    assets = {temp_s3_file.split("/")[-1]: Asset(href=temp_s3_file)}
 
     # Other hardcoded parameters for this demo
     geometry = {
