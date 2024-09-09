@@ -94,10 +94,7 @@ def read_apikey() -> None:
     if local_mode:
         return
 
-    # In cluster mode, try to read it from an env variable
-    apikey = os.getenv("RSPY_APIKEY")
-
-    # If not set, read it from the user input
+    # In cluster mode, read it from the user input
     if not apikey:
         import getpass
 
@@ -152,7 +149,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Init a generic RS-Client instance. Pass the:
     #   - RS-Server website URL
-    #   - API key. If not set, we try to read it from the RSPY_APIKEY environment variable.
+    #   - API key
     #   - ID of the owner of the STAC catalog collections.
     #     By default, this is the user login from the keycloak account, associated to the API key.
     #     Or, in local mode, this is the local system username.
