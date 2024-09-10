@@ -48,7 +48,7 @@ local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
 # In cluster mode, you need an API key to access the RS-Server services.
-apikey: str = ""
+apikey: str | None = None
 
 # "headers" field with the api key for HTTP requests
 apikey_headers: dict = {}
@@ -156,7 +156,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     #     Else, your API Key must give you the rights to read/write on this catalog owner (see next cell).
     #   - Logger (optional, a default one can be used)
     generic_client = RsClient(
-        rs_server_href, rs_server_api_key=None, owner_id=owner_id, logger=None
+        rs_server_href, rs_server_api_key=apikey, owner_id=owner_id, logger=None
     )
 
     # From this generic instance, get an Auxip client instance
