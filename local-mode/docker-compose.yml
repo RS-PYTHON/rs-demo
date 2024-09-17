@@ -11,7 +11,7 @@ services:
   # NOTE: tt's only for showning the aggregated endpoints, they don't work in this docker compose.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
   rs-server-frontend:
-    image: ghcr.io/rs-python/rs-server-frontend:latest
+    image: ghcr.io/rs-python/rs-server-frontend:feat-rspy352-357-authentication-to-external-data-sources
     container_name: rs-server-frontend
     ports:
       - 8000:8000
@@ -33,7 +33,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
-    image: ghcr.io/rs-python/rs-server-adgs:latest
+    image: ghcr.io/rs-python/rs-server-adgs:feat-rspy352-357-authentication-to-external-data-sources
     container_name: rs-server-adgs
     ports:
       - 8001:8000
@@ -63,7 +63,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
       # EODAG
-      EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
+      EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG_TOKEN}
       EODAG__adgs__auth__credentials__username: test
       EODAG__adgs__auth__credentials__password: test
       # opentelemetry
@@ -80,7 +80,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
-    image: ghcr.io/rs-python/rs-server-cadip:latest
+    image: ghcr.io/rs-python/rs-server-cadip:feat-rspy352-357-authentication-to-external-data-sources
     container_name: rs-server-cadip
     ports:
       - 8002:8000
@@ -110,7 +110,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
       # EODAG
-      EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
+      EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG_TOKEN}
       EODAG__cadip__auth__credentials__username: test
       EODAG__cadip__auth__credentials__password: test
       # CADIP COLLECTIONS
@@ -127,7 +127,7 @@ services:
       - ${PWD}/config/rs-server.yaml:/home/user/.config/rs-server.yaml
 
   rs-server-catalog:
-    image: ghcr.io/rs-python/rs-server-catalog:latest
+    image: ghcr.io/rs-python/rs-server-catalog:feat-rspy352-357-authentication-to-external-data-sources
     container_name: rs-server-catalog
     ports:
       - 8003:8000
@@ -181,20 +181,20 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/ADGS/Dockerfile
   adgs-station:
-    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:feat-rspy352-357-authentication-to-external-data-sources
     container_name: adgs-station
     ports:
       - 5001:5000
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
-    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:feat-rspy352-357-authentication-to-external-data-sources
     container_name: cadip-station
     ports:
       - 5002:5000
 
   lta-station:
-    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:feat-rspy352-357-authentication-to-external-data-sources
     container_name: lta-station
     ports:
       - 5003:5000
@@ -204,7 +204,7 @@ services:
   ##############
 
   dpr-simulator:
-    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest
+    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:feat-rspy352-357-authentication-to-external-data-sources
     container_name: dpr-simulator
     environment:
       S3_ACCESSKEY: ${S3_ACCESSKEY}
