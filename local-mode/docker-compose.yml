@@ -70,7 +70,7 @@ services:
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
       # station token
-      RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
+      RSPY_USE_MODULE_FOR_STATION_TOKEN: 0
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       # this is the mount for the file used in oauth2 for external stations,
@@ -119,7 +119,7 @@ services:
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
       # station token
-      RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
+      RSPY_USE_MODULE_FOR_STATION_TOKEN: 0
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       # this is the mount for the file used in oauth2 for external stations,
