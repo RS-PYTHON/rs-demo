@@ -54,18 +54,6 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
     pip show rs-client-libraries # should show the name, version, ...
     ```
 
-* **Optional**: save your API key into your `~/.env` file so it is loaded automatically by your notebooks: 
-
-    1. Go to the menu *View -> Show Hidden Files*
-    1. In the file browser in the left panel, check that you are in your `/` home folder.
-    1. Double-click the `.env` file to open it using the integrated text editor.
-    1. Add this line to the file, save it with *Ctrl-S* and close the editor:
-
-    ```shell
-    # Replace by your value
-    export RSPY_APIKEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    ```
-
 * On the left, in the file explorer, go to the demos or tutorial folder and double-click a notebook to open it:
 
 ![Jupyter Notebook](./doc/images/jupyter.png "Jupyter Notebook")
@@ -101,6 +89,7 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 
     # Install the new version for the current user.
     pip install rs_client_libraries-<version>-py3-none-any.whl
+    opentelemetry-bootstrap -a install
     ```
 
 ## Run on local mode
@@ -274,8 +263,6 @@ You also need the rs-client-libraries project:
 From your terminal in the rs-demo, run:
 
 ```shell
-export RSPY_APIKEY=your_api_key # see the prerequisites
-
 # NOTE: at CS France premises, use this to deactivate the proxy which causes random errors
 unset no_proxy ftp_proxy https_proxy http_proxy
 

@@ -49,8 +49,15 @@ services:
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: fastapi_test
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -96,6 +103,12 @@ services:
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: fastapi_test
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       # postgres
@@ -142,8 +155,14 @@ services:
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: fastapi_test
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
 
-      RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
 #      RELOAD: false
@@ -421,6 +440,12 @@ services:
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      # JUPYTERHUB_USER: pyteam
+      # # To generate this cookie from your browser, go to http://localhost:8001/auth/me
+      # # then from the devtools (press F12) copy the value of the cookie named "session".
+      # # In Chrome: in the "Application" tab, in Firefox: in the "Storage" tab.
+      # RSPY_OAUTH2_COOKIE: xxx # DON'T SAVE THIS VALUE IN GIT !
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       RSPY_WHL_DIR: ${RSPY_WHL_DIR}
@@ -445,9 +470,14 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # Optional: test the api-key manager. 
-  # Uncomment these lines and, in the rs-server-xxx services: 
-  #   - set RSPY_LOCAL_MODE: 0 
-  #   - set RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key
+  # Uncomment these lines and add to the rs-server-xxx services: 
+  #   RSPY_LOCAL_MODE: 0 
+  #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key
+  #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+  #   OIDC_REALM: rspy
+  #   OIDC_CLIENT_ID: fastapi_test
+  #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+  #   RSPY_COOKIE_SECRET: secret
   # apikey-manager:
   #   image: ghcr.io/rs-python/apikey-manager:rspy15-uac
   #   container_name: apikey-manager

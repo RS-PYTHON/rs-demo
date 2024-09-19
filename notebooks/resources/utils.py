@@ -48,7 +48,7 @@ local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
 # In cluster mode, you need an API key to access the RS-Server services.
-apikey: str = ""
+apikey: str | None = None
 
 # "headers" field with the api key for HTTP requests
 apikey_headers: dict = {}
@@ -94,10 +94,7 @@ def read_apikey() -> None:
     if local_mode:
         return
 
-    # In cluster mode, try to read it from an env variable
-    apikey = os.getenv("RSPY_APIKEY")
-
-    # If not set, read it from the user input
+    # In cluster mode, read it from the user input
     if not apikey:
         import getpass
 
@@ -150,19 +147,16 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     else:
         rs_server_href = os.environ["RSPY_WEBSITE"]
 
-    # We need the API key
-    read_apikey()
-
     # Init a generic RS-Client instance. Pass the:
     #   - RS-Server website URL
-    #   - API key. If not set, we try to read it from the RSPY_APIKEY environment variable.
+    #   - API key
     #   - ID of the owner of the STAC catalog collections.
     #     By default, this is the user login from the keycloak account, associated to the API key.
     #     Or, in local mode, this is the local system username.
     #     Else, your API Key must give you the rights to read/write on this catalog owner (see next cell).
     #   - Logger (optional, a default one can be used)
     generic_client = RsClient(
-        rs_server_href, rs_server_api_key=None, owner_id=owner_id, logger=None
+        rs_server_href, rs_server_api_key=apikey, owner_id=owner_id, logger=None
     )
 
     # From this generic instance, get an Auxip client instance
@@ -218,7 +212,7 @@ def stage_test_several_items():
     for count, file in enumerate(files):
         first_filename = file["id"]
         s3_path = (
-            f"s3://{RSPY_TEMP_BUCKET}/{client.apikey_user_login}/{client.station_name}"
+            f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
         )
         temp_s3_file = f"{s3_path}/{first_filename}"
         local_path = None
@@ -311,7 +305,7 @@ def stage_test_item():
     # Use our API key username so avoid conflicts with other users.
     # NOTE: in future versions, this S3 path will be automatically calculated by RS-Server.
     s3_path = (
-        f"s3://{RSPY_TEMP_BUCKET}/{client.apikey_user_login}/{client.station_name}"
+        f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
     )
     temp_s3_file = f"{s3_path}/{first_filename}"
 
@@ -385,6 +379,5 @@ def stage_test_item():
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
     global apikey, auxip_client, cadip_client, stac_client
-    read_apikey()
     create_s3_buckets()
     init_rsclient(owner_id, cadip_station)

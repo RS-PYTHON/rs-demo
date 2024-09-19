@@ -26,12 +26,6 @@ export RSPY_LOCAL_MODE=0
 # Set the URLs to use in environment variables
 export RSPY_WEBSITE="https://dev-rspy.esa-copernicus.eu"
 
-# We need an API key to authenticate to the HTTP endpoints
-if [[ -z "${RSPY_APIKEY:-}" ]]; then
-    >&2 echo "Generate an API key from '$RSPY_WEBSITE' then run 'export RSPY_APIKEY=your_api_key'"
-    return 1
-fi
-
 # We need the S3 bucket info. Try to read them from the local .s3cfg file.
 s3cfg="${HOME}/.s3cfg"
 if [[ -z "${S3_ACCESSKEY:-}" || -z "${S3_SECRETKEY:-}" || -z "${S3_ENDPOINT:-}" || -z "${S3_REGION:-}" ]]; then
