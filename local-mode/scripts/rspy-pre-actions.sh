@@ -14,7 +14,7 @@ source /docker/compose/dir/.env
 
 # The .env file defines the config file paths as they should be installed
 # inside the Docker container.
-for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG} ${RSPY_CADIP_SEARCH_CONFIG}; do
+for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG} ${EODAG_ADGS_CONFIG_TOKEN} ${EODAG_CADIP_CONFIG_TOKEN} ${RSPY_CADIP_SEARCH_CONFIG} ; do
 
     # The source config file is in ./config with the same filename
     source_config=/docker/compose/dir/config/$(basename ${target_config})
