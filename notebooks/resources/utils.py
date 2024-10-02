@@ -17,22 +17,20 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
-from time import sleep
-import boto3
-from datetime import datetime
 import json
-
 import logging
 import os
+from datetime import datetime
+from time import sleep
 
+import boto3
+import rs_common
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
-
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
-import rs_common
 from rs_common.config import ECadipStation, EDownloadStatus
 
 #
@@ -156,7 +154,10 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     #     Else, your API Key must give you the rights to read/write on this catalog owner (see next cell).
     #   - Logger (optional, a default one can be used)
     generic_client = RsClient(
-        rs_server_href, rs_server_api_key=apikey, owner_id=owner_id, logger=None
+        rs_server_href,
+        rs_server_api_key=apikey,
+        owner_id=owner_id,
+        logger=None,
     )
 
     # From this generic instance, get an Auxip client instance
@@ -188,7 +189,7 @@ def create_test_collection() -> CollectionClient:
                 spatial=SpatialExtent(bboxes=[-180.0, -90.0, 180.0, 90.0]),
                 temporal=TemporalExtent([start_date, stop_date]),
             ),
-        )
+        ),
     )
     response.raise_for_status()
 
@@ -211,9 +212,7 @@ def stage_test_several_items():
 
     for count, file in enumerate(files):
         first_filename = file["id"]
-        s3_path = (
-            f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
-        )
+        s3_path = f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
         temp_s3_file = f"{s3_path}/{first_filename}"
         local_path = None
         # Call the staging service
@@ -248,7 +247,7 @@ def stage_test_several_items():
         geometry = {
             "type": "Polygon",
             "coordinates": [
-                [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
+                [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]],
             ],
         }
         bbox = [-180.0, -90.0, 180.0, 90.0]
@@ -304,9 +303,7 @@ def stage_test_item():
     # We must give a temporary S3 bucket path where to copy the file from the station.
     # Use our API key username so avoid conflicts with other users.
     # NOTE: in future versions, this S3 path will be automatically calculated by RS-Server.
-    s3_path = (
-        f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
-    )
+    s3_path = f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
     temp_s3_file = f"{s3_path}/{first_filename}"
 
     # We can also download the file locally to the server, but this is useful only in local mode

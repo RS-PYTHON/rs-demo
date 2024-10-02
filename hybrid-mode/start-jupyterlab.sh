@@ -11,6 +11,6 @@ ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
 # Configure environment
 source "${SCRIPT_DIR}/resources/jupyter-env.sh"
 
-# Run jupyter lab on the 'notebooks' directory. 
+# Run jupyter lab on the 'notebooks' directory.
 # Run Ctrl-C to exit.
 jupyter lab "${ROOT_DIR}/notebooks"

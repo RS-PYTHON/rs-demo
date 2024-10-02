@@ -22,7 +22,7 @@ cd "${ROOT_DIR}/local-mode"
 dc_file="docker-compose-test-tag.yml" # note: ignored by git from .gitignore
 cp "docker-compose.yml" "$dc_file"
 
-# For each docker image hosted on our container registry, we'll try to change 
+# For each docker image hosted on our container registry, we'll try to change
 # the tag :latest with the tag passed as a parameter of this script.
 
 # Get all these docker images
@@ -33,7 +33,7 @@ echo -e "NOTE: if the below 'docker manifest inspect' commands freeze, hit ctrl-
 
 # For each line
 while IFS= read -r old_image ; do
-    
+
     # Replace the last :<tag> by our tag
     new_image=$(sed -e "s|\(.*\):.*|\1:$tag|g" <<< "$old_image")
 

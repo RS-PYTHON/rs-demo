@@ -2,7 +2,7 @@
 
 In this page, we will see how to run the Jupyter notebooks on cluster, local and hybrid mode.
 
-### Quick links 
+### Quick links
 
   * On cluster mode:
 
@@ -19,7 +19,7 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
 
-  * On local mode: 
+  * On local mode:
 
       * RS-Server website (Swagger/OpenAPI):
 
@@ -27,7 +27,7 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
           * <http://localhost:8001/docs> (auxip)
           * <http://localhost:8002/docs> (cadip)
           * <http://localhost:8003/api.html> (catalog)
-      
+
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
       * Minio s3 bucket: <http://localhost:9001/browser> with:
@@ -75,7 +75,7 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 1. Upload the `.whl` package file to your JupyterHub session, open a Terminal and run:
 
     ```shell
-    # Uninstall the old version. Note: this fails if we do it for the first time because 
+    # Uninstall the old version. Note: this fails if we do it for the first time because
     # we try to uninstall the root installation of the library, but this this OK.
     pip uninstall -y rs-client-libraries 2>/dev/null
 
@@ -174,7 +174,7 @@ On the left, in the file explorer, go to the demos or tutorial folder and double
 # with Ctrl-C (if not in detached mode i.e. -d) then:
 docker compose down -v
 
-# You can use this to remove all docker volumes 
+# You can use this to remove all docker volumes
 # (use with care if you have other docker containers)
 docker volume prune
 ```
@@ -199,13 +199,13 @@ These containers are run locally (not on a cluster). The Jupyter notebooks acces
 
 It can be helpful to use your last rs-server code version to debug it or to test modifications without pushing them and rebuilding the Docker image. Follow these steps:
 
-1. Go to the ```local-mode``` directory and run:  
+1. Go to the ```local-mode``` directory and run:
 
     ```shell
     cp 'docker-compose.yml' 'docker-compose-debug.yml'
     ```
 
-1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:  
+1. If your local `rs-server` github repository is under `/my/local/rs-server`, modify the `docker-compose-debug.yml` file to mount your local `rs-server` services:
 
     ```yaml
     # e.g.
@@ -218,7 +218,7 @@ It can be helpful to use your last rs-server code version to debug it or to test
         # - and any other useful files ...
     ```
 
-1. Run the demo with:  
+1. Run the demo with:
 
     ```shell
     # Still from the local-mode directory, if you're not there yet
@@ -250,7 +250,7 @@ You also need the rs-client-libraries project:
     poetry run opentelemetry-bootstrap -a install
     ```
 
-  * Or if you only have its ```.whl``` package, install it with: 
+  * Or if you only have its ```.whl``` package, install it with:
 
     ```shell
     pip install rs_client_libraries-*.whl
@@ -271,18 +271,18 @@ cd /path/to/rs-client-libraries
 # git checkout develop && git pull # maybe take the latest default branch
 poetry run /path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
 
-# Or if you have installed it from rs_client_libraries-*.whl, 
+# Or if you have installed it from rs_client_libraries-*.whl,
 # just run
 /path/to/rs-demo/hybrid-mode/start-jupyterlab.sh
 ```
 
-The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser. 
+The Jupyter web client (=Jupyter Notebook) opens in a new tab of your browser.
 
 *WARNING*: the cluster is shut down from 18h30 to 8h00 each night and on the weekends.
 
 ### How to check your Python interpreter used in notebooks
 
-In a notebook cell, run: 
+In a notebook cell, run:
 ```python
 import sys
 print(sys.executable)

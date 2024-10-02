@@ -30,7 +30,7 @@ export RSPY_WEBSITE="https://dev-rspy.esa-copernicus.eu"
 s3cfg="${HOME}/.s3cfg"
 if [[ -z "${S3_ACCESSKEY:-}" || -z "${S3_SECRETKEY:-}" || -z "${S3_ENDPOINT:-}" || -z "${S3_REGION:-}" ]]; then
     if [[ -f "$s3cfg" ]]; then
-        echo "Read S3 information from '$s3cfg'"        
+        echo "Read S3 information from '$s3cfg'"
 
         # Extract field value from the file
         read_s3cfg() {

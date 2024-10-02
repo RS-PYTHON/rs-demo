@@ -19,7 +19,7 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     _dirname="$(dirname $notebook)"
     _filename="$(basename $notebook)"
 
-    # Run the notebook in a new shell. 
+    # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
     (set -x && cd "$_dirname" && time papermill "$_filename" /tmp/out.ipynb) || \
     all_errors="${all_errors:-}  - '$(realpath $notebook --relative-to $ROOT_DIR)'\n"
