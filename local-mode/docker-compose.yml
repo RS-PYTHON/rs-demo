@@ -82,7 +82,7 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       # this is the mount for the file used in oauth2 for external stations,
       # see RSPY-352
-      - ${PWD}/config/rs-server.yaml:/home/user/.config/rs-server.yaml
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml
 
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
@@ -137,7 +137,7 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       # this is the mount for the file used in oauth2 for external stations,
       # see RSPY-352
-      - ${PWD}/config/rs-server.yaml:/home/user/.config/rs-server.yaml
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml
 
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
