@@ -14,8 +14,19 @@ jobs:
     name: Run all demos
     steps:
       - uses: actions/checkout@v4
-        with: 
+        with:
           submodules: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Run pre-commit
+        run: >
+          echo
+          ":information_source: This job checks that you have run \`pre-commit run --all-files\` in
+          your local git repository before committing."
+          >> $GITHUB_STEP_SUMMARY
+      - uses: pre-commit/action@v3.0.1
 
       - name: Log into Docker registry
         uses: docker/login-action@v3
@@ -49,7 +60,7 @@ jobs:
 
           # Run all demos
           ./run-notebooks.sh "$docker_tag"
-          
+
           # Shutdown docker services and volumes
           docker compose -f docker-compose-test-tag.yml down -v
 
