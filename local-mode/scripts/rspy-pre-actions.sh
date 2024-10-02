@@ -22,5 +22,5 @@ for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG} ${EODAG_ADGS_CON
     # Create target directory and copy file
     mkdir -p $(dirname ${target_config})
     (set -x; cp -f ${source_config} ${target_config})
-    
+
 done

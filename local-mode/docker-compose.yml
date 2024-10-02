@@ -18,7 +18,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-  
+
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
@@ -45,7 +45,7 @@ services:
       - adgs-station
     # variables are set in the .env file
     environment:
-      
+
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -99,7 +99,7 @@ services:
       - cadip-station
     # variables are set in the .env file
     environment:
-      
+
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -151,7 +151,7 @@ services:
       - catalog-db
     # variables are set in the .env file
     environment:
-      
+
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -255,14 +255,14 @@ services:
   # STAC #
   ########
 
-  # To build it manually... 
+  # To build it manually...
   # Run: git submodule update --init --recursive
   # Then uncomment below code:
   #
   # stac-browser:
   #   image: stac-browser:v1
   #   container_name: stac-browser
-  #   ports: 
+  #   ports:
   #     - ${STAC_BROWSER_PORT}:8080
   #   build:
   #     context: ./stac/stac-browser
@@ -280,7 +280,7 @@ services:
   stac-browser:
     image: ghcr.io/rs-python/stac-browser:v1
     container_name: stac-browser
-    ports: 
+    ports:
       - ${STAC_BROWSER_PORT}:8080
 
   catalog-db:
@@ -435,7 +435,7 @@ services:
       - dpr-simulator
     # variables are set in the .env file
     environment:
-      
+
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
@@ -465,13 +465,13 @@ services:
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-    volumes: 
+    volumes:
       - ../notebooks:/home/jovyan/rspy-notebooks
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
-  # Optional: test the api-key manager. 
-  # Uncomment these lines and add to the rs-server-xxx services: 
-  #   RSPY_LOCAL_MODE: 0 
+  # Optional: test the api-key manager.
+  # Uncomment these lines and add to the rs-server-xxx services:
+  #   RSPY_LOCAL_MODE: 0
   #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key
   #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
   #   OIDC_REALM: rspy

@@ -46,7 +46,7 @@ wait_for_service() {
 
     port="$1"
     health="$2"
-    
+
     local i=0
     while [[ ! $(set -x; curl "localhost:$port/$health" 2>/dev/null) ]]; do
         sleep 2
@@ -63,7 +63,7 @@ wait_for_service 8003 "_mgmt/ping" # catalog
 # with the same options than the jupyter service in the docker-compose.
 # Read the environment variables before running the notebook.
 (
-    set -x; 
+    set -x;
     docker run --rm \
         --network rspy-network \
         -v $ROOT_DIR:$ROOT_DIR \

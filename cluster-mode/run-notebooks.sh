@@ -10,7 +10,7 @@ ROOT_DIR=$SCRIPT_DIR
 # Run all the demos in cluster mode.
 # This is meant to run the demos locally from a JupyterHub terminal, by using the services deployed on the cluster.
 
-# This file contains your saved API key 
+# This file contains your saved API key
 if [[ -f ~/.env ]]; then source ~/.env; fi
 
 # We need rs-client libraries, check that it's installed
@@ -26,7 +26,7 @@ export RSPY_LOCAL_MODE=0
 # s3cfg="${HOME}/.s3cfg"
 # if [[ -z "${S3_ACCESSKEY:-}" || -z "${S3_SECRETKEY:-}" || -z "${S3_ENDPOINT:-}" || -z "${S3_REGION:-}" ]]; then
 #     if [[ -f "$s3cfg" ]]; then
-#         echo "Read S3 information from '$s3cfg'"        
+#         echo "Read S3 information from '$s3cfg'"
 
 #         # Extract field value from the file
 #         read_s3cfg() {
@@ -54,7 +54,7 @@ for notebook in $(find $ROOT_DIR -type f -name "*.ipynb" -not -path "*checkpoint
     _filename="$(basename $notebook)"
     _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
 
-    # Run the notebook in a new shell. 
+    # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
     # NOTE: needs "pip install papermill"
     (set -x && cd "$_dirname" && time python -m papermill "$_filename" /tmp/out.ipynb) && \
