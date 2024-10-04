@@ -19,18 +19,6 @@ services:
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
 
-  rs-server-staging:
-    image: ghcr.io/rs-python/rs-server-staging:latest
-    container_name: rs-server-staging
-    ports:
-      - 8100:8000
-    volumes:
-      - ./config/staging.yaml:/etc/staging.yaml
-    # variables are set in the .env file
-    environment:
-      PYGEOAPI_CONFIG: /etc/staging.yaml
-      PYGEOAPI_OPENAPI: ''
-
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
     image: ghcr.io/rs-python/rs-server-adgs:latest
@@ -194,6 +182,18 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
+  rs-server-staging:
+    image: ghcr.io/rs-python/rs-server-staging:latest
+    container_name: rs-server-staging
+    ports:
+      - 8004:8000
+    volumes:
+      - ./config/staging.yaml:/etc/staging.yaml
+    # variables are set in the .env file
+    environment:
+      PYGEOAPI_CONFIG: /etc/staging.yaml
+      PYGEOAPI_OPENAPI: ''
+
   ############
   # STATIONS #
   ############
@@ -263,7 +263,7 @@ services:
   #   image: stac-browser:v1
   #   container_name: stac-browser
   #   ports:
-  #     - ${STAC_BROWSER_PORT}:8080
+  #     - 8100:8080
   #   build:
   #     context: ./stac/stac-browser
   #     dockerfile: ./Dockerfile # relative to the context above
@@ -281,7 +281,7 @@ services:
     image: ghcr.io/rs-python/stac-browser:v1
     container_name: stac-browser
     ports:
-      - ${STAC_BROWSER_PORT}:8080
+      - 8100:8080
 
   catalog-db:
     container_name: catalog-db
