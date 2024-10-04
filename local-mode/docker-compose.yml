@@ -264,7 +264,6 @@ services:
   # STAC browser on rs-server-cadip
   stac-browser-cadip:
     image: ghcr.io/radiantearth/stac-browser:latest
-    container_name: toto
     ports:
       - 8102:8080
     depends_on:
