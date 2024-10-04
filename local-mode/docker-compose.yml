@@ -45,6 +45,7 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -99,6 +100,8 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -150,6 +153,9 @@ services:
       # OIDC_CLIENT_ID: fastapi_test
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
+
+      CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
@@ -255,33 +261,30 @@ services:
   # STAC #
   ########
 
-  # To build it manually...
-  # Run: git submodule update --init --recursive
-  # Then uncomment below code:
-  #
-  # stac-browser:
-  #   image: stac-browser:v1
-  #   container_name: stac-browser
-  #   ports:
-  #     - 8100:8080
-  #   build:
-  #     context: ./stac/stac-browser
-  #     dockerfile: ./Dockerfile # relative to the context above
-  #     args:
-  #       catalogURL: "http://127.0.0.1:8003/catalog/any_owner"
-  #
-  # Then push the image into ghcr.io:
-  #
-  # docker tag stac-browser:v1 ghcr.io/rs-python/stac-browser:v1
-  # docker login https://ghcr.io/v2/rs-python
-  # docker push ghcr.io/rs-python/stac-browser:v1
-
-  # To use the previously built image
-  stac-browser:
-    image: ghcr.io/rs-python/stac-browser:v1
-    container_name: stac-browser
+  # STAC browser on rs-server-cadip
+  stac-browser-cadip:
+    image: ghcr.io/radiantearth/stac-browser:latest
+    container_name: toto
     ports:
-      - 8100:8080
+      - 8102:8080
+    depends_on:
+      - rs-server-cadip
+    environment:
+      SB_allowExternalAccess: true
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8002
+
+  # STAC browser on rs-server-catalog
+  stac-browser-catalog:
+    image: ghcr.io/radiantearth/stac-browser:latest
+    ports:
+      - 8103:8080
+    depends_on:
+      - rs-server-catalog
+    environment:
+      SB_allowExternalAccess: true
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8003
 
   catalog-db:
     container_name: catalog-db
