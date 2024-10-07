@@ -18,6 +18,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
