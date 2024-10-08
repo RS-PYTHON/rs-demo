@@ -264,24 +264,32 @@ services:
 
   # STAC browser on rs-server-cadip
   stac-browser-cadip:
-    image: ghcr.io/radiantearth/stac-browser:latest
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-cadip
     ports:
       - 8102:8080
     depends_on:
       - rs-server-cadip
     environment:
+      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      OIDC_REALM: rspy
+      PUBLIC_CLIENT_ID: fastapi_public
       SB_allowExternalAccess: true
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8002
 
   # STAC browser on rs-server-catalog
   stac-browser-catalog:
-    image: ghcr.io/radiantearth/stac-browser:latest
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-catalog
     ports:
       - 8103:8080
     depends_on:
       - rs-server-catalog
     environment:
+      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      OIDC_REALM: rspy
+      PUBLIC_CLIENT_ID: fastapi_public
       SB_allowExternalAccess: true
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8003
