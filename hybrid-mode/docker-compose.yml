@@ -8,7 +8,7 @@ services:
     image: ghcr.io/rs-python/stac-browser:v1
     container_name: stac-browser
     ports:
-      - ${STAC_BROWSER_PORT}:8080
+      - 8100:8080
 
   ### Prefect Server API and UI
   prefect-server:

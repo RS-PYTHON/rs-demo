@@ -18,18 +18,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-
-  rs-server-staging:
-    image: ghcr.io/rs-python/rs-server-staging:latest
-    container_name: rs-server-staging
-    ports:
-      - 8100:8000
-    volumes:
-      - ./config/staging.yaml:/etc/staging.yaml
-    # variables are set in the .env file
-    environment:
-      PYGEOAPI_CONFIG: /etc/staging.yaml
-      PYGEOAPI_OPENAPI: ''
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
@@ -57,6 +46,7 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -111,6 +101,8 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -163,6 +155,9 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
+      CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
+      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
 #      RELOAD: false
@@ -193,6 +188,18 @@ services:
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+
+  rs-server-staging:
+    image: ghcr.io/rs-python/rs-server-staging:latest
+    container_name: rs-server-staging
+    ports:
+      - 8004:8000
+    volumes:
+      - ./config/staging.yaml:/etc/staging.yaml
+    # variables are set in the .env file
+    environment:
+      PYGEOAPI_CONFIG: /etc/staging.yaml
+      PYGEOAPI_OPENAPI: ''
 
   ############
   # STATIONS #
@@ -255,33 +262,37 @@ services:
   # STAC #
   ########
 
-  # To build it manually...
-  # Run: git submodule update --init --recursive
-  # Then uncomment below code:
-  #
-  # stac-browser:
-  #   image: stac-browser:v1
-  #   container_name: stac-browser
-  #   ports:
-  #     - ${STAC_BROWSER_PORT}:8080
-  #   build:
-  #     context: ./stac/stac-browser
-  #     dockerfile: ./Dockerfile # relative to the context above
-  #     args:
-  #       catalogURL: "http://127.0.0.1:8003/catalog/any_owner"
-  #
-  # Then push the image into ghcr.io:
-  #
-  # docker tag stac-browser:v1 ghcr.io/rs-python/stac-browser:v1
-  # docker login https://ghcr.io/v2/rs-python
-  # docker push ghcr.io/rs-python/stac-browser:v1
-
-  # To use the previously built image
-  stac-browser:
-    image: ghcr.io/rs-python/stac-browser:v1
-    container_name: stac-browser
+  # STAC browser on rs-server-cadip
+  stac-browser-cadip:
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-cadip
     ports:
-      - ${STAC_BROWSER_PORT}:8080
+      - 8102:8080
+    depends_on:
+      - rs-server-cadip
+    environment:
+      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      OIDC_REALM: rspy
+      PUBLIC_CLIENT_ID: fastapi_public
+      SB_allowExternalAccess: true
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8002
+
+  # STAC browser on rs-server-catalog
+  stac-browser-catalog:
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-catalog
+    ports:
+      - 8103:8080
+    depends_on:
+      - rs-server-catalog
+    environment:
+      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      OIDC_REALM: rspy
+      PUBLIC_CLIENT_ID: fastapi_public
+      SB_allowExternalAccess: true
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8003
 
   catalog-db:
     container_name: catalog-db
