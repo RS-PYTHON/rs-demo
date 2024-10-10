@@ -26,7 +26,7 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
           * <http://localhost:8000/docs> (frontend, only for visualization, not functional)
           * <http://localhost:8001/docs> (auxip)
           * <http://localhost:8002/docs> (cadip)
-          * <http://localhost:8003/api.html> (catalog)
+          * <http://localhost:8003/catalog/api.html> (catalog)
 
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
