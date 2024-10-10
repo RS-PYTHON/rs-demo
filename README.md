@@ -30,10 +30,10 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
 
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
-      * Minio s3 bucket: <http://localhost:9001/browser> with:
+      * Minio s3 bucket: <http://localhost:9101/browser> with:
 
-          * Username: `_minio_`
-          * Password: `_Strong#Pass#1234_`
+          * Username: `minio`
+          * Password: `Strong#Pass#1234`
 
 ## Run on cluster mode
 
