@@ -323,7 +323,7 @@ services:
 
   ### Prefect Server API and UI
   prefect-server:
-    image: prefecthq/prefect:2.11.5-python3.11
+    image: prefecthq/prefect:2.18.3-python3.11
     restart: always
     volumes:
       - prefect_storage:/root/.prefect
@@ -365,7 +365,7 @@ services:
   # See: https://github.com/softwarebloat/python-tracing-demo/tree/main
 
   grafana:
-    image: grafana/grafana:8.2.0
+    image: grafana/grafana:10.4.10
     ports:
       - 3000:3000
     volumes:
@@ -379,13 +379,13 @@ services:
       - tempo
 
   loki:
-    image: grafana/loki:2.3.0
+    image: grafana/loki:2.9.6
     ports:
       - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
 
   tempo:
-    image: grafana/tempo:1.2.0
+    image: grafana/tempo:2.4.1
     command: [ "-search.enabled=true", "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yaml:/etc/tempo.yaml
