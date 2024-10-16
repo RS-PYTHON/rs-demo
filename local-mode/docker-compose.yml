@@ -275,9 +275,10 @@ services:
       OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
       OIDC_REALM: rspy
       PUBLIC_CLIENT_ID: fastapi_public
-      SB_allowExternalAccess: true
+      SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8002
+      SB_detectLocaleFromBrowser: true
 
   # STAC browser on rs-server-catalog
   stac-browser-catalog:
@@ -291,9 +292,10 @@ services:
       OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
       OIDC_REALM: rspy
       PUBLIC_CLIENT_ID: fastapi_public
-      SB_allowExternalAccess: true
+      SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8003
+      SB_detectLocaleFromBrowser: true
 
   catalog-db:
     container_name: catalog-db
@@ -491,7 +493,7 @@ services:
   #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
   #   RSPY_COOKIE_SECRET: secret
   # apikey-manager:
-  #   image: ghcr.io/rs-python/apikey-manager:rspy15-uac
+  #   image: ghcr.io/csgroup-oss/apikey-manager:latest
   #   container_name: apikey-manager
   #   ports:
   #     - 9999:8000
