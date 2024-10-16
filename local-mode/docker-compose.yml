@@ -450,6 +450,7 @@ services:
     # variables are set in the .env file
     environment:
 
+      RSPY_HOST_USER: ${USER}
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
