@@ -299,9 +299,8 @@ services:
 
   catalog-db:
     container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.7.10
+    image: ghcr.io/stac-utils/pgstac:v0.8.6
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
       POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
@@ -317,6 +316,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  pgstac-post-actions: # post actions for catalog-db
+    container_name: pgstac-post-actions
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.8.6
+    depends_on:
+      - catalog-db
+    environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
+      PGHOST: catalog-db
+      PGPORT: 5432
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGDATABASE: ${PGSTAC_DB}
+    volumes:
+      - ./scripts/pgstac_post_actions.py:/scripts/pgstac_post_actions.py
+    command: "bash -c 'pip3 install smart_open[http]; python3 /scripts/pgstac_post_actions.py'"
 
   ###########
   # PREFECT #
