@@ -70,10 +70,7 @@ services:
       RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      # this is the mount for the file used in oauth2 for external stations,
-      # see RSPY-352
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml
-
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
@@ -118,8 +115,6 @@ services:
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG_TOKEN}
       EODAG__cadip__auth__credentials__username: test
       EODAG__cadip__auth__credentials__password: test
-      # CADIP COLLECTIONS
-      RSPY_CADIP_SEARCH_CONFIG: ${RSPY_CADIP_SEARCH_CONFIG}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
@@ -127,9 +122,7 @@ services:
       RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      # this is the mount for the file used in oauth2 for external stations,
-      # see RSPY-352
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
 
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
@@ -515,14 +508,12 @@ services:
   #   links:
   #     - postgres
   #   environment:
-  #     API_KEYS_DB_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-  #     VERIFY_AUDIENCE: 0
-  #     SHOW_APIKEY_ENDPOINTS: 1
-  #     SHOW_TECHNICAL_ENDPOINTS: 1
-  #     OAUTH2_SERVER_URL: https://iam.dev-rspy.esa-copernicus.eu
-  #     OAUTH2_REALM: rspy
-  #     OAUTH2_CLIENT_ID: fastapi_test
-  #     OAUTH2_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+  #    APIKM_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+  #     APIKM_OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+  #     APIKM_OIDC_REALM: rspy
+  #     APIKM_OIDC_CLIENT_ID: fastapi_test
+  #     APIKM_OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+  #     APIKM_USE_AUTHLIB_OAUTH: true
 
 # Docker named volumes
 volumes:
