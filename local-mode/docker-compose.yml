@@ -256,6 +256,23 @@ services:
   # STAC #
   ########
 
+  # STAC browser on rs-server-adgs
+  stac-browser-adgs:
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-adgs
+    ports:
+      - 8101:8080
+    depends_on:
+      - rs-server-adgs
+    environment:
+      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      OIDC_REALM: rspy
+      PUBLIC_CLIENT_ID: fastapi_public
+      SB_allowExternalAccess: false
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8001
+      SB_detectLocaleFromBrowser: true
+
   # STAC browser on rs-server-cadip
   stac-browser-cadip:
     image: ghcr.io/rs-python/stac-browser:latest
