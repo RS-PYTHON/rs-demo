@@ -55,6 +55,9 @@ adgs:
         completionTimeFromAscendingNode:
             - null
             - '$.PublicationDate'
+        href:
+          - null
+          - "http://127.0.0.1:5000/Files({id})/$value"
         geometry: 'POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))'
         downloadLink: 'http://adgs-station:5000/Products({id})/$value'
         title: '$.Name'
