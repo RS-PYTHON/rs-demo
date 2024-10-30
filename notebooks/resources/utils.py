@@ -378,3 +378,15 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     global apikey, auxip_client, cadip_client, stac_client
     create_s3_buckets()
     init_rsclient(owner_id, cadip_station)
+
+def temporary_fix_adgs_feature(items_collection):
+    # Disable instruments for moment
+    for feature in items_collection['features']:
+        if 'instruments' in feature['properties']:
+            del feature['properties']['instruments']
+    # Update href and title
+    for feature in items_collection['features']:
+        for asset in feature['assets']:
+            feature['assets'][asset]['title'] = asset
+            feature['assets'][asset]['href'] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
+    return items_collection
