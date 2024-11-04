@@ -70,10 +70,7 @@ services:
       RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      # this is the mount for the file used in oauth2 for external stations,
-      # see RSPY-352
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml
-
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
@@ -118,8 +115,6 @@ services:
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG_TOKEN}
       EODAG__cadip__auth__credentials__username: test
       EODAG__cadip__auth__credentials__password: test
-      # CADIP COLLECTIONS
-      RSPY_CADIP_SEARCH_CONFIG: ${RSPY_CADIP_SEARCH_CONFIG}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
@@ -127,9 +122,7 @@ services:
       RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      # this is the mount for the file used in oauth2 for external stations,
-      # see RSPY-352
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
 
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
@@ -144,6 +137,7 @@ services:
     # variables are set in the .env file
     environment:
 
+      RSPY_HOST_USER: ${USER}
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -262,6 +256,23 @@ services:
   # STAC #
   ########
 
+  # STAC browser on rs-server-adgs
+  stac-browser-adgs:
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-adgs
+    ports:
+      - 8101:8080
+    depends_on:
+      - rs-server-adgs
+    environment:
+      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+      OIDC_REALM: rspy
+      PUBLIC_CLIENT_ID: fastapi_public
+      SB_allowExternalAccess: false
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8001
+      SB_detectLocaleFromBrowser: true
+
   # STAC browser on rs-server-cadip
   stac-browser-cadip:
     image: ghcr.io/rs-python/stac-browser:latest
@@ -274,9 +285,10 @@ services:
       OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
       OIDC_REALM: rspy
       PUBLIC_CLIENT_ID: fastapi_public
-      SB_allowExternalAccess: true
+      SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8002
+      SB_detectLocaleFromBrowser: true
 
   # STAC browser on rs-server-catalog
   stac-browser-catalog:
@@ -290,15 +302,15 @@ services:
       OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
       OIDC_REALM: rspy
       PUBLIC_CLIENT_ID: fastapi_public
-      SB_allowExternalAccess: true
+      SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8003
+      SB_detectLocaleFromBrowser: true
 
   catalog-db:
     container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.7.10
+    image: ghcr.io/stac-utils/pgstac:v0.8.6
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
       POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
@@ -315,6 +327,21 @@ services:
       timeout: 5s
       retries: 5
 
+  pgstac-post-actions: # post actions for catalog-db
+    container_name: pgstac-post-actions
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.8.6
+    depends_on:
+      - catalog-db
+    environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
+      PGHOST: catalog-db
+      PGPORT: 5432
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGDATABASE: ${PGSTAC_DB}
+    volumes:
+      - ./scripts/pgstac_post_actions.py:/scripts/pgstac_post_actions.py
+    command: "bash -c 'pip3 install smart_open[http]; python3 /scripts/pgstac_post_actions.py'"
+
   ###########
   # PREFECT #
   ###########
@@ -323,7 +350,7 @@ services:
 
   ### Prefect Server API and UI
   prefect-server:
-    image: prefecthq/prefect:2.11.5-python3.11
+    image: prefecthq/prefect:2.18.3-python3.11
     restart: always
     volumes:
       - prefect_storage:/root/.prefect
@@ -365,7 +392,7 @@ services:
   # See: https://github.com/softwarebloat/python-tracing-demo/tree/main
 
   grafana:
-    image: grafana/grafana:8.2.0
+    image: grafana/grafana:10.4.10
     ports:
       - 3000:3000
     volumes:
@@ -379,14 +406,14 @@ services:
       - tempo
 
   loki:
-    image: grafana/loki:2.3.0
+    image: grafana/loki:2.9.6
     ports:
       - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
 
   tempo:
-    image: grafana/tempo:1.2.0
-    command: [ "-search.enabled=true", "-config.file=/etc/tempo.yaml" ]
+    image: grafana/tempo:2.4.1
+    command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yaml:/etc/tempo.yaml
     ports:
@@ -447,6 +474,7 @@ services:
     # variables are set in the .env file
     environment:
 
+      RSPY_HOST_USER: ${USER}
       RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
@@ -490,21 +518,19 @@ services:
   #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
   #   RSPY_COOKIE_SECRET: secret
   # apikey-manager:
-  #   image: ghcr.io/rs-python/apikey-manager:rspy15-uac
+  #   image: ghcr.io/csgroup-oss/apikey-manager:latest
   #   container_name: apikey-manager
   #   ports:
   #     - 9999:8000
   #   links:
   #     - postgres
   #   environment:
-  #     API_KEYS_DB_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-  #     VERIFY_AUDIENCE: 0
-  #     SHOW_APIKEY_ENDPOINTS: 1
-  #     SHOW_TECHNICAL_ENDPOINTS: 1
-  #     OAUTH2_SERVER_URL: https://iam.dev-rspy.esa-copernicus.eu
-  #     OAUTH2_REALM: rspy
-  #     OAUTH2_CLIENT_ID: fastapi_test
-  #     OAUTH2_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+  #    APIKM_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+  #     APIKM_OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+  #     APIKM_OIDC_REALM: rspy
+  #     APIKM_OIDC_CLIENT_ID: fastapi_test
+  #     APIKM_OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+  #     APIKM_USE_AUTHLIB_OAUTH: true
 
 # Docker named volumes
 volumes:
