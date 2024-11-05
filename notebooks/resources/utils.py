@@ -24,6 +24,7 @@ from datetime import datetime
 from time import sleep
 
 import boto3
+import requests
 import rs_common
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
@@ -55,6 +56,9 @@ apikey_headers: dict = {}
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 stac_client: StacClient = None
+
+# HTTP request session
+http_session: requests.Session = requests.Session()
 
 # We use these bucket names that are deployed on the cluster.
 # RS-Server has read/write access to these buckets, but as an end-user, you won't manipulate them directly.
@@ -378,3 +382,7 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     global apikey, auxip_client, cadip_client, stac_client
     create_s3_buckets()
     init_rsclient(owner_id, cadip_station)
+
+    # Set OAuth2 authentication in the http request session
+    if cluster_mode:
+        http_session.cookies.set("session", os.environ["RSPY_OAUTH2_COOKIE"])
