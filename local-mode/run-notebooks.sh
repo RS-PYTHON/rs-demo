@@ -50,7 +50,7 @@ wait_for_service() {
     local i=0
     while [[ ! $(set -x; curl "localhost:$port/$health" 2>/dev/null) ]]; do
         sleep 2
-        i=$((i+1)); ((i>=10)) && >&2 echo "Error reaching 'localhost:$port/$health'" && exit 1
+        i=$((i+1)); ((i>=20)) && >&2 echo "Error reaching 'localhost:$port/$health'" && exit 1
     done
     return 0
 }
