@@ -56,7 +56,45 @@ jobs:
           ./test-docker-tag.sh "$docker_tag"
 
           # Run all services
-          docker compose -f docker-compose-test-tag.yml up -d
+          # docker compose -f docker-compose-test-tag.yml up -d
+          docker compose -f docker-compose-test-tag.yml up -d catalog-db postgres rs-server-catalog rs-server-cadip rs-server-adgs
+
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
+          sleep 2
+          curl http://localhost:8001/health || true
+          curl http://localhost:8002/health || true
+          curl http://localhost:8003/_mgmt/ping || true
 
           # Run all demos
           ./run-notebooks.sh "$docker_tag"
