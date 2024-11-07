@@ -186,14 +186,29 @@ services:
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
+    #extra_hosts:
+    #  - "host.docker.internal:host-gateway"
+    #network_mode: "host"
     ports:
       - 8004:8000
     volumes:
       - ./config/staging.yaml:/etc/staging.yaml
+      - ./config/openapi.json:/etc/openapi.json
+      #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
     # variables are set in the .env file
     environment:
+      RSPY_LOCAL_MODE: 1
+      RSPY_HOST_CATALOG: http://rs-server-catalog:8000
+      #RSPY_HOST_CATALOG: http://localhost:8083
       PYGEOAPI_CONFIG: /etc/staging.yaml
-      PYGEOAPI_OPENAPI: ''
+      PYGEOAPI_OPENAPI: /etc/openapi.json
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      #S3_ENDPOINT: http://127.0.0.1:9100
+      S3_REGION: ${S3_REGION}
 
   ############
   # STATIONS #
