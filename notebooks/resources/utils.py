@@ -191,7 +191,6 @@ def create_test_collection() -> CollectionClient:
                 temporal=TemporalExtent([start_date, stop_date]),
             ),
         ),
-        owner_id=os.environ.get("RSPY_HOST_USER", None),
     )
     response.raise_for_status()
 
