@@ -176,6 +176,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     print(f"Auxip service: {auxip_client.href_adgs}")
     print(f"CADIP service: {cadip_client.href_cadip}")
     print(f"Catalog service: {stac_client.href_catalog}")
+    return auxip_client, cadip_client, stac_client
 
 
 def create_test_collection() -> CollectionClient:
@@ -381,8 +382,23 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
     global apikey, auxip_client, cadip_client, stac_client
     create_s3_buckets()
-    init_rsclient(owner_id, cadip_station)
+    return init_rsclient(owner_id, cadip_station)
 
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
         http_session.cookies.set("session", os.environ["RSPY_OAUTH2_COOKIE"])
+
+
+def temporary_fix_adgs_feature(items_collection):
+    # Disable instruments for moment
+    for feature in items_collection["features"]:
+        if "instruments" in feature["properties"]:
+            del feature["properties"]["instruments"]
+    # Update href and title
+    for feature in items_collection["features"]:
+        for asset in feature["assets"]:
+            feature["assets"][asset]["title"] = asset
+            feature["assets"][asset][
+                "href"
+            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
+    return items_collection
