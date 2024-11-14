@@ -1,7 +1,25 @@
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# THIS FILE WAS AUTOMATICALLY CREATED FROM:
+#  - rs-server/services/common/config/rs-server.template.yaml
+#  - rs-server/resources/sync_config_files.py
+# DON'T MODIFY IT DIRECTLY !
+
 external_data_sources:
-  # AUXIP. For now only one ADGS but in the future there will be another one
   adgs:
-    domain: mockup-auxip-adgs-svc.processing.svc.cluster.local
+    domain: mockup-station-adgs-svc.processing.svc.cluster.local
     service:
       name: auxip
       url: http://adgs-station:5000
@@ -9,23 +27,34 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://adgs-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
       client_secret: client_secret
       authorization: Basic test
-
-  # CADIP stations. MPS has Authorization but no scope. MTI has scope but no Authorization
-  # the following one is for tests onlys
+  adgs2:
+    domain: mockup-station-adgs2-svc.processing.svc.cluster.local
+    service:
+      name: auxip
+      url: http://adgs-station:5000
+    authentication:
+      auth_type: oauth2
+      token_url: http://adgs-station:5000/oauth2/token
+      grant_type: password
+      scope: null
+      username: test
+      password: test
+      client_id: client_id
+      client_secret: client_secret
+      authorization: Basic test
   cadip:
-    domain: mockup-station-cadip-ins-svc.processing.svc.cluster.local
+    domain: mockup-station-cadip-cadip-svc.processing.svc.cluster.local
     service:
       name: cadip
       url: http://cadip-station:5000
     authentication:
       auth_type: oauth2
-      #token_url: http://mockup-station-cadip-ins-svc.processing.svc.cluster.local:8080/oauth2/token
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
       scope: sss
@@ -33,8 +62,7 @@ external_data_sources:
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
-
+      authorization: null
   ins:
     domain: mockup-station-cadip-ins-svc.processing.svc.cluster.local
     service:
@@ -42,7 +70,6 @@ external_data_sources:
       url: http://cadip-station:5000
     authentication:
       auth_type: oauth2
-      #token_url: http://mockup-station-cadip-ins-svc.processing.svc.cluster.local:8080/oauth2/token
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
       scope: sss
@@ -50,7 +77,7 @@ external_data_sources:
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
+      authorization: null
   mps:
     domain: mockup-station-cadip-mps-svc.processing.svc.cluster.local
     service:
@@ -60,7 +87,7 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
@@ -80,7 +107,7 @@ external_data_sources:
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
+      authorization: null
   nsg:
     domain: mockup-station-cadip-nsg-svc.processing.svc.cluster.local
     service:
@@ -90,12 +117,12 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
+      authorization: null
   sgs:
     domain: mockup-station-cadip-sgs-svc.processing.svc.cluster.local
     service:
@@ -105,15 +132,12 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
-
-  # CADIP stations for sessions. MPS has Authorization but no scope. MTI has scope but no Authorization
-  # the following one is for tests onlys
+      authorization: null
   cadip_session:
     domain: mockup-station-cadip-ins-svc.processing.svc.cluster.local
     service:
@@ -121,7 +145,6 @@ external_data_sources:
       url: http://cadip-station:5000
     authentication:
       auth_type: oauth2
-      #token_url: http://mockup-station-cadip-ins-svc.processing.svc.cluster.local:8080/oauth2/token
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
       scope: sss
@@ -129,8 +152,7 @@ external_data_sources:
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
-
+      authorization: null
   ins_session:
     domain: mockup-station-cadip-ins-svc.processing.svc.cluster.local
     service:
@@ -138,7 +160,6 @@ external_data_sources:
       url: http://cadip-station:5000
     authentication:
       auth_type: oauth2
-      #token_url: http://mockup-station-cadip-ins-svc.processing.svc.cluster.local:8080/oauth2/token
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
       scope: sss
@@ -146,7 +167,7 @@ external_data_sources:
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
+      authorization: null
   mps_session:
     domain: mockup-station-cadip-mps-svc.processing.svc.cluster.local
     service:
@@ -156,7 +177,7 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
@@ -176,7 +197,7 @@ external_data_sources:
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
+      authorization: null
   nsg_session:
     domain: mockup-station-cadip-nsg-svc.processing.svc.cluster.local
     service:
@@ -186,12 +207,12 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
+      authorization: null
   sgs_session:
     domain: mockup-station-cadip-sgs-svc.processing.svc.cluster.local
     service:
@@ -201,41 +222,37 @@ external_data_sources:
       auth_type: oauth2
       token_url: http://cadip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
       client_secret: client_secret
-      authorization:
-
-  # LTA
+      authorization: null
   lta:
     domain: mockup-lta-lta-svc.processing.svc.cluster.local
     service:
       name: lta
-      url: http://cadip-station:5000
+      url: http://lta-station:5000
     authentication:
       auth_type: oauth2
-      token_url: http://cadip-station:5000/oauth2/token
+      token_url: http://lta-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
       client_secret: client_secret
       authorization: Basic test
-
-  # PRIP (Production Services)
   s1a:
     domain: mockup-prip-s1a-svc.processing.svc.cluster.local
     service:
       name: prip
-      url: http://cadip-station:5000
+      url: http://prip-station:5000
     authentication:
       auth_type: oauth2
-      token_url: http://cadip-station:5000/oauth2/token
+      token_url: http://prip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
@@ -245,12 +262,12 @@ external_data_sources:
     domain: mockup-prip-s2a-svc.processing.svc.cluster.local
     service:
       name: prip
-      url: http://cadip-station:5000
+      url: http://prip-station:5000
     authentication:
       auth_type: oauth2
-      token_url: http://cadip-station:5000/oauth2/token
+      token_url: http://prip-station:5000/oauth2/token
       grant_type: password
-      scope:
+      scope: null
       username: test
       password: test
       client_id: client_id
