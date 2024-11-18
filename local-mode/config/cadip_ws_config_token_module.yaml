@@ -43,10 +43,10 @@ cadip:
       - $.Name
       SessionIds:
       - null
-      - $.SessionId
-      SessionId:
+      - $.SessionID
+      SessionID:
       - null
-      - $.SessionId
+      - $.SessionID
       Channel:
       - null
       - $.Channel
@@ -83,11 +83,11 @@ cadip:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
+          - SessionID in {SessionIds}
+          - SessionID eq {SessionID}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
@@ -133,10 +133,10 @@ ins:
       - $.Name
       SessionIds:
       - null
-      - $.SessionId
-      SessionId:
+      - $.SessionID
+      SessionID:
       - null
-      - $.SessionId
+      - $.SessionID
       Channel:
       - null
       - $.Channel
@@ -173,11 +173,11 @@ ins:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
+          - SessionID in {SessionIds}
+          - SessionID eq {SessionID}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
@@ -223,10 +223,10 @@ mps:
       - $.Name
       SessionIds:
       - null
-      - $.SessionId
-      SessionId:
+      - $.SessionID
+      SessionID:
       - null
-      - $.SessionId
+      - $.SessionID
       Channel:
       - null
       - $.Channel
@@ -263,11 +263,11 @@ mps:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
+          - SessionID in {SessionIds}
+          - SessionID eq {SessionID}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
@@ -313,10 +313,10 @@ mti:
       - $.Name
       SessionIds:
       - null
-      - $.SessionId
-      SessionId:
+      - $.SessionID
+      SessionID:
       - null
-      - $.SessionId
+      - $.SessionID
       Channel:
       - null
       - $.Channel
@@ -353,11 +353,11 @@ mti:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
+          - SessionID in {SessionIds}
+          - SessionID eq {SessionID}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
@@ -403,10 +403,10 @@ nsg:
       - $.Name
       SessionIds:
       - null
-      - $.SessionId
-      SessionId:
+      - $.SessionID
+      SessionID:
       - null
-      - $.SessionId
+      - $.SessionID
       Channel:
       - null
       - $.Channel
@@ -443,11 +443,11 @@ nsg:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
+          - SessionID in {SessionIds}
+          - SessionID eq {SessionID}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
@@ -493,10 +493,10 @@ sgs:
       - $.Name
       SessionIds:
       - null
-      - $.SessionId
-      SessionId:
+      - $.SessionID
+      SessionID:
       - null
-      - $.SessionId
+      - $.SessionID
       Channel:
       - null
       - $.Channel
@@ -533,11 +533,11 @@ sgs:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
+          - SessionID in {SessionIds}
+          - SessionID eq {SessionID}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
@@ -573,7 +573,7 @@ cadip_session:
     type: ODataV4Search
     api_endpoint: http://cadip-station:5000/Sessions
     need_auth: true
-    results_entry: $.value
+    results_entry: responses | $
     metadata_mapping:
       id:
       - null
@@ -658,16 +658,15 @@ cadip_session:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
+          - SessionId in {SessionIds}
           - SessionId eq {SessionId}
           - Satellite eq {platform}
-          - Satellite in ({platforms})
+          - Satellite in {platforms}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -677,9 +676,6 @@ cadip_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
-        startTimeFromAscendingNode: DownlinkStart
-        completionTimeFromAscendingNode: DownlinkStop
-        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -723,7 +719,7 @@ ins_session:
     type: ODataV4Search
     api_endpoint: http://cadip-station:5000/Sessions
     need_auth: true
-    results_entry: $.value
+    results_entry: responses | $
     metadata_mapping:
       id:
       - null
@@ -808,16 +804,15 @@ ins_session:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
+          - SessionId in {SessionIds}
           - SessionId eq {SessionId}
           - Satellite eq {platform}
-          - Satellite in ({platforms})
+          - Satellite in {platforms}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -827,9 +822,6 @@ ins_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
-        startTimeFromAscendingNode: DownlinkStart
-        completionTimeFromAscendingNode: DownlinkStop
-        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -873,7 +865,7 @@ mps_session:
     type: ODataV4Search
     api_endpoint: http://cadip-station:5000/Sessions
     need_auth: true
-    results_entry: $.value
+    results_entry: responses | $
     metadata_mapping:
       id:
       - null
@@ -958,16 +950,15 @@ mps_session:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
+          - SessionId in {SessionIds}
           - SessionId eq {SessionId}
           - Satellite eq {platform}
-          - Satellite in ({platforms})
+          - Satellite in {platforms}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -977,9 +968,6 @@ mps_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
-        startTimeFromAscendingNode: DownlinkStart
-        completionTimeFromAscendingNode: DownlinkStop
-        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -1023,7 +1011,7 @@ mti_session:
     type: ODataV4Search
     api_endpoint: http://cadip-station:5000/Sessions
     need_auth: true
-    results_entry: $.value
+    results_entry: responses | $
     metadata_mapping:
       id:
       - null
@@ -1108,16 +1096,15 @@ mti_session:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
+          - SessionId in {SessionIds}
           - SessionId eq {SessionId}
           - Satellite eq {platform}
-          - Satellite in ({platforms})
+          - Satellite in {platforms}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -1127,9 +1114,6 @@ mti_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
-        startTimeFromAscendingNode: DownlinkStart
-        completionTimeFromAscendingNode: DownlinkStop
-        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -1173,7 +1157,7 @@ nsg_session:
     type: ODataV4Search
     api_endpoint: http://cadip-station:5000/Sessions
     need_auth: true
-    results_entry: $.value
+    results_entry: responses | $
     metadata_mapping:
       id:
       - null
@@ -1258,16 +1242,15 @@ nsg_session:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
+          - SessionId in {SessionIds}
           - SessionId eq {SessionId}
           - Satellite eq {platform}
-          - Satellite in ({platforms})
+          - Satellite in {platforms}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -1277,9 +1260,6 @@ nsg_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
-        startTimeFromAscendingNode: DownlinkStart
-        completionTimeFromAscendingNode: DownlinkStop
-        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -1323,7 +1303,7 @@ sgs_session:
     type: ODataV4Search
     api_endpoint: http://cadip-station:5000/Sessions
     need_auth: true
-    results_entry: $.value
+    results_entry: responses | $
     metadata_mapping:
       id:
       - null
@@ -1408,16 +1388,15 @@ sgs_session:
     free_text_search_operations:
       $filter:
         union: ' OR '
-        wrapper: '{}'
+        wrapper: '"{}"'
         operations:
           and:
-          - SessionId in ({SessionIds})
+          - SessionId in {SessionIds}
           - SessionId eq {SessionId}
           - Satellite eq {platform}
-          - Satellite in ({platforms})
+          - Satellite in {platforms}
           - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
           - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -1427,9 +1406,6 @@ sgs_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
-        startTimeFromAscendingNode: DownlinkStart
-        completionTimeFromAscendingNode: DownlinkStop
-        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
