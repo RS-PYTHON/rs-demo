@@ -31,7 +31,7 @@ adgs:
     type: ODataV4Search
     api_endpoint: http://adgs-station:5000/Products
     need_auth: true
-    results_entry: $.value
+    results_entry: $.value | $
     metadata_mapping:
       id:
       - null
@@ -146,7 +146,7 @@ adgs2:
     type: ODataV4Search
     api_endpoint: http://adgs-station:5000/Products
     need_auth: true
-    results_entry: $.value
+    results_entry: $.value | $
     metadata_mapping:
       id:
       - null
