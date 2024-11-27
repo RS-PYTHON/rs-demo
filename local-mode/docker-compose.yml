@@ -201,8 +201,6 @@ services:
       RSPY_LOCAL_MODE: 1
       RSPY_HOST_CATALOG: http://rs-server-catalog:8000
       #RSPY_HOST_CATALOG: http://localhost:8083
-      PYGEOAPI_CONFIG: /etc/staging.yaml
-      PYGEOAPI_OPENAPI: /etc/openapi.json
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
