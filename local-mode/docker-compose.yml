@@ -229,10 +229,14 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
-    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
+    #image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
+    image: cadip-server-mockup:latest
     container_name: cadip-station
+    environment:
+      HTTP_REDIRECTION_PORT: ${HTTP_REDIRECTION_PORT}
     ports:
-      - 5002:5000
+      - ${HTTP_REDIRECTION_PORT}:5000
+      - 10000:10000
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
