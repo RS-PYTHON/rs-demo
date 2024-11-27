@@ -1,0 +1,1 @@
+*Note:* This folder contains integration tests under the form of notebooks that are run after the tutorials (hence the `z-` prefix in the directory name, because the tutorials are run in alphabetical order) so we have data in the catalog.
