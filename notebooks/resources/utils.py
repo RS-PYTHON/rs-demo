@@ -380,13 +380,24 @@ def stage_test_item():
 
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
-    global apikey, auxip_client, cadip_client, stac_client
+
+    # In local mode only: create the s3 buckets, if they do not already exists.
     create_s3_buckets()
-    return init_rsclient(owner_id, cadip_station)
 
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
         http_session.cookies.set("session", os.environ["RSPY_OAUTH2_COOKIE"])
+
+    # Default owner_id
+    if not owner_id:
+        owner_id = (
+            os.environ["JUPYTERHUB_USER"]
+            if cluster_mode
+            else os.environ["RSPY_HOST_USER"]
+        )
+
+    # Init RsClient instances
+    return init_rsclient(owner_id, cadip_station)
 
 
 def temporary_fix_adgs_feature(items_collection):
