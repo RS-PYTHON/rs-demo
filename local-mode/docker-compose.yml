@@ -234,10 +234,10 @@ services:
     image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
     container_name: cadip-station
     environment:
-      HTTP_REDIRECTION_HREF: http://cadip-station:${HTTP_REDIRECTED_PORT}
+      HTTP_REDIRECTION_HREF: http://cadip-station:5000
     ports:
       - 5002:5000
-      - ${HTTP_REDIRECTED_PORT}:${HTTP_REDIRECTED_PORT}
+      - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
