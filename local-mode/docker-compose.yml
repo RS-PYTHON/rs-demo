@@ -191,6 +191,10 @@ services:
     #network_mode: "host"
     ports:
       - 8004:8000
+    depends_on:
+      - adgs-station
+      - cadip-station
+      - rs-server-catalog
     volumes:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
@@ -229,8 +233,11 @@ services:
   cadip-station:
     image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
     container_name: cadip-station
+    environment:
+      HTTP_REDIRECTION_HREF: http://cadip-station:5000
     ports:
       - 5002:5000
+      - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
