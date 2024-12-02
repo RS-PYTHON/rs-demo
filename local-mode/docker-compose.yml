@@ -203,8 +203,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_LOCAL_MODE: 1
-      RSPY_HOST_CATALOG: http://rs-server-catalog:8000
-      #RSPY_HOST_CATALOG: http://localhost:8083
+      RSPY_HOST_CATALOG: http://rs-server-catalog:8000      
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
