@@ -15,32 +15,31 @@ build:
     tag: 0.0.1
     dockerfile: auto
 
-# push section allows you to manage if and how this project is uploaded to remote locations
-push:
-- prefect_docker.deployments.steps.push_docker_image:
-    requires: prefect-docker>=0.3.1
-    image_name: '{{ build_image.image_name }}'
-    tag: '{{ build_image.tag }}'
-
 # pull section allows you to provide instructions for cloning this project in remote locations
 pull:
 - prefect.deployments.steps.git_clone:
-    repository: git@github.com:RS-PYTHON/rs-demo.git
-    branch: feat-rspy516/prefect-deployment
-    access_token: null
+    repository: https://github.com/RS-PYTHON/rs-demo.git
+    branch: develop
+    credentials: 
+    #access_token: null
+# - prefect.deployments.steps.git_clone:
+#     repository: https://github.com/RS-PYTHON/rs-client-libraries.git #https://github.com/RS-PYTHON/rs-demo.git
+#     branch: fix/rspy530-implement-staging-rs-client
+#     access_token: null
+
+# - prefect.deployments.steps.pip_install_requirements:
+#     directory: "{{ clone-step.directory }}" # `clone-step` is a user-provided `id` field
+#     requirements_file: requirements.txt
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
 - name: staging_deployment
-  version: null
-  tags: []
-  description: null
+  entrypoint: flows/staging.py:staging
   schedule: {}
   flow_name: null
-  entrypoint: null
   parameters: {}
-  work_pool: ### select work pool from prefect server ui -> work pool
-    name: null
-    work_queue_name: null
-    job_variables:
-      image: '{{ build_image.image }}'
+  #work_pool: # select work pool from prefect server ui -> work pool
+  #  name: default #staging-pool ###
+  #  work_queue_name: null
+    #job_variables:
+      #image: '{{ build_image.image }}'
