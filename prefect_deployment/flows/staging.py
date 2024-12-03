@@ -6,6 +6,9 @@ from prefect import flow, task
 
 @flow(name="staging")
 def staging():
+    """
+    Launch staging process
+    """
     #staging.run_staging()
     print("Launch staging flow...")
 
