@@ -1,0 +1,12 @@
+deployments:
+  - name: staging_deployment
+    entrypoint: staging.py:staging
+    work_pool:
+      name: staging_work_pool###TODO
+  
+  - name: s1_l0_deployment
+    entrypoint: staging.py:staging
+    work_pool:
+      name: staging_work_pool###TODO
+
+# The call prefect deploy --all to deploy all of these templated deployments
