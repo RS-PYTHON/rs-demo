@@ -13,7 +13,7 @@
 name: prefect_deployment
 prefect-version: 3.1.4
 
-pull: 
+pull:
 - prefect.deployments.steps.git_clone:
     id: clone-step
     repository: https://github.com/RS-PYTHON/rs-demo.git
