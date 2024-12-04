@@ -1,9 +1,7 @@
-# Welcome to your prefect.yaml file! You can use this file for storing and managing
-# configuration for deploying your flows. We recommend committing this file to source
-# control along with your flow code.
+# ---------- Prefect deployment for local mode ----------
 
 # Generic metadata about this project
-name: prefect_deployment
+name: prefect_deployment_local_mode
 prefect-version: 3.1.4
 
 pull:
@@ -11,11 +9,6 @@ pull:
     id: clone-step
     repository: https://github.com/RS-PYTHON/rs-demo.git
     branch: feat-rspy516/prefect-deployment
-- prefect.deployments.steps.run_shell_script:
-    id: test2
-    directory: "{{ clone-step.directory }}"
-    script:
-      find .
 - prefect.deployments.steps.pip_install_requirements:
     directory: "{{ clone-step.directory }}/prefect_deployment"
     requirements_file: requirements.txt
@@ -27,10 +20,7 @@ deployments:
     - cron: "* * * * *"
       timezone: "Europe/London"
       active: true
-  flow_name: null
+  flow_name: staging
   parameters: {}
   work_pool:
-    #name: local
-  #  work_queue_name: null
-    #job_variables:
-      #image: '{{ build_image.image }}'
+    name: local
