@@ -40,7 +40,7 @@ pull: ### Utilisé pour définir les instructions à lancer à chaque fois qu'un
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
 - name: staging_deployment
-  entrypoint: ./flows/staging.py:staging
+  entrypoint: ./prefect_deployment/flows/staging.py:staging
   schedules:
     - cron: "0 0 * * *"
       timezone: "Europe/London"
@@ -50,8 +50,8 @@ deployments:
       active: false
   flow_name: null
   parameters: {}
-  #work_pool: # select work pool from prefect server ui -> work pool
-  #  name: default #staging-pool ###
+  work_pool: # select work pool from prefect server ui -> work pool
+    name: localwp1 #staging-pool ###
   #  work_queue_name: null
     #job_variables:
       #image: '{{ build_image.image }}'
