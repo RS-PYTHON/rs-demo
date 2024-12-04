@@ -1,4 +1,13 @@
-# ---------- Prefect deployment for cluster mode ----------
+# ---------- Prefect deployment ----------
+
+# To create and run a deployment use the following commands:
+#   cd path/to/rs-demo
+#   prefect deploy --prefect-file prefect_deployment/prefect.yaml
+# Follow the steps of this command
+# If in local mode, lauch a worker in a separated terminal
+#   prefect worker start --pool 'kubewp1'
+# Lauch the deployment:
+#   prefect deployment run 'staging/staging_deployment'
 
 # Generic metadata about this project
 name: prefect_deployment
