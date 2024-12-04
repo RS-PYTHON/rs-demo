@@ -48,7 +48,7 @@ deployments:
   flow_name: null
   parameters: {}
   work_pool: # select work pool from prefect server ui -> work pool
-    name: localwp1 #staging-pool ###
+    name: kubewp1 #staging-pool ###
   #  work_queue_name: null
     #job_variables:
       #image: '{{ build_image.image }}'
