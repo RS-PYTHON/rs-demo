@@ -42,12 +42,9 @@ deployments:
 - name: staging_deployment
   entrypoint: ./prefect_deployment/flows/staging.py:staging
   schedules:
-    - cron: "0 0 * * *"
+    - cron: "* * * * *"
       timezone: "Europe/London"
       active: true
-    - cron: "0 12 * * *"
-      timezone: "America/New_York"
-      active: false
   flow_name: null
   parameters: {}
   work_pool: # select work pool from prefect server ui -> work pool
