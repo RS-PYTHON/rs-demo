@@ -33,7 +33,7 @@ from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
 from rs_common.config import ECadipStation, EDownloadStatus
-
+from rs_workflows.new_staging import RsStagingClient
 #
 # Variables
 
@@ -52,10 +52,11 @@ apikey: str | None = None
 # "headers" field with the api key for HTTP requests
 apikey_headers: dict = {}
 
-# RsClient instances
+# Client instances
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 stac_client: StacClient = None
+staging_client: RsStagingClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -172,11 +173,14 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Or get a Stac client to access the catalog
     stac_client = generic_client.get_stac_client()
+    
+    # Create a client to launch staging
+    staging_client = RsStagingClient()
 
     print(f"Auxip service: {auxip_client.href_adgs}")
     print(f"CADIP service: {cadip_client.href_cadip}")
     print(f"Catalog service: {stac_client.href_catalog}")
-    return auxip_client, cadip_client, stac_client
+    return auxip_client, cadip_client, stac_client, staging_client
 
 
 def create_test_collection() -> CollectionClient:
@@ -376,7 +380,6 @@ def stage_test_item():
 
 #
 # Init
-
 
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
