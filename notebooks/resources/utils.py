@@ -30,10 +30,12 @@ from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExten
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
+from rs_client.cadip_client import StagingClient ###
+
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
 from rs_common.config import ECadipStation, EDownloadStatus
-from rs_workflows.new_staging import RsStagingClient
+###from rs_workflows.new_staging import RsStagingClient
 #
 # Variables
 
@@ -56,7 +58,7 @@ apikey_headers: dict = {}
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 stac_client: StacClient = None
-staging_client: RsStagingClient = None
+staging_client: StagingClient = None ###
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -175,7 +177,8 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     stac_client = generic_client.get_stac_client()
     
     # Create a client to launch staging
-    staging_client = RsStagingClient()
+    ### staging_client = RsStagingClient()
+    staging_client = generic_client.get_staging_client() ###
 
     print(f"Auxip service: {auxip_client.href_adgs}")
     print(f"CADIP service: {cadip_client.href_cadip}")
