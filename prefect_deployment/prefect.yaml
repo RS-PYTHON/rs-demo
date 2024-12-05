@@ -27,7 +27,7 @@ deployments:
 - name: staging_deployment
   entrypoint: ./prefect_deployment/flows/staging.py:staging
   schedules:
-    - cron: "* * * * *"
+    - cron: "0 * * * *"
       timezone: "Europe/London"
       active: true
   flow_name: staging
