@@ -29,7 +29,7 @@ def staging():
     """
     ### Test
     load_dotenv()
-    print(f"TEST ENV VAR: {os.get_env('RSPY_HOST_STAGING')}")
+    print(f"TEST ENV VAR: {os.getenv('RSPY_HOST_STAGING')}")
 
     # staging.run_staging()
     print("Launch staging flow...")
