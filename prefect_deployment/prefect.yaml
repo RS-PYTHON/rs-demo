@@ -33,4 +33,4 @@ deployments:
   flow_name: staging
   parameters: {}
   work_pool:
-    name: kubewp1
+    name: staging-pool
