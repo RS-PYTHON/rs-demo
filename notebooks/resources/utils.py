@@ -30,7 +30,7 @@ from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExten
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
-from rs_client.cadip_client import StagingClient ###
+from rs_client.staging_client import StagingClient ###
 
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
