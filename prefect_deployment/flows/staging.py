@@ -29,6 +29,7 @@ def staging():
     """
     ### Test
     load_dotenv()
+    test = True if os.getenv('RSPY_HOST_STAGING')==1 else False
     print(f"TEST ENV VAR: {os.getenv('RSPY_HOST_STAGING')}")
 
     # staging.run_staging()
