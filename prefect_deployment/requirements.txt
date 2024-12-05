@@ -1,1 +1,2 @@
-rs-client-libraries==0.2a7
+#rs-client-libraries==0.2a7
+./rs_client_libraries-0.0.0-py3-none-any.whl
