@@ -6,3 +6,4 @@ requests==2.32.3
 pystac==1.11.0
 python-dotenv==1.0.1
 opentelemetry-instrumentation-asyncio==0.48b0
+opentelemetry-instrumentation-httpx==0.48b0
