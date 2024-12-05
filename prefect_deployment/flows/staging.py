@@ -117,8 +117,6 @@ def staging():
     # Apply a request to get information about sessions that you want to stage
     session = requests.Session()
     search_result = session.get(f"{os.getenv('RSPY_HOST_CADIP')}/cadip/collections/{COLLECTION_ID}/items").json()
-
-    print(f"Cadip search result vaut: {search_result}") ###
     
     # Create necessary clients to perform catalog search and staging opeation
     staging_client = RsStagingClient()
