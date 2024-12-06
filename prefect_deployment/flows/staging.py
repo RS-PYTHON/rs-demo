@@ -21,17 +21,17 @@ from rs_workflows.new_staging import RsStagingClient
 
 from dotenv import load_dotenv
 
+@flow(name="fake_staging")
+def fake_staging():
+    print("Launch staging flow...")
 
 @flow(name="staging")
 def staging():
     """
     Launch staging process
     """
-    ### Test
+    # Loading environment variables
     load_dotenv()
-    print(f"TEST ENV VAR LOCAL MODE: {os.getenv('RSPY_LOCAL_MODE')}")
-    test = True if os.getenv('RSPY_LOCAL_MODE')=="1" else False
-    print(f"TEST ENV VAR LOCAL MODE IS ONE: {test}")
 
     # staging.run_staging()
     print("Launch staging flow...")
