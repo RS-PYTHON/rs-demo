@@ -19,9 +19,14 @@ pull:
     repository: https://github.com/RS-PYTHON/rs-demo.git
     branch: feat-rspy516/prefect-deployment
 
-- prefect.deployments.steps.pip_install_requirements:
+# - prefect.deployments.steps.pip_install_requirements:
+#     directory: "{{ clone-step.directory }}/prefect_deployment"
+#     requirements_file: requirements.txt
+- prefect.deployments.steps.run_shell_script:
+    id: test
     directory: "{{ clone-step.directory }}/prefect_deployment"
-    requirements_file: requirements.txt
+    script:
+      pip install --force-reinstall -r requirements.txt
 
 deployments:
 - name: staging_deployment
