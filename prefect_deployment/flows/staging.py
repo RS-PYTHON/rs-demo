@@ -21,12 +21,12 @@ from rs_workflows.new_staging import RsStagingClient
 
 from dotenv import load_dotenv
 
-@flow(name="fake_staging")
-def fake_staging():
-    print("Launch staging flow...")
-
 @flow(name="staging")
 def staging():
+    print("Launch staging flow...")
+
+@flow(name="staging_local")
+def staging_local():
     """
     Launch staging process
     """
