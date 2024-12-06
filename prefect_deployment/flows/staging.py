@@ -1,25 +1,5 @@
 from prefect import flow, task
 
-import getpass
-import os
-import pprint
-import sys
-from datetime import datetime
-from typing import Any
-
-import boto3
-import botocore
-import requests
-from pystac import Collection, Extent, SpatialExtent, TemporalExtent
-
-from rs_client.rs_client import RsClient
-from rs_common.config import ECadipStation
-from rs_common.logging import Logging
-pp = pprint.PrettyPrinter(indent=2, width=80, sort_dicts=False, compact=True)
-
-from rs_workflows.new_staging import RsStagingClient
-
-from dotenv import load_dotenv
 
 @flow(name="staging")
 def staging():
@@ -30,6 +10,30 @@ def staging_local():
     """
     Launch staging process
     """
+    
+    # Do necessary imports for this flow
+    import getpass
+    import os
+    import pprint
+    import sys
+    from datetime import datetime
+    from typing import Any
+
+    import boto3
+    import botocore
+    import requests
+    from pystac import Collection, Extent, SpatialExtent, TemporalExtent
+
+    from rs_client.rs_client import RsClient
+    from rs_common.config import ECadipStation
+    from rs_common.logging import Logging
+    pp = pprint.PrettyPrinter(indent=2, width=80, sort_dicts=False, compact=True)
+
+    from rs_workflows.new_staging import RsStagingClient
+
+    from dotenv import load_dotenv
+    
+    
     # Loading environment variables
     load_dotenv()
 
