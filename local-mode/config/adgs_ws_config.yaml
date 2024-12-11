@@ -13,17 +13,28 @@
 # limitations under the License.
 
 # THIS FILE WAS AUTOMATICALLY CREATED FROM:
-#  - rs-server/services/adgs/config/adgs_ws_config_token_module.template.yaml
+#  - rs-server/services/adgs/config/adgs_ws_config.template.yaml
 #  - rs-server/resources/sync_config_files.py
 # DON'T MODIFY IT DIRECTLY !
 
 adgs:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://adgs-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     CAMS_GRF_AUX:
       productType: cams-ads-grf-aux
@@ -57,10 +68,10 @@ adgs:
       End:
       - null
       - $.ContentDate.End
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       ChecksumValue:
@@ -94,9 +105,8 @@ adgs:
         operations:
           and:
           - contains(Name, '{Name}')
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Attributes/OData.CSC.StringAttribute/any(att:att/Name eq 'productType'
             and att/OData.CSC.StringAttribute/Value eq '{attr_ptype}')
           - Attributes/OData.CSC.StringAttribute/any(att:att/Name eq 'platformSerialIdentifier'
@@ -132,11 +142,22 @@ adgs:
       downloadLink: http://adgs-station:5000/Products({uid})/$value
 adgs2:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://adgs-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     CAMS_GRF_AUX:
       productType: cams-ads-grf-aux
@@ -170,10 +191,10 @@ adgs2:
       End:
       - null
       - $.ContentDate.End
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       ChecksumValue:
@@ -207,9 +228,8 @@ adgs2:
         operations:
           and:
           - contains(Name, '{Name}')
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Attributes/OData.CSC.StringAttribute/any(att:att/Name eq 'productType'
             and att/OData.CSC.StringAttribute/Value eq '{attr_ptype}')
           - Attributes/OData.CSC.StringAttribute/any(att:att/Name eq 'platformSerialIdentifier'

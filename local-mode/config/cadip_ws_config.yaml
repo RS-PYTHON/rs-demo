@@ -13,18 +13,29 @@
 # limitations under the License.
 
 # THIS FILE WAS AUTOMATICALLY CREATED FROM:
-#  - rs-server/services/cadip/config/cadip_ws_config_token_module.template.yaml
-#  - rs-server/services/cadip/config/cadip_ws_config_token_module.template_session.yaml
+#  - rs-server/services/cadip/config/cadip_ws_config.template.yaml
+#  - rs-server/services/cadip/config/cadip_ws_config.template_session.yaml
 #  - rs-server/resources/sync_config_files.py
 # DON'T MODIFY IT DIRECTLY !
 
 cadip:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -68,10 +79,10 @@ cadip:
       Retransfer:
       - null
       - $.Retransfer
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -88,10 +99,8 @@ cadip:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -112,11 +121,22 @@ cadip:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 ins:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -160,10 +180,10 @@ ins:
       Retransfer:
       - null
       - $.Retransfer
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -180,10 +200,8 @@ ins:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -204,11 +222,22 @@ ins:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 mps:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -252,10 +281,10 @@ mps:
       Retransfer:
       - null
       - $.Retransfer
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -272,10 +301,8 @@ mps:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -296,11 +323,22 @@ mps:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 mti:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -344,10 +382,10 @@ mti:
       Retransfer:
       - null
       - $.Retransfer
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -364,10 +402,8 @@ mti:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -388,11 +424,22 @@ mti:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 nsg:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -436,10 +483,10 @@ nsg:
       Retransfer:
       - null
       - $.Retransfer
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -456,10 +503,8 @@ nsg:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -480,11 +525,22 @@ nsg:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 sgs:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -528,10 +584,10 @@ sgs:
       Retransfer:
       - null
       - $.Retransfer
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -548,10 +604,8 @@ sgs:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Retransfer eq {Retransfer}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -572,11 +626,22 @@ sgs:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 cadip_session:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -656,10 +721,10 @@ cadip_session:
       Files:
       - null
       - $.Files
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -677,9 +742,8 @@ cadip_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -690,6 +754,9 @@ cadip_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
+        startTimeFromAscendingNode: DownlinkStart
+        completionTimeFromAscendingNode: DownlinkStop
+        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -720,11 +787,22 @@ cadip_session:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 ins_session:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -804,10 +882,10 @@ ins_session:
       Files:
       - null
       - $.Files
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -825,9 +903,8 @@ ins_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -838,6 +915,9 @@ ins_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
+        startTimeFromAscendingNode: DownlinkStart
+        completionTimeFromAscendingNode: DownlinkStop
+        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -868,11 +948,22 @@ ins_session:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 mps_session:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -952,10 +1043,10 @@ mps_session:
       Files:
       - null
       - $.Files
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -973,9 +1064,8 @@ mps_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -986,6 +1076,9 @@ mps_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
+        startTimeFromAscendingNode: DownlinkStart
+        completionTimeFromAscendingNode: DownlinkStop
+        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -1016,11 +1109,22 @@ mps_session:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 mti_session:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -1100,10 +1204,10 @@ mti_session:
       Files:
       - null
       - $.Files
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -1121,9 +1225,8 @@ mti_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -1134,6 +1237,9 @@ mti_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
+        startTimeFromAscendingNode: DownlinkStart
+        completionTimeFromAscendingNode: DownlinkStop
+        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -1164,11 +1270,22 @@ mti_session:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 nsg_session:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -1248,10 +1365,10 @@ nsg_session:
       Files:
       - null
       - $.Files
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -1269,9 +1386,8 @@ nsg_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -1282,6 +1398,9 @@ nsg_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
+        startTimeFromAscendingNode: DownlinkStart
+        completionTimeFromAscendingNode: DownlinkStop
+        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
@@ -1312,11 +1431,22 @@ nsg_session:
       downloadLink: http://cadip-station:5000/Files({uid})/$value
 sgs_session:
   auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
+    type: TokenAuth
+    auth_uri: http://cadip-station:5000/oauth2/token
+    token_type: json
+    token_key: access_token
+    request_method: POST
+    req_data:
+      client_id: PLACEHOLDER
+      client_secret: PLACEHOLDER
+      grant_type: PLACEHOLDER
+      username: PLACEHOLDER
+      password: PLACEHOLDER
     credentials:
-      token: token_value
+      username: PLACEHOLDER
+      password: PLACEHOLDER
+    headers:
+      Content-Type: application/x-www-form-urlencoded
   products:
     S1_SAR_RAW:
       productType: RAW
@@ -1396,10 +1526,10 @@ sgs_session:
       Files:
       - null
       - $.Files
-      StartPublicationDate:
+      startTimeFromAscendingNode:
       - null
       - $.PublicationDate
-      StopPublicationDate:
+      completionTimeFromAscendingNode:
       - null
       - $.PublicationDate
       href:
@@ -1417,9 +1547,8 @@ sgs_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gt {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lt {StopPublicationDate#to_iso_utc_datetime}
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - PublicationDate gt {startTimeFromAscendingNode#to_iso_utc_datetime}
+          - PublicationDate lt {completionTimeFromAscendingNode#to_iso_utc_datetime}
           - Retransfer eq {Retransfer}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -1430,6 +1559,9 @@ sgs_session:
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
+        startTimeFromAscendingNode: DownlinkStart
+        completionTimeFromAscendingNode: DownlinkStop
+        publicationDate: PublicationDate
         cadip:id: Id
         cadip:num_channels: NumChannels
         cadip:station_unit_id: StationUnitId
