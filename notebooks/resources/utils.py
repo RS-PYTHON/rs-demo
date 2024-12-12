@@ -178,11 +178,12 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     
     # Create a client to launch staging
     ### staging_client = RsStagingClient()
-    staging_client = generic_client.get_staging_client() ###
+    staging_client = generic_client.get_staging_client()
 
     print(f"Auxip service: {auxip_client.href_adgs}")
     print(f"CADIP service: {cadip_client.href_cadip}")
     print(f"Catalog service: {stac_client.href_catalog}")
+    print(f"Staging service: {staging_client.href_staging}")
     return auxip_client, cadip_client, stac_client, staging_client
 
 
