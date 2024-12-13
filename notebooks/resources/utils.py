@@ -30,15 +30,14 @@ from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExten
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
-from rs_client.staging_client import StagingClient ###
+from rs_client.staging_client import StagingClient
 
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
-from rs_common.config import ECadipStation, EDownloadStatus
-###from rs_workflows.new_staging import RsStagingClient
-#
-# Variables
 
+from rs_common.config import ECadipStation, EDownloadStatus
+
+# Variables
 # Set logger level to info
 rs_common.logging.Logging.level = logging.INFO
 
@@ -58,7 +57,7 @@ apikey_headers: dict = {}
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 stac_client: StacClient = None
-staging_client: StagingClient = None ###
+staging_client: StagingClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -142,16 +141,16 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, stac_client
+    global apikey, auxip_client, cadip_client, stac_client, staging_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
         rs_server_href = None  # not used
-
+        rs_server_href_staging = None
     # In cluster mode, they are set in an environment variables
     else:
         rs_server_href = os.environ["RSPY_WEBSITE"]
-
+        rs_server_href_staging = "https://rsserverstaging.dev-rspy.esa-copernicus.eu"
     # Init a generic RS-Client instance. Pass the:
     #   - RS-Server website URL
     #   - API key
@@ -162,6 +161,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     #   - Logger (optional, a default one can be used)
     generic_client = RsClient(
         rs_server_href,
+        rs_server_href_staging,
         rs_server_api_key=apikey,
         owner_id=owner_id,
         logger=None,
@@ -184,6 +184,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     print(f"CADIP service: {cadip_client.href_cadip}")
     print(f"Catalog service: {stac_client.href_catalog}")
     print(f"Staging service: {staging_client.href_staging}")
+        
     return auxip_client, cadip_client, stac_client, staging_client
 
 
