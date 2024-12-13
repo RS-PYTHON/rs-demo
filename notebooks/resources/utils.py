@@ -161,7 +161,6 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     #   - Logger (optional, a default one can be used)
     generic_client = RsClient(
         rs_server_href,
-        rs_server_href_staging,
         rs_server_api_key=apikey,
         owner_id=owner_id,
         logger=None,
@@ -178,7 +177,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     
     # Create a client to launch staging
     ### staging_client = RsStagingClient()
-    staging_client = generic_client.get_staging_client()
+    staging_client = generic_client.get_staging_client(rs_server_href_staging)
 
     print(f"Auxip service: {auxip_client.href_adgs}")
     print(f"CADIP service: {cadip_client.href_cadip}")
