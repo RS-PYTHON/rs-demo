@@ -30,11 +30,9 @@ from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExten
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
-from rs_client.staging_client import StagingClient
-
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
-
+from rs_client.staging_client import StagingClient
 from rs_common.config import ECadipStation, EDownloadStatus
 
 # Variables
@@ -174,7 +172,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Or get a Stac client to access the catalog
     stac_client = generic_client.get_stac_client()
-    
+
     # Create a client to launch staging
     staging_client = generic_client.get_staging_client()
 
@@ -182,7 +180,7 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     print(f"CADIP service: {cadip_client.href_cadip}")
     print(f"Catalog service: {stac_client.href_catalog}")
     print(f"Staging service: {staging_client.href_staging}")
-        
+
     return auxip_client, cadip_client, stac_client, staging_client
 
 
@@ -383,6 +381,7 @@ def stage_test_item():
 
 #
 # Init
+
 
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
