@@ -61,13 +61,9 @@ services:
       S3_REGION: ${S3_REGION}
       # EODAG
       EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG_TOKEN}
-      EODAG__adgs__auth__credentials__username: test
-      EODAG__adgs__auth__credentials__password: test
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      # station token
-      RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
@@ -113,13 +109,9 @@ services:
       S3_REGION: ${S3_REGION}
       # EODAG
       EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG_TOKEN}
-      EODAG__cadip__auth__credentials__username: test
-      EODAG__cadip__auth__credentials__password: test
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      # station token
-      RSPY_USE_MODULE_FOR_STATION_TOKEN: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
@@ -204,7 +196,6 @@ services:
     environment:
       RSPY_LOCAL_MODE: 1
       RSPY_HOST_CATALOG: http://rs-server-catalog:8000
-      #RSPY_HOST_CATALOG: http://localhost:8083
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
