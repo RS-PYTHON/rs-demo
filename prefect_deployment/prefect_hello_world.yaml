@@ -42,5 +42,5 @@ deployments:
     job_variables:
       env:  
         DASK_GATEWAY__AUTH__TYPE: "jupyterhub"
-        JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api_token_block }}"
-        DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask_gateway_address_block }}"
+        JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api-token-block }}"
+        DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask-gateway-address-block }}"
