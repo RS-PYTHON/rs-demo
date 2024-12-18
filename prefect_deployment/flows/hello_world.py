@@ -44,7 +44,7 @@ def dask_cluster():
     if len(workers) == 0:
         print("No workers are currently running in the Dask cluster. Scaling up to 1.")
         cluster.scale(1)
-    '''
+    
     # Prefect flow and task definitions
     @task
     def add_numbers(x, y):
@@ -63,4 +63,4 @@ def dask_cluster():
         print(f"Product result: {product_result.result()}")
     #executor = DaskExecutor(address=cluster.scheduler_address)
     my_prefect_flow()
-    '''
+    
