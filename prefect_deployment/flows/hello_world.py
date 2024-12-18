@@ -12,13 +12,16 @@ def dask_cluster():
 
 
     # check the auth type, only jupyterhub type supported for now
+    print("Entering in dask_cluster")
     auth_type = os.environ["DASK_GATEWAY__AUTH__TYPE"]
+    print(f"auth_type = {auth_type}")
     # Handle JupyterHub authentication
     if auth_type == "jupyterhub":
         gateway_auth = JupyterHubAuth(api_token=os.environ["JUPYTERHUB_API_TOKEN"])
     else:
         print(f"Unsupported authentication type: {auth_type}")
         raise RuntimeError(f"Unsupported authentication type: {auth_type}")
+    print(f"gateway_auth = {gateway_auth}")
     gateway = Gateway(
         address=os.environ["DASK_GATEWAY__ADDRESS"],
         auth=gateway_auth,
