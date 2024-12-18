@@ -5,12 +5,13 @@ from prefect import flow, task
 def staging():
     print("Launch staging flow...")
 
+
 @flow(name="staging_local")
 def staging_local():
     """
     Launch staging process
     """
-    
+
     # Do necessary imports for this flow
     import getpass
     import os
@@ -23,30 +24,30 @@ def staging_local():
     import botocore
     import requests
     from pystac import Collection, Extent, SpatialExtent, TemporalExtent
-
     from rs_client.rs_client import RsClient
     from rs_common.config import ECadipStation
     from rs_common.logging import Logging
+
     pp = pprint.PrettyPrinter(indent=2, width=80, sort_dicts=False, compact=True)
 
+    from dotenv import load_dotenv
     from rs_workflows.new_staging import RsStagingClient
 
-    from dotenv import load_dotenv
-    
-    
     # Loading environment variables
     load_dotenv()
 
     # staging.run_staging()
     print("Launch staging flow...")
-    
+
     TIMEOUT = 10
     CATALOG_BUCKET = "rs-cluster-catalog"
     APIKEY_HEADER = "x-api-key"
     COLLECTION_ID = "cadip_s1A"
     STAC_OUTPUT_COLL_NAME = "cadip_s1A_staged"
     APIKEY_VALUE = None  # "x-api-key" ### TODO: get apikey from frontend page
-    APIKEY_HEADERS: dict = {"headers": {APIKEY_HEADER: APIKEY_VALUE}} if APIKEY_VALUE else {}
+    APIKEY_HEADERS: dict = (
+        {"headers": {APIKEY_HEADER: APIKEY_VALUE}} if APIKEY_VALUE else {}
+    )
     user = os.getenv("RSPY_HOST_USER", default=getpass.getuser())
     local_mode = os.getenv("RSPY_LOCAL_MODE") == "1"
     rs_server_href = "" if local_mode else os.getenv("RSPY_WEBSITE")
@@ -64,13 +65,15 @@ def staging_local():
     logger = Logging.default(__name__)
 
     # ----- Step 1 - Create the output STAC collection if it doesn't alredy exists
-    logger.info(f"Creating a new collection {STAC_OUTPUT_COLL_NAME} in the STAC catalog...")
+    logger.info(
+        f"Creating a new collection {STAC_OUTPUT_COLL_NAME} in the STAC catalog...",
+    )
     try:
         create_coll_response = stac_client.get_collection(STAC_OUTPUT_COLL_NAME)
         logger.info(
             f"Collection {STAC_OUTPUT_COLL_NAME} already exists -> staging process will use the existing one",
         )
-    except: # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         create_coll_response = stac_client.add_collection(
             Collection(
                 id=STAC_OUTPUT_COLL_NAME,
@@ -120,40 +123,49 @@ def staging_local():
 
     # Apply a request to get information about sessions that you want to stage
     session = requests.Session()
-    search_result = session.get(f"{os.getenv('RSPY_HOST_CADIP')}/cadip/collections/{COLLECTION_ID}/items").json()
-    
+    search_result = session.get(
+        f"{os.getenv('RSPY_HOST_CADIP')}/cadip/collections/{COLLECTION_ID}/items",
+    ).json()
+
     # Create necessary clients to perform catalog search and staging opeation
     staging_client = RsStagingClient()
-    
-    
-    # Launch staging process
-    staging_client.run_staging(APIKEY_HEADERS, search_result, STAC_OUTPUT_COLL_NAME, TIMEOUT)
 
-    # Check created sessions 
-    result = session.get(f"{os.getenv('RSPY_HOST_CATALOG')}/catalog/collections/{STAC_OUTPUT_COLL_NAME}/items")
+    # Launch staging process
+    staging_client.run_staging(
+        APIKEY_HEADERS,
+        search_result,
+        STAC_OUTPUT_COLL_NAME,
+        TIMEOUT,
+    )
+
+    # Check created sessions
+    result = session.get(
+        f"{os.getenv('RSPY_HOST_CATALOG')}/catalog/collections/{STAC_OUTPUT_COLL_NAME}/items",
+    )
     catalog_collection = result.json()
     assert catalog_collection.get("type") == "FeatureCollection"
     assert len(catalog_collection.get("features")) == 4
     for item in catalog_collection.get("features"):
-        print(f"Item {item.get('id')} has {len(item.get('assets'))} assets") 
-    
+        print(f"Item {item.get('id')} has {len(item.get('assets'))} assets")
+
     # Delete the whole collection
     logger.info("Deleting the collection...")
-    result = session.delete(f"{os.getenv('RSPY_HOST_CATALOG')}/catalog/collections/{STAC_OUTPUT_COLL_NAME}")
+    result = session.delete(
+        f"{os.getenv('RSPY_HOST_CATALOG')}/catalog/collections/{STAC_OUTPUT_COLL_NAME}",
+    )
     assert result.json()["deleted collection"] == STAC_OUTPUT_COLL_NAME
     pp.pprint(result.json())
-    
 
 
-#if __name__ == "__main__":
-    # Creates a deployment from your flow and immediately begins listening for scheduled runs to execute
-    # staging.serve(name="my-first-deployment", cron="* * * * *")
+# if __name__ == "__main__":
+# Creates a deployment from your flow and immediately begins listening for scheduled runs to execute
+# staging.serve(name="my-first-deployment", cron="* * * * *")
 
-    # Create a deployment: here’s an example of a deployment that uses a work pool and bakes the code into a Docker image
-    # staging.deploy(
-    #     name="my-second-deployment",
-    #     work_pool_name="my-work-pool",
-    #     image="my-image",
-    #     push=False,
-    #     cron="* * * * *",
-    # )
+# Create a deployment: here’s an example of a deployment that uses a work pool and bakes the code into a Docker image
+# staging.deploy(
+#     name="my-second-deployment",
+#     work_pool_name="my-work-pool",
+#     image="my-image",
+#     push=False,
+#     cron="* * * * *",
+# )

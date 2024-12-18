@@ -40,7 +40,7 @@ deployments:
   work_pool:
     name: staging-pool
     job_variables:
-      env:  
+      env:
         DASK_GATEWAY__AUTH__TYPE: "jupyterhub"
         JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api-token-block }}"
         DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask-gateway-address-block }}"
