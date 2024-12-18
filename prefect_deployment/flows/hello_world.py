@@ -7,33 +7,29 @@ from prefect_dask import DaskTaskRunner
 
 @flow(name="dask_cluster")
 def dask_cluster():
-    
-    #from prefect_dask import DaskTaskRunner
-    #from prefect.engine.executors import DaskExecutor
+    """Prefect flow that is run py a prefect prefect worker in the cluster"""
 
-
-    # check the auth type, only jupyterhub type supported for now
     print("Entering in dask_cluster")
-
-    auth_type = os.environ["DASK_GATEWAY__AUTH__TYPE"]
-    print(f"auth_type = {auth_type}")
+    # check the auth type, only jupyterhub type supported for now
+    auth_type = os.environ["DASK_GATEWAY__AUTH__TYPE"]    
     # Handle JupyterHub authentication
     if auth_type == "jupyterhub":
         gateway_auth = JupyterHubAuth(api_token=os.environ["JUPYTERHUB_API_TOKEN"])
     else:
         print(f"Unsupported authentication type: {auth_type}")
         raise RuntimeError(f"Unsupported authentication type: {auth_type}")
-    print(f"gateway_auth = {gateway_auth}")
+    print("Creating dask gateway object")
     gateway = Gateway(
         address=os.environ["DASK_GATEWAY__ADDRESS"],
         auth=gateway_auth,
     )
+    print("The dask gateway object was created, getting the list with the present clusters")
     clusters = gateway.list_clusters()
     print(f"The list of clusters: {clusters}")
     cluster = gateway.connect(clusters[0].name)
-    print(cluster.scheduler_address)
+    print(f"First cluster scheduler address = {cluster.scheduler_address}")
     client = Client(cluster)
-    print(client)
+    print(f"Dask client = {client}")
     try:
         print(f"{client.get_versions(check=True)}")
         workers = client.scheduler_info()["workers"]
@@ -48,19 +44,20 @@ def dask_cluster():
     # Prefect flow and task definitions
     @task
     def add_numbers(x, y):
+        print("Running task add_numbers")
         return x + y
     
     @task
     def multiply_numbers(x, y):
+        print("Running task multiply_numbers")
         return x * y
     
-    @flow(task_runner=DaskTaskRunner(address=cluster.scheduler_address, client_kwargs={"security": cluster.security}))
-    #@flow(executor = DaskExecutor(address=cluster.scheduler_address))
-    def my_prefect_flow():
+    @flow(task_runner=DaskTaskRunner(address=cluster.scheduler_address, client_kwargs={"security": cluster.security}))    
+    def hello_world():
         sum_result = add_numbers.submit(5, 3)  # Submit tasks to the flow
         product_result = multiply_numbers.submit(5, 3)
         print(f"Sum result: {sum_result.result()}")
         print(f"Product result: {product_result.result()}")
-    #executor = DaskExecutor(address=cluster.scheduler_address)
-    my_prefect_flow()
+    
+    hello_world()
     
