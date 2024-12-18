@@ -2,6 +2,7 @@ import os
 from prefect import flow, task
 from distributed import Client
 from dask_gateway import Gateway, JupyterHubAuth
+from prefect_dask import DaskTaskRunner
 
 
 @flow(name="dask_cluster")
@@ -13,6 +14,7 @@ def dask_cluster():
 
     # check the auth type, only jupyterhub type supported for now
     print("Entering in dask_cluster")
+
     auth_type = os.environ["DASK_GATEWAY__AUTH__TYPE"]
     print(f"auth_type = {auth_type}")
     # Handle JupyterHub authentication
@@ -42,7 +44,7 @@ def dask_cluster():
     if len(workers) == 0:
         print("No workers are currently running in the Dask cluster. Scaling up to 1.")
         cluster.scale(1)
-    '''
+    
     # Prefect flow and task definitions
     @task
     def add_numbers(x, y):
@@ -61,4 +63,4 @@ def dask_cluster():
         print(f"Product result: {product_result.result()}")
     #executor = DaskExecutor(address=cluster.scheduler_address)
     my_prefect_flow()
-    '''
+    

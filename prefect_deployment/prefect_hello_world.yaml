@@ -35,11 +35,12 @@ deployments:
     - cron: "0 * * * *"
       timezone: "Europe/London"
       active: true
-  flow_name: staging
+  flow_name: hello_world
   parameters: {}
   work_pool:
     name: staging-pool
-  environment:
-    DASK_GATEWAY__AUTH__TYPE: "jupyterhub"
-    JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api_token_block }}"
-    DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask_gateway_address_block }}"
+    job_variables:
+      env:  
+        DASK_GATEWAY__AUTH__TYPE: "jupyterhub"
+        JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api_token_block }}"
+        DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask_gateway_address_block }}"
