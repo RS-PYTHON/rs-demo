@@ -13,14 +13,14 @@
 # (base) rspy@jupyter-user:~/rs-demo$ conda create -y -n prefect3 python=3.11 
 # (base) rspy@jupyter-user:~/rs-demo$ conda activate prefect3      
 # (prefect3) rspy@jupyter-user:~/rs-demo$ pip install -U prefect==3.1.4 
-# (prefect3) rspy@jupyter-user:~/rs-demo$ PREFECT_API_URL="http://prefect3-endpoint.cluster:4200/api" 
+# (prefect3) rspy@jupyter-user:~/rs-demo$ PREFECT_API_URL="http://your-real-prefect3-endpoint.cluster:4200/api" 
 
 # 4. Check if the required Prefect block secrets already exist:
 # (prefect3) rspy@jupyter-user:~/rs-demo$ prefect blocks ls
 # A table with api-token-block and dask-gateway-address-block in Name column should appear.
 # Otherwise, you have to create these two secrets. For this, use 
 # the  provided script rs-demo/prefect_deployment/secrets/create_secrets.py
-# (prefect3) rspy@jupyter-user:~/rs-demo$ python create_secrets.py '[("realapitokenvaluehere", "api-token-block"), ("http://link-to-traefik-dask-gateway-here", "dask-gateway-address-block")]'
+# (prefect3) rspy@jupyter-user:~/rs-demo$ python create_secrets.py '[("yourrealapitokenvaluehere", "api-token-block"), ("http://your-link-to-traefik-dask-gateway-here", "dask-gateway-address-block")]'
 
 # 5. Deploy the prefect flow:  
 # (prefect3) rspy@jupyter-user:~/rs-demo$ prefect deploy --prefect-file prefect_deployment/prefect_hello_world.yaml
