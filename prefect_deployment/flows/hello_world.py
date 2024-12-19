@@ -1,3 +1,17 @@
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+""" Module that implements a prefect flow to be launched in a dask cluster """
 import os
 
 from dask_gateway import Gateway, JupyterHubAuth
@@ -8,7 +22,10 @@ from prefect_dask import DaskTaskRunner
 
 @flow(name="dask_cluster")
 def dask_cluster():
-    """Prefect flow that is run py a prefect prefect worker in the cluster"""
+    """ The Prefect servers spawns a kubernetes pod for the prefect workers pool
+    and runs this prefect flow in this pod
+    """
+
     logger = get_run_logger()
     logger.info("Entering in dask_cluster")
     # check the auth type, only jupyterhub type supported for now
@@ -84,7 +101,7 @@ def dask_cluster():
         ),
     )
     def hello_world(number_of_tasks=5):
-        """Example flow that can be use in a COPERNICUS chain
+        """Example flow that will be launched to run in a dask cluster
 
         This prefect flow may be used as start point in creating your own prefect flows. It runs in parallel
         add_numbers and multiply_numbers tasks
