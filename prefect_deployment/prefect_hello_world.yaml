@@ -17,7 +17,7 @@ pull:
 - prefect.deployments.steps.git_clone:
     id: clone-step
     repository: https://github.com/RS-PYTHON/rs-demo.git
-    branch: feat-rspy516/prefect-deployment-dask-cluster
+    branch: feat-rspy572/prefect-flow-with-task-on-dask
 
 # - prefect.deployments.steps.pip_install_requirements:
 #     directory: "{{ clone-step.directory }}/prefect_deployment"
