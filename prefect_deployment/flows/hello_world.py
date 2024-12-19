@@ -1,20 +1,14 @@
-import logging
 import os
 
 from dask_gateway import Gateway, JupyterHubAuth
 from distributed import Client
-from prefect import flow, task
+from prefect import flow, task, get_run_logger
 from prefect_dask import DaskTaskRunner
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 @flow(name="dask_cluster")
 def dask_cluster():
     """Prefect flow that is run py a prefect prefect worker in the cluster"""
-
+    logger = get_run_logger()
     logger.info("Entering in dask_cluster")
     # check the auth type, only jupyterhub type supported for now
     auth_type = os.environ["DASK_GATEWAY__AUTH__TYPE"]
@@ -63,6 +57,7 @@ def dask_cluster():
             x (int): First operator
             y (int): Second operator
         """
+        logger = get_run_logger()
         logger.info(f"Running task add_numbers index {idx}")
         return x + y
 
@@ -77,6 +72,7 @@ def dask_cluster():
             x (int): First operator
             y (int): Second operator
         """
+        logger = get_run_logger()
         logger.info(f"Running task multiply_numbers index {idx}")
         return x * y
 
@@ -96,6 +92,7 @@ def dask_cluster():
             name (str): Username to be printed. Default COPERNICUS
             number_of_tasks (int): Number of tasks to be run. Default 5
         """
+        logger = get_run_logger()
         add_numbers_tasks = []
         multiply_numbers_tasks = []
         for idx in range(0, number_of_tasks):
