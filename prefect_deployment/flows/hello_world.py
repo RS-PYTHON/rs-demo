@@ -2,8 +2,9 @@ import os
 
 from dask_gateway import Gateway, JupyterHubAuth
 from distributed import Client
-from prefect import flow, task, get_run_logger
+from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
+
 
 @flow(name="dask_cluster")
 def dask_cluster():
