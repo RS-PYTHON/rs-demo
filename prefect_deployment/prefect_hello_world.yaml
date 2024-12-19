@@ -1,13 +1,30 @@
 # ---------- Prefect deployment ----------
+# This yaml is the configuration file for a prefect deployment in a kubernetes cluster
+# The following are the steps to create and run a deployment in a jupyter notebook or terminal:
+# 1. Copy rs-demo/prefect_deployment to ~/rs-demo
+# 2. Open a terminal in your jupyterlab:
+# rspy@jupyter-user:~/$ cd ~/rs-demo
 
-# To create and run a deployment use the following commands:
-#   cd path/to/rs-demo
-#   prefect deploy --prefect-file prefect_deployment/prefect.yaml
+# 3. Create a conda environment by running the following commands:
+# rspy@jupyter-user:~/rs-demo$ conda init 
+# rspy@jupyter-user:~/rs-demo$ bash 
+# (base) rspy@jupyter-user:~/rs-demo$ conda create -y -n prefect3 python=3.11 
+# (base) rspy@jupyter-user:~/rs-demo$ conda activate prefect3      
+# (prefect3) rspy@jupyter-user:~/rs-demo$ pip install -U prefect==3.1.4 
+# (prefect3) rspy@jupyter-user:~/rs-demo$ PREFECT_API_URL="http://prefect3-endpoint.cluster:4200/api" 
+
+# 4. Check if the prefect blocks secrets exist already:
+# (prefect3) rspy@jupyter-user:~/rs-demo$ prefect blocks ls
+# A table with api-token-block and dask-gateway-address-block in Name column should appear
+# Otherwise, you have to create these two secrets. For this, use rs-demo/prefect_deployment/secrets/create_secrets.py script
+# (prefect3) rspy@jupyter-user:~/rs-demo$ python create_secrets.py '[("realapitokenvaluehere", "api-token-block"), ("http://link-to-traefik-dask-gateway-here", "dask-gateway-address-block")]'
+
+# 5. Run:  
+# (prefect3) rspy@jupyter-user:~/rs-demo$ prefect deploy --prefect-file prefect_deployment/prefect_hello_world.yaml
 # Follow the steps of this command
-# If in local mode, lauch a worker in a separated terminal
-#   prefect worker start --pool 'kubewp1'
-# Lauch the deployment:
-#   prefect deployment run 'staging/staging_deployment'
+
+# 5. Launch the deployment:
+# (prefect3) rspy@jupyter-user:~/rs-demo$ prefect deployment run 'dask_cluster/staging_deployment'
 
 # Generic metadata about this project
 name: prefect_hello_world_deployment
