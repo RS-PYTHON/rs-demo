@@ -46,13 +46,31 @@ def dask_cluster():
 
     # Prefect flow and task definitions
     @task
-    def add_numbers(x, y):
-        print("Running task add_numbers")
+    def add_numbers(idx, x, y):
+        """Example task to be used in a prefect flow
+        The function simply adds two numbers
+        This prefect task may be used as start point in creating your own prefect tasks
+
+        Args:
+            idx (int): Index of the task
+            x (int): First operator
+            y (int): Second operator
+        """
+        print(f"Running task add_numbers index {idx}")
         return x + y
 
     @task
-    def multiply_numbers(x, y):
-        print("Running task multiply_numbers")
+    def multiply_numbers(idx, x, y):
+        """Example task to be used in a prefect flow
+        The function simply multiplies two numbers
+        This prefect task may be used as start point in creating your own prefect tasks
+
+        Args:
+            idx (int): Index of the task
+            x (int): First operator
+            y (int): Second operator
+        """
+        print(f"Running task multiply_numbers index {idx}")
         return x * y
 
     @flow(
@@ -60,11 +78,25 @@ def dask_cluster():
             address=cluster.scheduler_address,
             client_kwargs={"security": cluster.security},
         ),
-    )
-    def hello_world():
-        sum_result = add_numbers.submit(5, 3)  # Submit tasks to the flow
-        product_result = multiply_numbers.submit(5, 3)
-        print(f"Sum result: {sum_result.result()}")
-        print(f"Product result: {product_result.result()}")
+    )    
+    def hello_world(number_of_tasks = 5):
+        """Example flow that can be use in a COPERNICUS chain
+
+        This prefect flow may be used as start point in creating your own prefect flows. It runs in parallel
+        add_numbers and multiply_numbers tasks
+
+        Args:
+            name (str): Username to be printed. Default COPERNICUS
+            number_of_tasks (int): Number of tasks to be run. Default 5
+        """
+        add_numbers_tasks = []
+        multiply_numbers_tasks = []
+        for idx in range(0, number_of_tasks):
+            add_numbers_tasks.append(add_numbers.submit(idx, idx+5, idx+3))
+            multiply_numbers_tasks.append(multiply_numbers.submit(idx, idx+5, idx+3))
+        for t in add_numbers_tasks:
+            print(f"Sum result: {t.result()}")
+        for t in multiply_numbers_tasks:
+            print(f"Product result: {t.result()}")
 
     hello_world()
