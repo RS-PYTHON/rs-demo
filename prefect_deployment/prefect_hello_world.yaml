@@ -26,6 +26,13 @@
 # 5. Launch the deployment:
 # (prefect3) rspy@jupyter-user:~/rs-demo$ prefect deployment run 'dask_cluster/staging_deployment'
 
+# 6. Check with 'kubectl get pods -n processing | grep staging-pool--' if a new pod staging-pool--yyyy-tttt has been spawned
+# Logs can be followed with 'kubectl logs -n processing -f staging-pool--yyyy-tttt'. Here, the output from the 
+# hello_world flow (prefect_deployment/flows/hello_world.py) can be analyzed. The output from tasks multiply_numbers and 
+# add_numbers can be seen in the logs from the dask worker, where they are running. This can be achieved with 
+# the following command:
+# $$$: kubectl get pods -n dask-gateway | grep dask-worker- | awk '{print $1}' | xargs kubectl logs -n dask-gateway -f
+
 # Generic metadata about this project
 name: prefect_hello_world_deployment
 prefect-version: 3.1.4
