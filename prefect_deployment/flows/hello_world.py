@@ -1,3 +1,4 @@
+import logging
 import os
 
 from dask_gateway import Gateway, JupyterHubAuth
@@ -5,43 +6,49 @@ from distributed import Client
 from prefect import flow, task
 from prefect_dask import DaskTaskRunner
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 @flow(name="dask_cluster")
 def dask_cluster():
     """Prefect flow that is run py a prefect prefect worker in the cluster"""
 
-    print("Entering in dask_cluster")
+    logger.info("Entering in dask_cluster")
     # check the auth type, only jupyterhub type supported for now
     auth_type = os.environ["DASK_GATEWAY__AUTH__TYPE"]
     # Handle JupyterHub authentication
     if auth_type == "jupyterhub":
         gateway_auth = JupyterHubAuth(api_token=os.environ["JUPYTERHUB_API_TOKEN"])
     else:
-        print(f"Unsupported authentication type: {auth_type}")
+        logger.exception(f"Unsupported authentication type: {auth_type}")
         raise RuntimeError(f"Unsupported authentication type: {auth_type}")
-    print("Creating dask gateway object")
+    logger.info("Creating dask gateway object")
     gateway = Gateway(
         address=os.environ["DASK_GATEWAY__ADDRESS"],
         auth=gateway_auth,
     )
-    print(
+    logger.info(
         "The dask gateway object was created, getting the list with the present clusters",
     )
     clusters = gateway.list_clusters()
-    print(f"The list of clusters: {clusters}")
+    logger.info(f"The list of clusters: {clusters}")
     cluster = gateway.connect(clusters[0].name)
-    print(f"First cluster scheduler address = {cluster.scheduler_address}")
+    logger.info(f"First cluster scheduler address = {cluster.scheduler_address}")
     client = Client(cluster)
-    print(f"Dask client = {client}")
+    logger.info(f"Dask client = {client}")
     try:
-        print(f"{client.get_versions(check=True)}")
+        logger.info(f"{client.get_versions(check=True)}")
         workers = client.scheduler_info()["workers"]
-        print(f"Number of running workers: {len(workers)}")
+        logger.info(f"Number of running workers: {len(workers)}")
     except Exception as e:  # pylint: disable=broad-exception-caught
-        print(f"Dask cluster client failed: {e}")
+        logger.exception(f"Dask cluster client failed: {e}")
         raise RuntimeError(f"Dask cluster client failed: {e}") from e
     if len(workers) == 0:
-        print("No workers are currently running in the Dask cluster. Scaling up to 1.")
+        logger.info(
+            "No workers are currently running in the Dask cluster. Scaling up to 1.",
+        )
         cluster.scale(1)
 
     # Prefect flow and task definitions
@@ -56,7 +63,7 @@ def dask_cluster():
             x (int): First operator
             y (int): Second operator
         """
-        print(f"Running task add_numbers index {idx}")
+        logger.info(f"Running task add_numbers index {idx}")
         return x + y
 
     @task
@@ -70,7 +77,7 @@ def dask_cluster():
             x (int): First operator
             y (int): Second operator
         """
-        print(f"Running task multiply_numbers index {idx}")
+        logger.info(f"Running task multiply_numbers index {idx}")
         return x * y
 
     @flow(
@@ -78,8 +85,8 @@ def dask_cluster():
             address=cluster.scheduler_address,
             client_kwargs={"security": cluster.security},
         ),
-    )    
-    def hello_world(number_of_tasks = 5):
+    )
+    def hello_world(number_of_tasks=5):
         """Example flow that can be use in a COPERNICUS chain
 
         This prefect flow may be used as start point in creating your own prefect flows. It runs in parallel
@@ -92,11 +99,13 @@ def dask_cluster():
         add_numbers_tasks = []
         multiply_numbers_tasks = []
         for idx in range(0, number_of_tasks):
-            add_numbers_tasks.append(add_numbers.submit(idx, idx+5, idx+3))
-            multiply_numbers_tasks.append(multiply_numbers.submit(idx, idx+5, idx+3))
+            add_numbers_tasks.append(add_numbers.submit(idx, idx + 5, idx + 3))
+            multiply_numbers_tasks.append(
+                multiply_numbers.submit(idx, idx + 5, idx + 3),
+            )
         for t in add_numbers_tasks:
-            print(f"Sum result: {t.result()}")
+            logger.info(f"Sum result: {t.result()}")
         for t in multiply_numbers_tasks:
-            print(f"Product result: {t.result()}")
+            logger.info(f"Product result: {t.result()}")
 
     hello_world()
