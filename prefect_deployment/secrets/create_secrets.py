@@ -27,13 +27,15 @@ def main():
     """Create prefects blocks secrets"""
     # Set up argument parser
     parser = argparse.ArgumentParser(
-        description="Create P refect secrets from a list of value-name pairs.",
+        description="Create Prefect secrets from a list of value-name pairs.",
     )
     parser.add_argument(
         "pairs",
         type=str,
         help="List of (value, name) pairs in the format: [(value1, name1), (value2, name2), ...]. "
-        "Pay attention at the format of the name, that must only contain lowercase letters, numbers, and dashes",
+        "Pay attention at the format of the name, that must only "
+        "contain lowercase letters, numbers, and dashes. Example: "
+        "python create_secrets.py '[(\"value-test-1\", \"name-test-1\"), (\"value-test-2\", \"name-test-2\")]'",
     )
 
     # Parse arguments
