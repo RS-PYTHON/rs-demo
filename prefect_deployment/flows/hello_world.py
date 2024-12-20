@@ -22,7 +22,7 @@ from prefect_dask import DaskTaskRunner
 
 @flow(name="dask_cluster")
 def dask_cluster():
-    """ The Prefect servers spawns a kubernetes pod for the prefect workers pool
+    """The Prefect servers spawns a kubernetes pod for the prefect workers pool
     and runs this prefect flow in this pod
     """
 
