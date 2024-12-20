@@ -1,0 +1,77 @@
+# ---------- Prefect deployment ----------
+# This yaml is the configuration file that outlines the process
+# for setting up and running a Prefect deployment in a Kubernetes cluster.
+# The following are the steps to create and run a deployment in a jupyter notebook or a terminal:
+# 1. Copy rs-demo/prefect_deployment to your jupyterlab environment home directoy ~/rs-demo
+
+# 2. Open a terminal in your jupyterlab environment and navigate to the directory:
+# rspy@jupyter-user:~/$ cd ~/rs-demo
+
+# 3. Initialize and create a conda environment for Prefect::
+# rspy@jupyter-user:~/rs-demo$ conda init
+# rspy@jupyter-user:~/rs-demo$ bash
+# (base) rspy@jupyter-user:~/rs-demo$ conda create -y -n prefect3 python=3.11
+# (base) rspy@jupyter-user:~/rs-demo$ conda activate prefect3
+# (prefect3) rspy@jupyter-user:~/rs-demo$ pip install -U prefect==3.1.4
+# (prefect3) rspy@jupyter-user:~/rs-demo$ PREFECT_API_URL="http://your-real-prefect3-endpoint.cluster:4200/api"
+
+# 4. Check if the required Prefect block secrets already exist:
+# (prefect3) rspy@jupyter-user:~/rs-demo$ prefect blocks ls
+# A table with api-token-block and dask-gateway-address-block in Name column should appear.
+# Otherwise, you have to create these two secrets. For this, use
+# the  provided script rs-demo/prefect_deployment/secrets/create_secrets.py
+# (prefect3) rspy@jupyter-user:~/rs-demo$ python create_secrets.py '[("yourrealapitokenvaluehere", "api-token-block"), ("http://your-link-to-traefik-dask-gateway-here", "dask-gateway-address-block")]'
+
+# 5. Deploy the prefect flow:
+# (prefect3) rspy@jupyter-user:~/rs-demo$ prefect deploy --prefect-file prefect_deployment/prefect_hello_world.yaml
+# Follow the steps of this command
+
+# 5. Launch the deployment:
+# (prefect3) rspy@jupyter-user:~/rs-demo$ prefect deployment run 'dask_cluster/staging_deployment'
+
+# 6. Monitor Deployment
+# Check for a new staging pod in Kubernetes (in a terminal where you have a proper configuration for kubectl):
+# $$$: kubectl get pods -n processing | grep Running | grep staging-pool--
+# A new pod staging-pool--yyyy-tttt should have been spawned
+# Follow the logs of the staging pod:
+# $$$: kubectl logs -n processing -f staging-pool--yyyy-tttt
+# The output from the hello_world flow (prefect_deployment/flows/hello_world.py) can be analyzed.
+# The output from tasks multiply_numbers and add_numbers can be also analyzed seen in the logs
+# coming from the dask worker, where they are running. This can be achieved with the following command:
+# $$$: kubectl get pods -n dask-gateway | grep dask-worker- | awk '{print $1}' | xargs kubectl logs -n dask-gateway -f
+
+# Generic metadata about this project
+name: prefect_hello_world_deployment
+prefect-version: 3.1.4
+
+pull:
+- prefect.deployments.steps.git_clone:
+    id: clone-step
+    repository: https://github.com/RS-PYTHON/rs-demo.git
+    branch: latest
+
+# - prefect.deployments.steps.pip_install_requirements:
+#     directory: "{{ clone-step.directory }}/prefect_deployment"
+#     requirements_file: requirements.txt
+- prefect.deployments.steps.run_shell_script:
+    id: test
+    directory: "{{ clone-step.directory }}/prefect_deployment"
+    script:
+      pip install --force-reinstall -r requirements_hello_world.txt
+
+deployments:
+- name: staging_deployment
+  entrypoint: ./prefect_deployment/flows/hello_world.py:dask_cluster
+  schedules:
+    - cron: "0 * * * *"
+      timezone: "Europe/London"
+      active: true
+  flow_name: hello_world
+  parameters: {}
+  work_pool:
+    name: staging-pool
+    job_variables:
+      env:
+        DASK_GATEWAY__AUTH__TYPE: "jupyterhub"
+        JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api-token-block }}"
+        DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask-gateway-address-block }}"
