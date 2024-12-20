@@ -144,11 +144,9 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
         rs_server_href = None  # not used
-        rs_server_href_staging = None
     # In cluster mode, they are set in an environment variables
     else:
         rs_server_href = os.environ["RSPY_WEBSITE"]
-        rs_server_href_staging = "https://rsserverstaging.dev-rspy.esa-copernicus.eu"
     # Init a generic RS-Client instance. Pass the:
     #   - RS-Server website URL
     #   - API key
