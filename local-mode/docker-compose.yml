@@ -28,7 +28,6 @@ services:
       - 8001:8000
     depends_on:
       - rspy-pre-actions
-    links:
       - postgres
       - minio
       - adgs-station
@@ -76,7 +75,6 @@ services:
       - 8002:8000
     depends_on:
       - rspy-pre-actions
-    links:
       - postgres
       - minio
       - cadip-station
@@ -124,8 +122,6 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
-    links:
-      - catalog-db
     # variables are set in the .env file
     environment:
 
@@ -363,44 +359,34 @@ services:
   # PREFECT #
   ###########
 
-  # See: https://github.com/rpeden/prefect-docker-compose/blob/main/docker-compose.yml
-
-  ### Prefect Server API and UI
   prefect-server:
-    image: prefecthq/prefect:2.18.3-python3.11
-    restart: always
-    volumes:
-      - prefect_storage:/root/.prefect
-    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "server", "start"]
-    environment:
-      - PREFECT_UI_URL=http://127.0.0.1:4200/api
-      - PREFECT_API_URL=http://127.0.0.1:4200/api
-      # If you want to access Prefect Server UI from anywhere other than the Docker host machine, you will need to change
-      # PREFECT_UI_URL and PREFECT_API_URL to match the external hostname/IP of the host machine. For example:
-      #- PREFECT_UI_URL=http://external-ip:4200/api
-      #- PREFECT_API_URL=http://external-ip:4200/api
-      - PREFECT_SERVER_API_HOST=0.0.0.0
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-      # Uncomment the following line if you want to use the 'S3 Bucket' storage block instead of the older 'S3' storage
-      # - EXTRA_PIP_PACKAGES=prefect-aws
+    image: prefecthq/prefect:3.1.4-python3.11
+    # restart: always
     ports:
       - 4200:4200
-    links:
+    depends_on:
       - postgres
-    # profiles: ["server"]
-
-  ## Prefect Agent
-  prefect-agent:
-    image: prefecthq/prefect:2.11.5-python3.11
-    restart: always
-    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "agent", "start", "-q", "YOUR_WORK_QUEUE_NAME"]
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
-#       Use PREFECT_API_KEY if connecting the agent to Prefect Cloud
-#     - PREFECT_API_KEY=YOUR_API_KEY
+      - PREFECT_API_URL=http://127.0.0.1:4200/api
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    command: ["prefect", "server", "start"]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import requests; assert requests.get('http://127.0.0.1:4200/api/health').ok\""]
+      interval: 2s
+      retries: 10
+
+  prefect-worker:
+    image: prefecthq/prefect:3.1.4-python3.11
+    # restart: always
+    depends_on:
+      prefect-server:
+        condition: service_healthy
     links:
       - prefect-server
-    # profiles: ["agent"]
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    command: ["prefect", "worker", "start", "--pool", "staging-pool", "--type", "process"]
 
   #################
   # OPENTELEMETRY #
@@ -412,6 +398,7 @@ services:
     image: grafana/grafana:10.4.10
     ports:
       - 3000:3000
+    attach: false # hide logs
     volumes:
       - ./config/grafana.ini:/etc/grafana/grafana.ini
       - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
@@ -419,17 +406,19 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-    links:
+    depends_on:
       - tempo
 
   loki:
     image: grafana/loki:2.9.6
     ports:
       - 3100:3100
+    attach: false # hide logs
     command: -config.file=/etc/loki/local-config.yaml
 
   tempo:
     image: grafana/tempo:2.4.1
+    attach: false # hide logs
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yaml:/etc/tempo.yaml
@@ -442,7 +431,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: postgres-${POSTGRES_DB}
+    container_name: ${POSTGRES_HOST}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     # variables are set in the .env file
@@ -481,12 +470,11 @@ services:
     container_name: jupyter
     ports:
       - 8888:8888
-    links:
+    depends_on:
       - rs-server-adgs
       - rs-server-cadip
       - minio # used to check manually the s3 bucket contents
-      - prefect-server
-      - prefect-agent
+      - prefect-worker
       - dpr-simulator
     # variables are set in the .env file
     environment:
@@ -539,7 +527,7 @@ services:
   #   container_name: apikey-manager
   #   ports:
   #     - 9999:8000
-  #   links:
+  #   depends_on:
   #     - postgres
   #   environment:
   #    APIKM_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
