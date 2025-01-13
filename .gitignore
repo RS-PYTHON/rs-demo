@@ -3,3 +3,4 @@ __pycache__
 *-checkpoint.ipynb
 .idea
 *.orig
+tmp

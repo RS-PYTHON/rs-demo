@@ -355,9 +355,9 @@ services:
       - ./scripts/pgstac_post_actions.py:/scripts/pgstac_post_actions.py
     command: "bash -c 'pip3 install smart_open[http]; python3 /scripts/pgstac_post_actions.py'"
 
-  ###########
-  # PREFECT #
-  ###########
+  ####################
+  # PREFECT AND DASK #
+  ####################
 
   prefect-server:
     image: prefecthq/prefect:3.1.4-python3.11
@@ -386,7 +386,12 @@ services:
       - prefect-server
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
-    command: ["prefect", "worker", "start", "--pool", "staging-pool", "--type", "process"]
+    command: ["prefect", "worker", "start", "--pool", "my-prefect-pool", "--type", "process"]
+
+  dask-gateway-server:
+    image: ghcr.io/rs-python/dask-gateway-server/local:latest
+    ports:
+      - ${DASK_GATEWAY__PORT}:8000
 
   #################
   # OPENTELEMETRY #
