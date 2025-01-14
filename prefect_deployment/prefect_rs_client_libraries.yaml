@@ -58,7 +58,7 @@ pull:
 
 deployments:
 - name: rs_client_libraries_deployment
-  entrypoint: ./prefect_deployment/flows/rs_client_libraries:get_staging_jobs
+  entrypoint: ./prefect_deployment/flows/rs_client_libraries.py:get_staging_jobs
   schedules:
     - cron: "0 * * * *"
       timezone: "Europe/London"
