@@ -36,9 +36,10 @@ sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
 # And instead do the same installation as in https://gateway.dask.org/install-local.html#installation
 echo "dask-gateway==${DASK_GATEWAY_TAG}" >> "$req"
 echo "dask-gateway-server[local]==${DASK_GATEWAY_TAG}" >> "$req"
+echo "bokeh>=3.1.0" >> "$req" # for the dask dashboard
 
 # Build the docker image
-registry="ghcr.io/rs-python/dask-gateway-server/local"
+registry="ghcr.io/rs-python/base/dask-gateway-server/local"
 docker build \
     -f "Dockerfile.dask-gateway-server.local" \
     -t "${registry}:${DASK_GATEWAY_TAG}" \

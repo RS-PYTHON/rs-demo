@@ -391,7 +391,8 @@ services:
   dask-gateway-server:
     image: ghcr.io/rs-python/dask-gateway-server/local:latest
     ports:
-      - ${DASK_GATEWAY__PORT}:8000
+      - ${DASK_GATEWAY__PORT}:8000 # gateway
+      - 8787:8787 # dashboard
 
   #################
   # OPENTELEMETRY #
