@@ -13,10 +13,8 @@
 # limitations under the License.
 """ Module that implements a prefect flow to be launched in a dask cluster """
 import os
-
-from dask_gateway import Gateway, JupyterHubAuth
-from distributed import Client
 from prefect import flow, get_run_logger, task
+import json
 from rs_client.staging_client import StagingClient
 
 @task
@@ -32,7 +30,20 @@ def get_jobs(idx):
     """
     logger = get_run_logger()
     logger.info(f"Running task get_jobs index {idx}")
-    return 10
+    try:
+        rs_client_staging = StagingClient(os.environ["RS_SERVER_STAGING_ADDRESS"], 
+                                          os.environ["RS_API_KEY"], 
+                                          os.environ["RS_OWNER"], None)
+    except KeyError:
+        logger.exception(
+            "Failed to retrieve the address for the rs-server-staging. No RS_SERVER_STAGING_ADDRESS env var found"
+            )
+        return "FAILED"
+    response = rs_client_staging.get_jobs()
+    resp = json.loads(response.content)
+    logger.info(f"{resp}")
+    return "OK"
+    
 
 @flow(name="get_staging_jobs")
 def get_staging_jobs():    
@@ -51,7 +62,8 @@ def get_staging_jobs():
     logger = get_run_logger()
     logger.info("Running flow get_staging_jobs")
     res = get_jobs.submit(1)
-    logger.info(f"Task retunrned {res.result}")    
+    
+    logger.info(f"Task retunrned {res.result()}")    
     
 
 get_staging_jobs()

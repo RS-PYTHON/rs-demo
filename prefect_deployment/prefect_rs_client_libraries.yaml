@@ -51,36 +51,10 @@ pull:
     branch: feat-rspy516/run-rs-client-from-prefect
 
 - prefect.deployments.steps.run_shell_script:
-    id: setup-python
-    directory: "{{ clone-step.directory }}"
-    script: |
-      # Install Python 3.11.7
-      apt-get update && apt-get install -y \
-        wget \
-        build-essential \
-        zlib1g-dev \
-        libffi-dev \
-        libssl-dev \
-        libbz2-dev \
-        libreadline-dev \
-        libsqlite3-dev \
-        && wget https://www.python.org/ftp/python/3.11.7/Python-3.11.7.tgz \
-        && tar xzf Python-3.11.7.tgz \
-        && cd Python-3.11.7 \
-        && ./configure --enable-optimizations \
-        && make altinstall \
-        && cd .. \
-        && rm -rf Python-3.11.7 Python-3.11.7.tgz \
-        && apt-get clean
-
-      # Create and activate a virtual environment
-      python3.11 -m venv /tmp/prefect-venv
-      source /tmp/prefect-venv/bin/activate
-
-      # Install dependencies
-      pip install --upgrade pip
-      # install the required libs
-      pip install --force-reinstall -r "{{ clone-step.directory }}/prefect_deployment/requirements_rs_client_libraries.txt"
+    id: install-rs-client
+    directory: "{{ clone-step.directory }}/prefect_deployment"
+    script: 
+      pip install --force-reinstall -r requirements_rs_client_libraries.txt
 
 deployments:
 - name: rs_client_libraries_deployment
@@ -99,3 +73,5 @@ deployments:
         JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api-token-block }}"
         DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask-gateway-address-block }}"
         RS_SERVER_STAGING_ADDRESS: "https://rsserverstaging.dev-rspy.esa-copernicus.eu"
+        RS_API_KEY: "to_be_filled"
+        RS_OWNER: "agrosu"
