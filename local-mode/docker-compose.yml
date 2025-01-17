@@ -387,9 +387,11 @@ services:
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "my-prefect-pool", "--type", "process"]
+    # volumes: # to use prefect.flow.from_source(source=/my/local/folder, ...).deploy(...)
+    #   - /my/local/folder:/my/local/folder
 
   dask-gateway-server:
-    image: ghcr.io/rs-python/dask-gateway-server/local:latest
+    image: ghcr.io/rs-python/base/dask-gateway-server/local:latest
     ports:
       - ${DASK_GATEWAY__PORT}:8000 # gateway
       - 8787:8787 # dashboard
