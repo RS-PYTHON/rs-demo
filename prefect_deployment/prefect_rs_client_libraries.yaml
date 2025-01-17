@@ -49,22 +49,22 @@ pull:
 - prefect.deployments.steps.git_clone:
     id: clone-step
     repository: https://github.com/RS-PYTHON/rs-demo.git
-    branch: feat-rspy516/run-rs-client-from-prefect
+    branch: feat-rspy516/run-rs-client-from-prefect_julien
 
 - prefect.deployments.steps.run_shell_script:
     id: install-rs-client
     directory: "{{ clone-step.directory }}/prefect_deployment"
-    script:
-      pip install --force-reinstall -r requirements_rs_client_libraries.txt
+    script: |
+      pip install s3fs
+      python -c "from prefect.filesystems import RemoteFileSystem; RemoteFileSystem.load('s3-dist').get_directory('rs-client-libraries', './whl-from-s3')"
+      find ./whl-from-s3
+      pip install --force-reinstall -r requirements_rs_client_libraries.txt --find-links ./whl-from-s3
+      pip show rs-client-libraries
 
 deployments:
-- name: rs_client_libraries_deployment
+- name: test_julien
   entrypoint: ./prefect_deployment/flows/rs_client_libraries.py:get_staging_jobs
-  schedules:
-    - cron: "0 * * * *"
-      timezone: "Europe/London"
-      active: true
-  flow_name: hello_world
+  flow_name: my_flow
   parameters: {}
   work_pool:
     name: staging-pool
