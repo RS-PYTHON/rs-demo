@@ -49,7 +49,7 @@ pull:
 - prefect.deployments.steps.git_clone:
     id: clone-step
     repository: https://github.com/RS-PYTHON/rs-demo.git
-    branch: feat-rspy516/run-rs-client-from-prefect_julien
+    branch: feat-rspy516/run-rs-client-from-prefect
 
 - prefect.deployments.steps.run_shell_script:
     id: install-rs-client
@@ -62,9 +62,13 @@ pull:
       pip show rs-client-libraries
 
 deployments:
-- name: test_julien
+- name: rs_client_libraries_deployment
   entrypoint: ./prefect_deployment/flows/rs_client_libraries.py:get_staging_jobs
-  flow_name: my_flow
+  schedules:
+    - cron: "0 * * * *"
+      timezone: "Europe/London"
+      active: true
+  flow_name: hello_world
   parameters: {}
   work_pool:
     name: staging-pool
