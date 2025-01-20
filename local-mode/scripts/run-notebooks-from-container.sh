@@ -9,6 +9,7 @@ ROOT_DIR="$(realpath $SCRIPT_DIR/../..)"
 
 # We are always on local mode
 export RSPY_LOCAL_MODE=1
+export RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION=0
 
 # Read environment variables from the .env file
 source ${ROOT_DIR}/local-mode/.env
