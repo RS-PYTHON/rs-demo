@@ -54,8 +54,12 @@ pull:
 - prefect.deployments.steps.run_shell_script:
     id: install-rs-client
     directory: "{{ clone-step.directory }}/prefect_deployment"
-    script:
-      pip install --force-reinstall -r requirements_rs_client_libraries.txt
+    script: |
+      pip install s3fs
+      python -c "from prefect.filesystems import RemoteFileSystem; RemoteFileSystem.load('s3-dist').get_directory('rs-client-libraries', './whl-from-s3')"
+      find ./whl-from-s3
+      pip install --force-reinstall -r requirements_rs_client_libraries.txt --find-links ./whl-from-s3
+      pip show rs-client-libraries
 
 deployments:
 - name: rs_client_libraries_deployment

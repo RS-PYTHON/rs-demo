@@ -1,4 +1,4 @@
-./rs_client_dist/rs_client_libraries-0.0.0-py3-none-any.whl
+rs-client-libraries~=0.2a9 # use either the official version or a .postxxx version from the s3 bucket
 boto3==1.35.70
 botocore==1.35.70
 requests==2.32.3
