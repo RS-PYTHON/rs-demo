@@ -361,7 +361,6 @@ services:
 
   prefect-server:
     image: prefecthq/prefect:3.1.4-python3.11
-    # restart: always
     ports:
       - 4200:4200
     depends_on:
@@ -378,7 +377,6 @@ services:
 
   prefect-worker:
     image: prefecthq/prefect:3.1.4-python3.11
-    # restart: always
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -387,14 +385,20 @@ services:
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "my-prefect-pool", "--type", "process"]
-    # volumes: # to use prefect.flow.from_source(source=/my/local/folder, ...).deploy(...)
-    #   - /my/local/folder:/my/local/folder
+    volumes:
+      # Mount the rs-demo project into the same path
+      # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
+      - ..:${PWD}/../
 
-  dask-gateway-server:
-    image: ghcr.io/rs-python/base/dask-gateway-server/local:latest
+  dask-staging:
+    image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
-      - ${DASK_GATEWAY__PORT}:8000 # gateway
-      - 8787:8787 # dashboard
+      - 8701:${DASK_GATEWAY_STAGING_PORT}
+
+  dask-eopf:
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+    ports:
+      - 8702:${DASK_GATEWAY_EOPF_PORT}
 
   #################
   # OPENTELEMETRY #

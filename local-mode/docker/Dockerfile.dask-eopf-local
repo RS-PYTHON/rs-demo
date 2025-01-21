@@ -1,0 +1,37 @@
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# We will add eopf to the dask-gateway-server image for local mode
+FROM ghcr.io/rs-python/base/dask-gateway-server/local:2024.1.0
+
+# Default user from parent image
+ARG USER=dask:dask
+
+ARG EOPF_PIP_VERSION
+
+# Set labels based on the Open Containers Initiative (OCI):
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+#
+LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
+LABEL org.opencontainers.image.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
+
+# Install EOPF, see e.g. https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/packages/1677
+RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \
+    pip install eopf${EOPF_PIP_VERSION} \
+    --index-url https://__token__:${EOPF_TOKEN}@gitlab.eopf.copernicus.eu/api/v4/projects/14/packages/pypi/simple
+
+# Clean everything
+USER root
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/*
+USER $USER

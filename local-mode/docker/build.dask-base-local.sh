@@ -18,14 +18,13 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# Change this if needed
 DASK_GATEWAY_TAG="2024.1.0"
 
 # Use the same requirements as for the dask-gateway-server docker image.
 # Download them from https://github.com/dask/dask-gateway/blob/<tag>/dask-gateway-server/Dockerfile.requirements.txt
 # into a local ./tmp folder.
 cd "$SCRIPT_DIR"
-tmp="./tmp"
+tmp="./tmp/base"
 rm -rf "$tmp" && mkdir -p "$tmp"
 wget -P "$tmp" "https://raw.githubusercontent.com/dask/dask-gateway/refs/tags/${DASK_GATEWAY_TAG}/dask-gateway-server/Dockerfile.requirements.txt"
 
@@ -39,9 +38,9 @@ echo "dask-gateway-server[local]==${DASK_GATEWAY_TAG}" >> "$req"
 echo "bokeh>=3.1.0" >> "$req" # for the dask dashboard
 
 # Build the docker image
-registry="ghcr.io/rs-python/base/dask-gateway-server/local"
+registry="ghcr.io/rs-python/dask-gateway-server/base/local"
 docker build \
-    -f "Dockerfile.dask-gateway-server.local" \
+    -f "Dockerfile.dask-base-local" \
     -t "${registry}:${DASK_GATEWAY_TAG}" \
     -t "${registry}:latest" \
     "$tmp"
