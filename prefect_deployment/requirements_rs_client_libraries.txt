@@ -1,0 +1,8 @@
+rs-client-libraries~=0.2a9 # use either the official version or a .postxxx version from the s3 bucket
+boto3==1.35.70
+botocore==1.35.70
+requests==2.32.3
+pystac==1.11.0
+python-dotenv==1.0.1
+opentelemetry-instrumentation-asyncio==0.48b0
+opentelemetry-instrumentation-httpx==0.48b0
