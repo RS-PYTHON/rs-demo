@@ -440,6 +440,8 @@ def get_dask_cluster(
             scheduler_extra_pod_labels={"cluster_name": cluster_name},
         )
 
+    print(f"Dask dashboard: {cluster.dashboard_link}")
+
     # Scale the cluster
     gateway.scale_cluster(cluster.name, scale)
 
@@ -447,7 +449,7 @@ def get_dask_cluster(
     return gateway, cluster, client
 
 
-def init_dask_staging(scale: int = 2, *args, **kwargs):
+def init_dask_cluster_staging(scale: int = 2, *args, **kwargs):
     """Init existing staging dask cluster or create one"""
     global dask_gateway_staging, dask_cluster_staging, dask_client_staging
     dask_gateway_staging, dask_cluster_staging, dask_client_staging = get_dask_cluster(
@@ -460,7 +462,7 @@ def init_dask_staging(scale: int = 2, *args, **kwargs):
     )
 
 
-def init_dask_eopf(scale: int = 2, *args, **kwargs):
+def init_dask_cluster_eopf(scale: int = 2, *args, **kwargs):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = get_dask_cluster(
