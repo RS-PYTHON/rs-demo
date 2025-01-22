@@ -77,6 +77,6 @@ deployments:
         DASK_GATEWAY__AUTH__TYPE: "jupyterhub"
         JUPYTERHUB_API_TOKEN: "{{ prefect.blocks.secret.api-token-block }}"
         DASK_GATEWAY__ADDRESS: "{{ prefect.blocks.secret.dask-gateway-address-block }}"
-        RS_SERVER_STAGING_ADDRESS: "https://rsserverstaging.dev-rspy.esa-copernicus.eu"
+        RS_SERVER_STAGING_ADDRESS: "https://dev-rspy.esa-copernicus.eu"
         RS_API_KEY: "to_be_filled"
         RS_OWNER: "agrosu"

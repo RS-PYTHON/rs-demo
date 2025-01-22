@@ -32,11 +32,10 @@ from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
+from rs_client.staging_client import StagingClient
 from rs_common.config import ECadipStation, EDownloadStatus
 
-#
 # Variables
-
 # Set logger level to info
 rs_common.logging.Logging.level = logging.INFO
 
@@ -52,10 +51,11 @@ apikey: str | None = None
 # "headers" field with the api key for HTTP requests
 apikey_headers: dict = {}
 
-# RsClient instances
+# Client instances
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 stac_client: StacClient = None
+staging_client: StagingClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -139,16 +139,14 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, stac_client
+    global apikey, auxip_client, cadip_client, stac_client, staging_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
         rs_server_href = None  # not used
-
     # In cluster mode, they are set in an environment variables
     else:
         rs_server_href = os.environ["RSPY_WEBSITE"]
-
     # Init a generic RS-Client instance. Pass the:
     #   - RS-Server website URL
     #   - API key
@@ -173,10 +171,15 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     # Or get a Stac client to access the catalog
     stac_client = generic_client.get_stac_client()
 
+    # Create a client to launch staging
+    staging_client = generic_client.get_staging_client()
+
     print(f"Auxip service: {auxip_client.href_adgs}")
     print(f"CADIP service: {cadip_client.href_cadip}")
     print(f"Catalog service: {stac_client.href_catalog}")
-    return auxip_client, cadip_client, stac_client
+    print(f"Staging service: {staging_client.href_staging}")
+
+    return auxip_client, cadip_client, stac_client, staging_client
 
 
 def create_test_collection() -> CollectionClient:
