@@ -391,12 +391,12 @@ services:
       - ..:${PWD}/../
 
   dask-staging:
-    image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
+    image: ghcr.io/rs-python/dask-gateway-server/staging/local:2024.5.2
     ports:
       - 8701:${DASK_GATEWAY_STAGING_PORT}
 
   dask-eopf:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:2024.5.2
     ports:
       - 8702:${DASK_GATEWAY_EOPF_PORT}
 
@@ -486,7 +486,6 @@ services:
       - rs-server-adgs
       - rs-server-cadip
       - minio # used to check manually the s3 bucket contents
-      - prefect-worker
       - dpr-simulator
     # variables are set in the .env file
     environment:

@@ -26,6 +26,9 @@ from time import sleep
 import boto3
 import requests
 import rs_common
+from dask_gateway import Gateway
+from dask_gateway.client import GatewayCluster
+from distributed.client import Client as DaskClient
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
@@ -73,6 +76,14 @@ TEST_COLLECTION: str = "my_test_collection"
 # Define a search interval
 start_date = datetime(2000, 1, 1)
 stop_date = datetime(2030, 1, 1)
+
+# Prefect and dask
+dask_gateway_staging: Gateway = None
+dask_cluster_staging: GatewayCluster = None
+dask_client_staging: DaskClient = None
+dask_gateway_eopf: Gateway = None
+dask_cluster_eopf: GatewayCluster = None
+dask_client_eopf: DaskClient = None
 
 #
 # Functions
@@ -374,8 +385,108 @@ def stage_test_item():
     return inserted_item
 
 
-#
-# Init
+def temporary_fix_adgs_feature(items_collection):
+    # Disable instruments for moment
+    for feature in items_collection["features"]:
+        if "instruments" in feature["properties"]:
+            del feature["properties"]["instruments"]
+    # Update href and title
+    for feature in items_collection["features"]:
+        for asset in feature["assets"]:
+            feature["assets"][asset]["title"] = asset
+            feature["assets"][asset][
+                "href"
+            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
+    return items_collection
+
+
+####################
+# Dask and Prefect #
+####################
+
+
+def get_dask_cluster(
+    address: str,
+    scale: int = 2,
+    image: str | None = None,
+    cluster_name: str | None = None,
+    worker_cores: int = 1,
+    worker_memory: float = 2.0,
+    namespace="dask-gateway",
+) -> tuple[Gateway, GatewayCluster, DaskClient]:
+    """Return existing dask cluster or create one"""
+
+    if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in os.environ):
+        raise ValueError("JUPYTERHUB_API_TOKEN environment variable is missing")
+
+    # Init dask gateway
+    print(f"Connecting to dask gateway {address!r} ...")
+    gateway = Gateway(address=address, auth="jupyterhub" if cluster_mode else None)
+
+    # If a cluster has already been initialized, retrieve it
+    if clusters := gateway.list_clusters():
+        cluster = gateway.connect(clusters[0].name)
+
+    # Else create one
+    elif local_mode:
+        cluster = gateway.new_cluster()
+    else:  # cluster_mode
+        cluster = gateway.new_cluster(
+            worker_cores=worker_cores,
+            worker_memory=worker_memory,
+            namespace=namespace,
+            image=image,
+            cluster_name=cluster_name,
+            scheduler_extra_pod_labels={"cluster_name": cluster_name},
+        )
+
+    # Scale the cluster
+    gateway.scale_cluster(cluster.name, scale)
+
+    client = cluster.get_client()
+    return gateway, cluster, client
+
+
+def init_dask_staging(scale: int = 2, *args, **kwargs):
+    """Init existing staging dask cluster or create one"""
+    global dask_gateway_staging, dask_cluster_staging, dask_client_staging
+    dask_gateway_staging, dask_cluster_staging, dask_client_staging = get_dask_cluster(
+        os.environ["DASK_GATEWAY_STAGING_ADDRESS"],
+        scale,
+        image="ghcr.io/rs-python/rs-infrastructure-dask-gateway:latest",
+        cluster_name="dask-staging",
+        *args,
+        **kwargs,
+    )
+
+
+def init_dask_eopf(scale: int = 2, *args, **kwargs):
+    """Init existing eopf dask cluster or create one"""
+    global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
+    dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = get_dask_cluster(
+        os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
+        scale,
+        image="ghcr.io/rs-python/rs-infrastructure-dask-gateway/eopf:latest",  # TODO: TO BE DEFINED
+        cluster_name="dask-eopf",
+        *args,
+        **kwargs,
+    )
+
+
+def shutdown_dask_clusters(gateway: Gateway):
+    """Shutdown all gateway clusters"""
+    for cluster_info in gateway.list_clusters():
+        try:
+            cluster = gateway.connect(cluster_info.name)
+            cluster.shutdown()
+            print(f"Shutting down cluster {cluster_info.name!r} ...")
+        except Exception as e:
+            print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
+
+
+########
+# Init #
+########
 
 
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
@@ -398,18 +509,3 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Init RsClient instances
     return init_rsclient(owner_id, cadip_station)
-
-
-def temporary_fix_adgs_feature(items_collection):
-    # Disable instruments for moment
-    for feature in items_collection["features"]:
-        if "instruments" in feature["properties"]:
-            del feature["properties"]["instruments"]
-    # Update href and title
-    for feature in items_collection["features"]:
-        for asset in feature["assets"]:
-            feature["assets"][asset]["title"] = asset
-            feature["assets"][asset][
-                "href"
-            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
-    return items_collection

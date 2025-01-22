@@ -18,6 +18,7 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
+DASK_TAG="2024.5.2"
 DASK_GATEWAY_TAG="2024.1.0"
 
 # Use the same requirements as for the dask-gateway-server docker image.
@@ -33,6 +34,7 @@ req="${tmp}/Dockerfile.requirements.txt"
 sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
 
 # And instead do the same installation as in https://gateway.dask.org/install-local.html#installation
+echo "dask==${DASK_TAG}" >> "$req"
 echo "dask-gateway==${DASK_GATEWAY_TAG}" >> "$req"
 echo "dask-gateway-server[local]==${DASK_GATEWAY_TAG}" >> "$req"
 echo "bokeh>=3.1.0" >> "$req" # for the dask dashboard
@@ -40,12 +42,11 @@ echo "bokeh>=3.1.0" >> "$req" # for the dask dashboard
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/base/local"
 docker build \
-    -f "Dockerfile.dask-base-local" \
-    -t "${registry}:${DASK_GATEWAY_TAG}" \
-    -t "${registry}:latest" \
+    -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
+    -t "${registry}:${DASK_TAG}" \
+    --progress=plain \
     "$tmp"
 
 # # Push the images
 # docker login https://ghcr.io/v2/rs-python
-# docker push "${registry}:${DASK_GATEWAY_TAG}"
-# docker push "${registry}:latest"
+# docker push "${registry}:${DASK_TAG}"
