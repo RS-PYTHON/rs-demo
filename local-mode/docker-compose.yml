@@ -393,12 +393,12 @@ services:
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:2024.5.2
     ports:
-      - 8701:${DASK_GATEWAY_STAGING_PORT}
+      - 8701:8000
 
   dask-eopf:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/local:2024.5.2
     ports:
-      - 8702:${DASK_GATEWAY_EOPF_PORT}
+      - 8702:8000
 
   #################
   # OPENTELEMETRY #
@@ -478,7 +478,7 @@ services:
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
     # From: https://github.com/RS-PYTHON/rs-client-libraries/tree/develop/.github/dockerfiles/Dockerfile.jupyter
-    image: ghcr.io/rs-python/rs-client-libraries_jupyter:latest
+    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
     container_name: jupyter
     ports:
       - 8888:8888
@@ -517,6 +517,11 @@ services:
       RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
       # prefect
       PREFECT_API_URL: http://prefect-server:4200/api
+      # dask
+      DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
+      DASK_GATEWAY_STAGING_PUBLIC: ${DASK_GATEWAY_STAGING_PUBLIC}
+      DASK_GATEWAY_EOPF_PUBLIC: ${DASK_GATEWAY_EOPF_PUBLIC}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}

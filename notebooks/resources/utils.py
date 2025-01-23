@@ -407,9 +407,10 @@ def temporary_fix_adgs_feature(items_collection):
 
 def get_dask_cluster(
     address: str,
+    public_domain: str,
     scale: int = 2,
-    image: str | None = None,
-    cluster_name: str | None = None,
+    image: str = "",
+    cluster_name: str = "",
     worker_cores: int = 1,
     worker_memory: float = 2.0,
     namespace="dask-gateway",
@@ -420,7 +421,7 @@ def get_dask_cluster(
         raise ValueError("JUPYTERHUB_API_TOKEN environment variable is missing")
 
     # Init dask gateway
-    print(f"Connecting to dask gateway {address!r} ...")
+    print(f"Connecting to dask gateway for {cluster_name!r}: {address} ...")
     gateway = Gateway(address=address, auth="jupyterhub" if cluster_mode else None)
 
     # If a cluster has already been initialized, retrieve it
@@ -440,7 +441,9 @@ def get_dask_cluster(
             scheduler_extra_pod_labels={"cluster_name": cluster_name},
         )
 
-    print(f"Dask dashboard: {cluster.dashboard_link}")
+    print(
+        f"Dask dashboard for {cluster_name!r}: {cluster.dashboard_link.replace(address, public_domain)}",
+    )
 
     # Scale the cluster
     gateway.scale_cluster(cluster.name, scale)
@@ -454,6 +457,7 @@ def init_dask_cluster_staging(scale: int = 2, *args, **kwargs):
     global dask_gateway_staging, dask_cluster_staging, dask_client_staging
     dask_gateway_staging, dask_cluster_staging, dask_client_staging = get_dask_cluster(
         os.environ["DASK_GATEWAY_STAGING_ADDRESS"],
+        os.environ["DASK_GATEWAY_STAGING_PUBLIC"],
         scale,
         image="ghcr.io/rs-python/rs-infrastructure-dask-gateway:latest",
         cluster_name="dask-staging",
@@ -467,6 +471,7 @@ def init_dask_cluster_eopf(scale: int = 2, *args, **kwargs):
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = get_dask_cluster(
         os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
+        os.environ["DASK_GATEWAY_EOPF_PUBLIC"],
         scale,
         image="ghcr.io/rs-python/rs-infrastructure-dask-gateway/eopf:latest",  # TODO: TO BE DEFINED
         cluster_name="dask-eopf",
