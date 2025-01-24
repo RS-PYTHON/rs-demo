@@ -385,10 +385,10 @@ services:
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "my-prefect-pool", "--type", "process"]
-    volumes:
-      # Mount the rs-demo project into the same path
-      # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
-      - ..:${PWD}/../
+    # volumes:
+    #   # Mount the rs-demo project into the same path
+    #   # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
+    #   - ..:${PWD}/../
 
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:2024.5.2

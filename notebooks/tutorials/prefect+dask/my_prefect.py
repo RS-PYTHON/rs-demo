@@ -20,23 +20,43 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import asyncio
-import socket
 import typing
 
 import httpx
 from fastapi.concurrency import run_in_threadpool
 from prefect import flow, get_run_logger, task
-
-
-def get_ip_address() -> str:
-    """Return IP address, see: https://stackoverflow.com/a/166520"""
-    return socket.gethostbyname(socket.gethostname())
+from prefect.client.orchestration import get_client
+from prefect.exceptions import ObjectNotFound
+from resources.my_shared_utils import get_ip_address
 
 
 def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:
     """From Jupyter we need this hack to deploy prefect flows"""
     coroutine = run_in_threadpool(func, *args, **kwargs)
     return asyncio.create_task(coroutine)
+
+
+async def wait_for_deployment(name: str, wait=1, max_retry=30):
+    """Wait for prefect deployment to be finished."""
+    # Taken from prefect/cli/deployment.py::inspect
+    retry = 0
+    async with get_client() as client:
+        while True:
+            try:
+                await client.read_deployment_by_name(name)
+                print(f"Finished deploying prefect flow: {name!r}")
+                return
+            except ObjectNotFound:
+                retry += 1
+                if retry >= max_retry:
+                    raise
+                print(f"Wait for deployment of prefect flow: {name!r} ...")
+                await asyncio.sleep(wait)
+
+
+#
+# Quickstart flow and tasks from https://docs.prefect.io/v3/get-started/quickstart
+#
 
 
 @flow(log_prints=True)

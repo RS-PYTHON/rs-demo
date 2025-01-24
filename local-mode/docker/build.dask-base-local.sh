@@ -29,19 +29,16 @@ tmp="./tmp/base"
 rm -rf "$tmp" && mkdir -p "$tmp"
 wget -P "$tmp" "https://raw.githubusercontent.com/dask/dask-gateway/refs/tags/${DASK_GATEWAY_TAG}/dask-gateway-server/Dockerfile.requirements.txt"
 
-# But comment the line that installs dask-gateway-server from a Dockerfile.requirements.in file
+# But comment the line that installs dask-gateway-server from a Dockerfile.requirements.in file.
+# We install it in our Dockerfile instead.
 req="${tmp}/Dockerfile.requirements.txt"
 sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
-
-# And instead do the same installation as in https://gateway.dask.org/install-local.html#installation
-echo "dask==${DASK_TAG}" >> "$req"
-echo "dask-gateway==${DASK_GATEWAY_TAG}" >> "$req"
-echo "dask-gateway-server[local]==${DASK_GATEWAY_TAG}" >> "$req"
-echo "bokeh>=3.1.0" >> "$req" # for the dask dashboard
 
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/base/local"
 docker build \
+    --build-arg "DASK_TAG=${DASK_TAG}" \
+    --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
     -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
     -t "${registry}:${DASK_TAG}" \
     --progress=plain \

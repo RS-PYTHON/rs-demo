@@ -19,6 +19,9 @@
 # We need debian 12
 FROM python:3.11.7-slim-bookworm
 
+ARG DASK_TAG=xxx
+ARG DASK_GATEWAY_TAG=xxx
+
 # Set labels based on the Open Containers Initiative (OCI):
 # https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
 #
@@ -46,6 +49,15 @@ RUN pip install --no-cache-dir --upgrade pip
 COPY --chown=dask:dask . /opt/dask-gateway-server
 RUN pip install --no-cache-dir \
         -r /opt/dask-gateway-server/Dockerfile.requirements.txt
+
+# Same installation as in https://gateway.dask.org/install-local.html#installation
+# Add bokeh and jupyter-server-proxy for the dask dashboard.
+RUN pip install \
+        dask==${DASK_TAG} \
+        dask-gateway==${DASK_GATEWAY_TAG} \
+        dask-gateway-server[local]==${DASK_GATEWAY_TAG} \
+        bokeh>=3.1.0 \
+        jupyter-server-proxy
 
 ENTRYPOINT ["tini", "-g", "--"]
 CMD ["dask-gateway-server"]
