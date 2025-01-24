@@ -1,0 +1,31 @@
+prefect-version: 3
+name: deploy-yaml-git
+
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/RS-PYTHON/rs-demo.git
+    branch: feat/rspy570-empty-dpr-processor
+- prefect.deployments.steps.run_shell_script:
+    script: |
+        echo
+        echo
+        echo
+        pwd
+        cat <<- "EOF" > script.sh
+        The current working directory is: $PWD
+        You are logged in as: $(whoami)
+        EOF
+        cat script.sh
+        find . -path "*/notebooks/tutorials/prefect+dask/my_prefect.py"
+        abs=\$(find . -path "*/notebooks/tutorials/prefect+dask/my_prefect.py")
+        echo $abs
+        ln -sf "$abs" ./my_prefect.py
+        ls -al .
+        echo
+        echo
+        echo
+
+deployments:
+- name: deploy-yaml-git
+  tags: ["tutorial"]
+  entrypoint: ./my_prefect.py:flow_show_stars

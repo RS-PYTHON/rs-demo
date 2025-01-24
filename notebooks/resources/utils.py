@@ -29,6 +29,7 @@ import rs_common
 from dask_gateway import Gateway
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
+from prefect.filesystems import RemoteFileSystem
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
@@ -69,6 +70,13 @@ http_session: requests.Session = requests.Session()
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
+
+# This one is for sharing data between the user, the client (jupyter or terminal) and prefect
+PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
+# Associated prefect block
+S3_BLOCK: RemoteFileSystem = None
+
+PREFECT_WORK_POOL = os.environ["PREFECT_WORK_POOL"]
 
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
@@ -138,7 +146,7 @@ def create_s3_buckets():
     if not local_mode:
         return
     s3_client = get_s3_client()
-    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET:
+    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET, PREFECT_SHARE_BUCKET:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
@@ -400,9 +408,34 @@ def temporary_fix_adgs_feature(items_collection):
     return items_collection
 
 
-####################
-# Dask and Prefect #
-####################
+###########
+# Prefect #
+###########
+
+
+async def init_prefect_blocks():
+    global S3_BLOCK
+
+    # This is only for local mode.
+    # In the cluster, the blocks must be created only once by the admin.
+    if not local_mode:
+        return
+
+    # Share data between the user, the client (jupyter or terminal) and prefect
+    S3_BLOCK = RemoteFileSystem(
+        basepath=f"s3://{PREFECT_SHARE_BUCKET}",
+        settings={
+            "key": os.environ["S3_ACCESSKEY"],
+            "secret": os.environ["S3_SECRETKEY"],
+            "client_kwargs": {"endpoint_url": os.environ["S3_ENDPOINT"]},
+        },
+    )
+    await S3_BLOCK.save("s3", overwrite=True)
+
+
+########
+# Dask #
+########
 
 
 def get_dask_cluster(
@@ -499,7 +532,7 @@ def shutdown_dask_clusters(gateway: Gateway):
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
 
-    # In local mode only: create the s3 buckets, if they do not already exists.
+    # In local mode only: create the s3 buckets, if they do not already exists
     create_s3_buckets()
 
     # Set OAuth2 authentication in the http request session

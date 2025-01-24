@@ -360,7 +360,7 @@ services:
   ####################
 
   prefect-server:
-    image: prefecthq/prefect:3.1.4-python3.11
+    image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
     ports:
       - 4200:4200
     depends_on:
@@ -376,7 +376,7 @@ services:
       retries: 10
 
   prefect-worker:
-    image: prefecthq/prefect:3.1.4-python3.11
+    image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -384,7 +384,7 @@ services:
       - prefect-server
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
-    command: ["prefect", "worker", "start", "--pool", "my-prefect-pool", "--type", "process"]
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
     # volumes:
     #   # Mount the rs-demo project into the same path
     #   # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
@@ -515,10 +515,12 @@ services:
       S3_REGION: ${S3_REGION}
       RSPY_TEMP_BUCKET: ${RSPY_TEMP_BUCKET}
       RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
+      PREFECT_SHARE_BUCKET: ${PREFECT_SHARE_BUCKET}
       # prefect
       PREFECT_URL: ${PREFECT_URL}
       PREFECT_API_URL: ${PREFECT_API_URL}
       PREFECT_PUBLIC: ${PREFECT_PUBLIC}
+      PREFECT_WORK_POOL: ${PREFECT_WORK_POOL}
       # dask
       DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
