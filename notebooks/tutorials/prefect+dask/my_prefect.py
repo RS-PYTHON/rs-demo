@@ -63,7 +63,7 @@ async def wait_for_deployment(name: str, wait=1, max_retry=30):
 
 
 @flow(log_prints=True)
-def flow_show_stars(github_repos: list[str], test_pip: str = None):
+def flow_show_stars(github_repos: list[str], test_pip: str | None = None):
     """Flow: Show the number of stars that GitHub repos have"""
     logger = get_run_logger()
     logger.warning(f"Flow IP address: {get_ip_address()}")

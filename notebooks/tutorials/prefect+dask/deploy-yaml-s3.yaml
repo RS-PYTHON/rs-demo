@@ -1,0 +1,18 @@
+prefect-version: 3
+name: deploy-yaml-s3
+
+pull:
+- prefect.deployments.steps.run_shell_script:
+    # Download source code and wheels from S3 bucket using the prefect block named "s3".
+    # Install the download wheels.
+    # NOTE: we cannot use comments or break long lines, most of bash features don't work...
+    script: | # use multiline
+        python -c "from prefect.filesystems import RemoteFileSystem; RemoteFileSystem.load('s3').get_directory('users/jovyan', '.')"
+        pip install emoji --find-links ./wheels
+
+deployments:
+- name: deploy-yaml-s3
+  tags: ["tutorial"]
+  entrypoint: ./my_prefect.py:flow_show_stars
+  work_pool:
+    name: "{{ PREFECT_WORK_POOL }}"

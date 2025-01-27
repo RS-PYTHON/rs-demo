@@ -1,14 +1,16 @@
 prefect-version: 3
 name: deploy-yaml-git
 
-# TODO: branch name en variable et la réutiliser pour le lien symbolique
-
 pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/RS-PYTHON/rs-demo.git
     branch: feat/rspy570-empty-dpr-processor
+- prefect.deployments.steps.run_shell_script:
+    script: pip install argh
 
 deployments:
 - name: deploy-yaml-git
   tags: ["tutorial"]
   entrypoint: ./notebooks/tutorials/prefect+dask/my_prefect.py:flow_show_stars
+  work_pool:
+    name: "{{ PREFECT_WORK_POOL }}"
