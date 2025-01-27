@@ -34,6 +34,8 @@ from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
 from rs_client.staging_client import StagingClient
 from rs_common.config import ECadipStation, EDownloadStatus
+import pprint
+import time
 
 # Variables
 # Set logger level to info
@@ -206,176 +208,60 @@ def create_test_collection() -> CollectionClient:
     assert inserted_collection, "Collection was not inserted"
     return inserted_collection
 
+def truncate_features_by_limit(feature_collection, limit):
+    """Truncate a response from a station to a limit of files"""
+    # Load the dictionary from the file    
 
-def stage_test_several_items():
-    """Stage several Cadip files into the STAC catalog and return it."""
-    res = []
-    # Get the test collection created from create_test_collection()
-    test_collection = stac_client.get_collection(collection_id=TEST_COLLECTION)
+    total_count = 0  # To keep track of the global count of assets
+    truncated_features = []
 
-    # When searching stations, we can also limit the number of returned results.
-    # For this example, let's keep only one file.
-    client = cadip_client
-    files = client.search_stations(start_date, stop_date, limit=5)
+    for feature in feature_collection["features"]:
+        assets = feature.get("assets", {})
+        asset_count = len(assets)
 
-    for count, file in enumerate(files):
-        first_filename = file["id"]
-        s3_path = f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
-        temp_s3_file = f"{s3_path}/{first_filename}"
-        local_path = None
-        # Call the staging service
-        client.staging(first_filename, s3_path=s3_path, tmp_download_path=local_path)
-        # Then we can check when the staging has finished by calling the check status service
-        while True:
-            status = client.staging_status(first_filename)
-            print(f"Staging status for {first_filename!r}: {status.value}")
-            if status in [EDownloadStatus.DONE, EDownloadStatus.FAILED]:
-                print("\n")
-                break
-            sleep(1)
-        assert status == EDownloadStatus.DONE, "Staging has failed"
-
-        # Now insert the item into the catalog
-
-        # Simulated values
-        if count % 2 == 0:
-            WIDTH = 2500
-            HEIGHT = 3000
+        if total_count + asset_count <= limit:
+            total_count += asset_count
+            truncated_features.append(feature)
         else:
-            WIDTH = 3000
-            HEIGHT = 2500
-
-        # Let's use STAC item ID = filename
-        item_id = os.path.basename(temp_s3_file)
-
-        # The file path from the temp s3 bucket is given in the assets
-        assets = {temp_s3_file.split("/")[-1]: Asset(href=temp_s3_file)}
-
-        # Other hardcoded parameters for this demo
-        geometry = {
-            "type": "Polygon",
-            "coordinates": [
-                [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]],
-            ],
-        }
-        bbox = [-180.0, -90.0, 180.0, 90.0]
-        now = datetime.now()
-        properties = {
-            "gsd": 0.12345,
-            "width": WIDTH,
-            "height": HEIGHT,
-            "datetime": datetime.now(),
-            "orientation": "nadir",
-        }
-
-        if count == 4:
-            properties["proj:epsg"] = 4326
-        else:
-            properties["proj:epsg"] = 3857
-
-        # Add item to the STAC catalog collection, check status is OK
-        # NOTE: in future versions, this pystac Item object will be returned automatically by rs-client-libraries.
-        item = Item(
-            id=item_id,
-            geometry=geometry,
-            bbox=bbox,
-            datetime=now,
-            properties=properties,
-            assets=assets,
-        )
-        response = stac_client.add_item(TEST_COLLECTION, item)
-        response.raise_for_status()
-
-        # Return the inserted item
-        inserted_item = test_collection.get_item(item_id)
-        assert inserted_item, "Item was not inserted"
-        res.append(inserted_item)
-    return res
-
-
-def stage_test_item():
-    """Stage any Cadip file into the STAC catalog and return it."""
-
-    # Get the test collection created from create_test_collection()
-    test_collection = stac_client.get_collection(collection_id=TEST_COLLECTION)
-
-    # When searching stations, we can also limit the number of returned results.
-    # For this example, let's keep only one file.
-    client = cadip_client
-    files = client.search_stations(start_date, stop_date, limit=1)
-    assert len(files) == 1
-
-    # We stage by filename = the file ID
-    first_filename = files[0]["id"]
-
-    # We must give a temporary S3 bucket path where to copy the file from the station.
-    # Use our API key username so avoid conflicts with other users.
-    # NOTE: in future versions, this S3 path will be automatically calculated by RS-Server.
-    s3_path = f"s3://{RSPY_TEMP_BUCKET}/{client.owner_id}/{client.station_name}"
-    temp_s3_file = f"{s3_path}/{first_filename}"
-
-    # We can also download the file locally to the server, but this is useful only in local mode
-    local_path = None
-
-    # Call the staging service
-    client.staging(first_filename, s3_path=s3_path, tmp_download_path=local_path)
-
-    # Then we can check when the staging has finished by calling the check status service
-    while True:
-        status = client.staging_status(first_filename)
-        print(f"Staging status for {first_filename!r}: {status.value}")
-        if status in [EDownloadStatus.DONE, EDownloadStatus.FAILED]:
-            print("\n")
+            # Truncate assets in the current feature
+            allowed_assets = limit - total_count
+            feature["assets"] = dict(list(assets.items())[:allowed_assets])
+            truncated_features.append(feature)
             break
-        sleep(1)
-    assert status == EDownloadStatus.DONE, "Staging has failed"
+    # Update the dictionary with the truncated features
+    feature_collection["features"] = truncated_features
 
-    # Now insert the item into the catalog
+    return feature_collection
 
-    # Simulated values
-    WIDTH = 2500
-    HEIGHT = 2500
-
-    # Let's use STAC item ID = filename
-    item_id = os.path.basename(temp_s3_file)
-
-    # The file path from the temp s3 bucket is given in the assets
-    assets = {temp_s3_file.split("/")[-1]: Asset(href=temp_s3_file)}
-
-    # Other hardcoded parameters for this demo
-    geometry = {
-        "type": "Polygon",
-        "coordinates": [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]],
-    }
-    bbox = [-180.0, -90.0, 180.0, 90.0]
-    now = datetime.now()
-    properties = {
-        "gsd": 0.12345,
-        "width": WIDTH,
-        "height": HEIGHT,
-        "datetime": datetime.now(),
-        "proj:epsg": 3857,
-        "orientation": "nadir",
-    }
-
-    # Add item to the STAC catalog collection, check status is OK
-    # NOTE: in future versions, this pystac Item object will be returned automatically by rs-client-libraries.
-    item = Item(
-        id=item_id,
-        geometry=geometry,
-        bbox=bbox,
-        datetime=now,
-        properties=properties,
-        assets=assets,
-    )
-    response = stac_client.add_item(TEST_COLLECTION, item)
-    response.raise_for_status()
-
-    # Return the inserted item
-    inserted_item = test_collection.get_item(item_id)
-    assert inserted_item, "Item was not inserted"
-    return inserted_item
-
+def stage_test_items(client, nb_of_items, collection_id = None):
+    """Stage several files from cadip or auxip into the STAC catalog and return it."""    
+    
+    # The search method is based on a time interval
+    feature_collection = client.search_stations(start_date, stop_date, limit=nb_of_items)    
+    assert isinstance(feature_collection, dict)
+    assert "features" in feature_collection.keys()    
+    feature_collection = truncate_features_by_limit(feature_collection, nb_of_items)    
+    print(f"\nAFTER truncate: feature_collection = {feature_collection}")
+    # Start the staging process. The catalog collection is either 
+    # provided, or the test collection created from create_test_collection() is used
+    job_id = staging_client.run_staging(feature_collection, collection_id if collection_id else TEST_COLLECTION)    
+    timeout = 120
+    while timeout > 0:
+        if "running" not in job_id["status"]:
+            break
+        # TODO: to replace with the following commented line after the rs-server-staging update
+        ###job_info = staging_client.get_job_info(resp["jobID"])
+        job_info = staging_client.get_job_info(job_id["status"]["running"])
+        pprint.PrettyPrinter(indent=4).pprint(job_info)
+        print("\n")
+        if "successful" in job_info["status"]:
+            print(" ----- Job COMPLETED \n")
+            break
+        if "failed" in job_info["status"]:
+            print("-----Job FAILED \n")
+            break
+        time.sleep(2)
+        timeout -= 2
 
 #
 # Init
@@ -402,17 +288,3 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     # Init RsClient instances
     return init_rsclient(owner_id, cadip_station)
 
-
-def temporary_fix_adgs_feature(items_collection):
-    # Disable instruments for moment
-    for feature in items_collection["features"]:
-        if "instruments" in feature["properties"]:
-            del feature["properties"]["instruments"]
-    # Update href and title
-    for feature in items_collection["features"]:
-        for asset in feature["assets"]:
-            feature["assets"][asset]["title"] = asset
-            feature["assets"][asset][
-                "href"
-            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
-    return items_collection
