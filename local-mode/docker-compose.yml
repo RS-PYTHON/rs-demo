@@ -375,7 +375,22 @@ services:
       interval: 2s
       retries: 10
 
-  prefect-worker:
+  # Use several identical workers
+  prefect-worker1:
+    image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    links:
+      - prefect-server
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
+    # volumes:
+    #   # Mount the rs-demo project into the same path
+    #   # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
+    #   - ..:${PWD}/../
+  prefect-worker2:
     image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
     depends_on:
       prefect-server:
@@ -530,7 +545,7 @@ services:
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes:
-      - ../notebooks:/home/jovyan/rspy-notebooks
+      - ../notebooks:/home/jovyan/notebooks
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # Optional: test the api-key manager.

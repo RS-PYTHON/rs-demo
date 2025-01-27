@@ -20,9 +20,12 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import asyncio
+import importlib
+import json
+import os
+import random
 import typing
 
-import httpx
 from fastapi.concurrency import run_in_threadpool
 from prefect import flow, get_run_logger, task
 from prefect.client.orchestration import get_client
@@ -60,10 +63,14 @@ async def wait_for_deployment(name: str, wait=1, max_retry=30):
 
 
 @flow(log_prints=True)
-def flow_show_stars(github_repos: list[str]):
+def flow_show_stars(github_repos: list[str], test_pip: str = None):
     """Flow: Show the number of stars that GitHub repos have"""
     logger = get_run_logger()
     logger.warning(f"Flow IP address: {get_ip_address()}")
+
+    # Test that "pip install xxx" was run in the worker container
+    if test_pip:
+        importlib.import_module(test_pip)
 
     for repo in github_repos:
         # Call Task 1
@@ -80,11 +87,20 @@ def flow_show_stars(github_repos: list[str]):
 def task_fetch_stats(github_repo: str):
     """Task 1: Fetch the statistics for a GitHub repo"""
     get_run_logger().warning(f"'fetch_stats' task IP address: {get_ip_address()}")
-    return httpx.get(f"https://api.github.com/repos/{github_repo}").json()
+    # return httpx.get(f"https://api.github.com/repos/{github_repo}").json()
+    # Mock the call to github to avoid flooding them
+    return {"github_repo": github_repo, "stargazers_count": random.randint(100, 1000)}
 
 
 @task
 def task_get_stars(repo_stats: dict):
     """Task 2: Get the number of stars from GitHub repo statistics"""
-    get_run_logger().warning(f"'get_stars' task IP address: {get_ip_address()}")
-    return repo_stats["stargazers_count"]
+    logger = get_run_logger()
+    logger.warning(f"'get_stars' task IP address: {get_ip_address()}")
+    try:
+        return repo_stats["stargazers_count"]
+    except KeyError:
+        logger.error(
+            f"'stargazers_count' not found in:\n{json.dumps(repo_stats, indent=2)}",
+        )
+        raise
