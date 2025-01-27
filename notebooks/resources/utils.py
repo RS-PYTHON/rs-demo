@@ -245,7 +245,7 @@ def stage_test_items(client, nb_of_items, collection_id = None):
     # Start the staging process. The catalog collection is either 
     # provided, or the test collection created from create_test_collection() is used
     job_id = staging_client.run_staging(feature_collection, collection_id if collection_id else TEST_COLLECTION)    
-    timeout = 120
+    timeout = 120    
     while timeout > 0:
         if "running" not in job_id["status"]:
             break
@@ -255,14 +255,16 @@ def stage_test_items(client, nb_of_items, collection_id = None):
         pprint.PrettyPrinter(indent=4).pprint(job_info)
         print("\n")
         if "successful" in job_info["status"]:
-            print(" ----- Job COMPLETED \n")
+            print(" ----- Job COMPLETED \n")            
             break
         if "failed" in job_info["status"]:
             print("-----Job FAILED \n")
             break
         time.sleep(2)
         timeout -= 2
-
+    test_collection = stac_client.get_collection(collection_id=collection_id if collection_id else TEST_COLLECTION)
+    return test_collection.get_items()
+        
 #
 # Init
 
