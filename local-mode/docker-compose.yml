@@ -386,10 +386,6 @@ services:
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
-    # volumes:
-    #   # Mount the rs-demo project into the same path
-    #   # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
-    #   - ..:${PWD}/../
   prefect-worker2:
     image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
     depends_on:
@@ -397,13 +393,10 @@ services:
         condition: service_healthy
     links:
       - prefect-server
+      - prefect-worker1 # wait for the previous worker to finish init
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
-    # volumes:
-    #   # Mount the rs-demo project into the same path
-    #   # so we can use prefect.flow.from_source(source=/my/rs-demo/sub/folder, ...).deploy(...)
-    #   - ..:${PWD}/../
 
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:2024.5.2
