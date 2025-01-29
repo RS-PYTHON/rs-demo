@@ -30,7 +30,7 @@ from fastapi.concurrency import run_in_threadpool
 from prefect import flow, get_run_logger, task
 from prefect.client.orchestration import get_client
 from prefect.exceptions import ObjectNotFound
-from resources.my_shared_utils import get_ip_address
+from resources.prefect_utils import get_ip_address
 
 
 def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:
@@ -58,7 +58,7 @@ async def wait_for_deployment(name: str, wait=1, max_retry=30):
 
 
 #
-# Quickstart flow and tasks from https://docs.prefect.io/v3/get-started/quickstart
+# Quickstart flow and tasks from: https://docs.prefect.io/v3/get-started/quickstart
 #
 
 

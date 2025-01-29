@@ -20,15 +20,13 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 import json
 import logging
 import os
+import sys
 from datetime import datetime
 from time import sleep
 
 import boto3
 import requests
 import rs_common
-from dask_gateway import Gateway
-from dask_gateway.client import GatewayCluster
-from distributed.client import Client as DaskClient
 from prefect.filesystems import RemoteFileSystem
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
@@ -71,7 +69,7 @@ http_session: requests.Session = requests.Session()
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
 
-# This one is for sharing data between the user, the client (jupyter or terminal) and prefect
+# This one is to share data between the user, the client (jupyter or terminal) and prefect
 PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
 # Associated prefect block
 S3_BLOCK: RemoteFileSystem = None
@@ -84,14 +82,6 @@ TEST_COLLECTION: str = "my_test_collection"
 # Define a search interval
 start_date = datetime(2000, 1, 1)
 stop_date = datetime(2030, 1, 1)
-
-# Prefect and dask
-dask_gateway_staging: Gateway = None
-dask_cluster_staging: GatewayCluster = None
-dask_client_staging: DaskClient = None
-dask_gateway_eopf: Gateway = None
-dask_cluster_eopf: GatewayCluster = None
-dask_client_eopf: DaskClient = None
 
 #
 # Functions
@@ -431,97 +421,6 @@ async def init_prefect_blocks():
         },
     )
     await S3_BLOCK.save("s3", overwrite=True)
-
-
-########
-# Dask #
-########
-
-
-def get_dask_cluster(
-    address: str,
-    public_domain: str,
-    scale: int = 2,
-    image: str = "",
-    cluster_name: str = "",
-    worker_cores: int = 1,
-    worker_memory: float = 2.0,
-    namespace="dask-gateway",
-) -> tuple[Gateway, GatewayCluster, DaskClient]:
-    """Return existing dask cluster or create one"""
-
-    if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in os.environ):
-        raise ValueError("JUPYTERHUB_API_TOKEN environment variable is missing")
-
-    # Init dask gateway
-    print(f"Connecting to dask gateway for {cluster_name!r}: {address} ...")
-    gateway = Gateway(address=address, auth="jupyterhub" if cluster_mode else None)
-
-    # If a cluster has already been initialized, retrieve it
-    if clusters := gateway.list_clusters():
-        cluster = gateway.connect(clusters[0].name)
-
-    # Else create one
-    elif local_mode:
-        cluster = gateway.new_cluster()
-    else:  # cluster_mode
-        cluster = gateway.new_cluster(
-            worker_cores=worker_cores,
-            worker_memory=worker_memory,
-            namespace=namespace,
-            image=image,
-            cluster_name=cluster_name,
-            scheduler_extra_pod_labels={"cluster_name": cluster_name},
-        )
-
-    print(
-        f"Dask dashboard for {cluster_name!r}: {cluster.dashboard_link.replace(address, public_domain)}",
-    )
-
-    # Scale the cluster
-    gateway.scale_cluster(cluster.name, scale)
-
-    client = cluster.get_client()
-    return gateway, cluster, client
-
-
-def init_dask_cluster_staging(scale: int, *args, **kwargs):
-    """Init existing staging dask cluster or create one"""
-    global dask_gateway_staging, dask_cluster_staging, dask_client_staging
-    dask_gateway_staging, dask_cluster_staging, dask_client_staging = get_dask_cluster(
-        os.environ["DASK_GATEWAY_STAGING_ADDRESS"],
-        os.environ["DASK_GATEWAY_STAGING_PUBLIC"],
-        scale,
-        image="ghcr.io/rs-python/rs-infrastructure-dask-gateway:latest",
-        cluster_name="dask-staging",
-        *args,
-        **kwargs,
-    )
-
-
-def init_dask_cluster_eopf(scale: int, *args, **kwargs):
-    """Init existing eopf dask cluster or create one"""
-    global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
-    dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = get_dask_cluster(
-        os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
-        os.environ["DASK_GATEWAY_EOPF_PUBLIC"],
-        scale,
-        image="ghcr.io/rs-python/rs-infrastructure-dask-gateway/eopf:latest",  # TODO: TO BE DEFINED
-        cluster_name="dask-eopf",
-        *args,
-        **kwargs,
-    )
-
-
-def shutdown_dask_clusters(gateway: Gateway):
-    """Shutdown all gateway clusters"""
-    for cluster_info in gateway.list_clusters():
-        try:
-            cluster = gateway.connect(cluster_info.name)
-            cluster.shutdown()
-            print(f"Shutting down cluster {cluster_info.name!r} ...")
-        except Exception as e:
-            print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
 
 
 ########
