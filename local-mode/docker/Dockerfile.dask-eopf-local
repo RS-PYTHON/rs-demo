@@ -15,6 +15,7 @@
 # We will add eopf to the dask-gateway-server image for local mode
 ARG DASK_TAG=xxx
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_TAG}
+ARG DASK_TAG=xxx
 
 # Default user from parent image
 ARG USER=dask:dask
@@ -27,8 +28,11 @@ ARG EOPF_PIP_VERSION
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL org.opencontainers.image.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
 
-# We need prefect to come with dask
-RUN pip install -U prefect[dask]=="3.1.4"
+# Install complete dask subsets + prefect
+RUN pip install -U pip && \
+pip install -U \
+    dask[complete]=="${DASK_TAG}" \
+    prefect[dask]=="3.1.4"
 
 # Install EOPF, see e.g. https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/packages/1677
 RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \

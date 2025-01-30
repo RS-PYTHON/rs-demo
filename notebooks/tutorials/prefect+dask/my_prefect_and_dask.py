@@ -87,7 +87,7 @@ def my_flow():
     logger.warning(results)
 
 
-# Other
+# From: https://github.com/PrefectHQ/prefect/issues/12971
 
 import dask
 from dask.distributed import worker_client
@@ -99,7 +99,7 @@ def calling_compute_in_a_task():
     logger.warning(f" IP address for 'task': {dask_utils.get_ip_address()}")
     with worker_client() as client:
         logger.warning(f" IP address for 'task': {dask_utils.get_ip_address()}")
-        df = dask.datasets.timeseries("2000", "2005", partition_freq="2w")
+        df = dask.datasets.timeseries("2000", "2001", partition_freq="2w")
         summary_df = df.describe()
         client.compute(summary_df)
         return summary_df
@@ -115,4 +115,4 @@ def test_flow():
     logger = get_run_logger()
     logger.warning(f" IP address for 'flow': {dask_utils.get_ip_address()}")
     ret = calling_compute_in_a_task.submit()
-    return ret.result()
+    return ret  # .result()
