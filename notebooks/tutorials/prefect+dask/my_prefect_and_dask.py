@@ -30,7 +30,7 @@ import logging
 import os
 import sys
 
-from distributed import worker_client
+from dask.distributed import worker_client
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner, get_dask_client
 
