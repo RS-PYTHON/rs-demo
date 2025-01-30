@@ -25,78 +25,94 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 
 # import dask.dataframe
 # import dask.distributed
-# from prefect import flow, task
-# from prefect_dask import DaskTaskRunner, get_dask_client
 
 import logging
 import os
 import sys
 
-sys.path.append("./resources")
-import my_shared_utils
-import utils
+from distributed import worker_client
+from prefect import flow, get_run_logger, task
+from prefect_dask import DaskTaskRunner, get_dask_client
 
-gateway = utils.get_dask_gateway(os.environ["DASK_GATEWAY_ADDRESS"])
+sys.path.append("./resources")
+import dask_utils
+
+gateway = dask_utils.get_dask_gateway(os.environ["DASK_GATEWAY_ADDRESS"])
 existing_cluster_name = os.environ["DASK_CLUSTER_NAME"]
 cluster = gateway.connect(existing_cluster_name)
 client = cluster.get_client()
 
 client.forward_logging()
 
-client.upload_file("./resources/utils.py")
-client.upload_file("./resources/my_shared_utils.py")
+client.upload_file("./resources/dask_utils.py")
+
+logging.warning(f" IP address outside of functions: {dask_utils.get_ip_address()}")
 
 
-def inc(x, name):
-
-    # Note that this is run from a dask worker with a different IP than the client,
-    # and that the workers also differ between the staging and eopf workers.
-    logging.warning(
-        f" Worker IP address for {name!r}: {my_shared_utils.get_ip_address()}",
-    )
+@task
+def inc(x):
+    logger = get_run_logger()
+    logger.warning(f" IP address for 'inc': {dask_utils.get_ip_address()}")
 
     return x + 1
 
 
+@task
 def add(x, y):
+    logger = get_run_logger()
+    logger.warning(f" IP address for 'add': {dask_utils.get_ip_address()}")
     return x + y
 
 
-def my_flow(name: str):
-    a = client.submit(inc, 10, name)  # calls inc(10) in background thread or process
-    b = client.submit(inc, 20, name)  # calls inc(20) in background thread or process
-    print(f"a: {a.result()}")
-    print(f"b: {b.result()}")
+@flow(
+    task_runner=DaskTaskRunner(
+        address=cluster.scheduler_address,
+        client_kwargs={"security": cluster.security},
+    ),
+)
+def my_flow():
+    logger = get_run_logger()
+    logger.warning(f" IP address for 'my_flow': {dask_utils.get_ip_address()}")
+
+    a = client.submit(inc, 10)  # calls inc(10) in background thread or process
+    b = client.submit(inc, 20)  # calls inc(20) in background thread or process
+    logger.warning(f"a: {a.result()}")
+    logger.warning(f"b: {b.result()}")
 
     c = client.submit(add, a, b)  # calls add on the results of a and b
-    print(f"c: {c.result()}")
+    logger.warning(f"c: {c.result()}")
 
-    futures = client.map(inc, range(5), name=name)
+    futures = client.map(inc, range(5))
     results = client.gather(futures)  # this can be faster
-    print(results)
+    logger.warning(results)
 
 
-# @task
-# def read_data(start: str, end: str) -> dask.dataframe.DataFrame:
-#     df = dask.datasets.timeseries(start, end, partition_freq="4w")
-#     return df
+# Other
 
-# @task
-# def process_data(df: dask.dataframe.DataFrame) -> dask.dataframe.DataFrame:
-#     with get_dask_client():
-#         df_yearly_avg = df.groupby(df.index.year).mean()
-#         return df_yearly_avg.compute()
-
-# @flow(task_runner=DaskTaskRunner(
-#     address="toto://" + cluster.scheduler_address,
-#     client_kwargs={"security": cluster.security},
-# ))
-# def dask_pipeline(start: str, end: str):
-#     # df = read_data.submit(start, end)
-#     # df_yearly_average = process_data.submit(df)
-#     # return df_yearly_average
-#     print("hello")
+import dask
+from dask.distributed import worker_client
 
 
-# if __name__ == "__main__":
-#     dask_pipeline("1998", "2005")
+@task
+def calling_compute_in_a_task():
+    logger = get_run_logger()
+    logger.warning(f" IP address for 'task': {dask_utils.get_ip_address()}")
+    with worker_client() as client:
+        logger.warning(f" IP address for 'task': {dask_utils.get_ip_address()}")
+        df = dask.datasets.timeseries("2000", "2005", partition_freq="2w")
+        summary_df = df.describe()
+        client.compute(summary_df)
+        return summary_df
+
+
+@flow(
+    task_runner=DaskTaskRunner(
+        address=cluster.scheduler_address,
+        client_kwargs={"security": cluster.security},
+    ),
+)
+def test_flow():
+    logger = get_run_logger()
+    logger.warning(f" IP address for 'flow': {dask_utils.get_ip_address()}")
+    ret = calling_compute_in_a_task.submit()
+    return ret.result()
