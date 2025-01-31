@@ -21,8 +21,10 @@ import os
 import socket
 
 from dask_gateway import Gateway
+from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
+from prefect.blocks.system import JSON as JsonBlock
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -49,10 +51,30 @@ def get_dask_gateway(
 ) -> Gateway:
     """Return dask gateway"""
 
-    if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in os.environ):
-        raise ValueError("JUPYTERHUB_API_TOKEN environment variable is missing")
+    # Read the prefect block for authentication
+    PREFECT_BLOCK_AUTH: str = os.environ["PREFECT_BLOCK_AUTH"]
+    block = JsonBlock.load(PREFECT_BLOCK_AUTH).value
 
-    return Gateway(address=address, auth="jupyterhub" if cluster_mode else None)
+    if cluster_mode:
+        pass
+    #     todo try/keyerror
+    #     if "JUPYTERHUB_API_TOKEN" not in block:
+    #         raise ValueError(
+    #             "JUPYTERHUB_API_TOKEN is missing from the Prefect block: {PREFECT_BLOCK_AUTH!r}",
+    #         )
+    #     auth = JupyterHubAuth(block[
+    # """Uses JupyterHub API tokens to authenticate"""
+
+    # def __init__(self, api_token=None):
+
+    # In local mode, pass the username from the prefect block
+    elif local_mode:
+        auth = BasicAuth(
+            username=os.environ["LOCAL_GATEWAY_USERNAME"],
+            password=os.environ["LOCAL_GATEWAY_PASSWORD"],
+        )
+
+    return Gateway(address=address, auth=auth)
 
 
 def init_dask_cluster(
@@ -91,10 +113,14 @@ def init_dask_cluster(
         f"Dask dashboard for {cluster_tag!r}: {cluster.dashboard_link.replace(address, public_domain)}",
     )
 
-    # Scale the cluster
+    # Scale the cluster and get the client
     gateway.scale_cluster(cluster.name, scale)
-
     client = cluster.get_client()
+
+    # Forward logging from dask workers to the caller.
+    # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
+    client.forward_logging()
+
     return gateway, cluster, client
 
 
@@ -124,6 +150,32 @@ def init_dask_cluster_eopf(scale: int, *args, **kwargs):
         *args,
         **kwargs,
     )
+
+
+def get_existing_cluster(
+    address: str,
+    name: str,
+) -> tuple[Gateway, GatewayCluster, DaskClient]:
+    """
+    Return existing dask cluster from its gateway address and cluster name.
+    Raise exceptions if the gateway or cluster do not already exist.
+    Note: this is run from prefect worker so the print or logging won't show.
+    """
+    try:
+        gateway = get_dask_gateway(address)
+        cluster = gateway.connect(name)
+        client = cluster.get_client()
+
+        # Forward logging from dask workers to the caller.
+        # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
+        client.forward_logging()
+
+        return gateway, cluster, client
+
+    except Exception as exception:
+        raise ConnectionError(
+            f"Error connecting to dask gateway: {address!r} and cluster name: {name!r}",
+        ) from exception
 
 
 def shutdown_dask_clusters(gateway: Gateway):

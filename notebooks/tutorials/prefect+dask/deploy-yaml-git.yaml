@@ -1,5 +1,5 @@
 prefect-version: 3
-name: deploy-yaml-git
+name: tuto-deploy-yaml-git
 
 pull:
 - prefect.deployments.steps.git_clone:
@@ -9,8 +9,11 @@ pull:
     script: pip install argh
 
 deployments:
-- name: deploy-yaml-git
+- name: tuto-deploy-yaml-git
   tags: ["tutorial"]
   entrypoint: ./notebooks/tutorials/prefect+dask/my_prefect.py:flow_show_stars
   work_pool:
     name: "{{ PREFECT_WORK_POOL }}"
+    job_variables:
+        env:
+            HELLO_FROM: "prefect"

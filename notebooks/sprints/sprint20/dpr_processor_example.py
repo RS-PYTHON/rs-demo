@@ -20,6 +20,16 @@ client.forward_logging()
 
 client.upload_file("./resources/dask_utils.py")
 
+# DEFINE CONFIGURATION TO ACCESS DATA FROM YOUR S3 BUCKET
+S3_CONFIG = {
+    "key": os.environ["S3_ACCESSKEY"],  # EDIT WITH YOUR S3 KEY
+    "secret": os.environ["S3_SECRETKEY"],  # EDIT WITH YOUR S3 SECRET KEY
+    "client_kwargs": {
+        "endpoint_url": os.environ["S3_ENDPOINT"],
+        "region_name": os.environ["S3_REGION"],
+    },  # EDIT WITH YOUR CLIENT_KWARGS
+}
+
 
 @task
 def single_dpr_task(PATH_TO_WRITE_YOUR_PRODUCT: str):
@@ -32,6 +42,7 @@ def single_dpr_task(PATH_TO_WRITE_YOUR_PRODUCT: str):
     import dask.array as da
     import eopf.common.constants
     import numpy as np
+    from eopf.common.file_utils import AnyPath
     from eopf.computing.abstract import (
         AuxiliaryDataFile,
         EOProcessingStep,
@@ -229,7 +240,10 @@ def single_dpr_task(PATH_TO_WRITE_YOUR_PRODUCT: str):
     #     new_eoproduct.write()
     #     # the product will be automatically closed as it is a context manager
     #     # but you can manually use new_eoproduct.close()
-    with EOZarrStore(url=PATH_TO_WRITE_YOUR_PRODUCT).open(
+    with EOZarrStore(
+        # url=PATH_TO_WRITE_YOUR_PRODUCT
+        AnyPath("s3://prefect-share/myzarr/", **S3_CONFIG),
+    ).open(
         mode=eopf.common.constants.OpeningMode.CREATE_OVERWRITE,
     ) as st:
         # Actually write the product to the store in DIR_TO_WRITE_YOUR_PRODUCT/new_zarr_product.zarr

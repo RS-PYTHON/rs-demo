@@ -20,14 +20,12 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 import json
 import logging
 import os
-import sys
 from datetime import datetime
 from time import sleep
 
 import boto3
 import requests
 import rs_common
-from prefect.filesystems import RemoteFileSystem
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
 from rs_client.auxip_client import AuxipClient
@@ -47,6 +45,9 @@ rs_common.logging.Logging.level = logging.INFO
 # This configuration is set in an environment variable.
 local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
+
+# Username
+RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
 
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str | None = None
@@ -68,13 +69,8 @@ http_session: requests.Session = requests.Session()
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
-
-# This one is to share data between the user, the client (jupyter or terminal) and prefect
+# Share data between the user, the client (jupyter or terminal) and prefect
 PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
-# Associated prefect block
-S3_BLOCK: RemoteFileSystem = None
-
-PREFECT_WORK_POOL = os.environ["PREFECT_WORK_POOL"]
 
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
@@ -398,31 +394,6 @@ def temporary_fix_adgs_feature(items_collection):
     return items_collection
 
 
-###########
-# Prefect #
-###########
-
-
-async def init_prefect_blocks():
-    global S3_BLOCK
-
-    # This is only for local mode.
-    # In the cluster, the blocks must be created only once by the admin.
-    if not local_mode:
-        return
-
-    # Share data between the user, the client (jupyter or terminal) and prefect
-    S3_BLOCK = RemoteFileSystem(
-        basepath=f"s3://{PREFECT_SHARE_BUCKET}",
-        settings={
-            "key": os.environ["S3_ACCESSKEY"],
-            "secret": os.environ["S3_SECRETKEY"],
-            "client_kwargs": {"endpoint_url": os.environ["S3_ENDPOINT"]},
-        },
-    )
-    await S3_BLOCK.save("s3", overwrite=True)
-
-
 ########
 # Init #
 ########
@@ -440,11 +411,7 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Default owner_id
     if not owner_id:
-        owner_id = (
-            os.environ["JUPYTERHUB_USER"]
-            if cluster_mode
-            else os.environ["RSPY_HOST_USER"]
-        )
+        owner_id = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
     # Init RsClient instances
     return init_rsclient(owner_id, cadip_station)

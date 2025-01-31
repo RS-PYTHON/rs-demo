@@ -19,42 +19,24 @@ Implement utility functions and prefect tasks and flows.
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
-import asyncio
 import importlib
 import json
+import logging
 import os
 import random
-import typing
+from pathlib import Path
 
-from fastapi.concurrency import run_in_threadpool
 from prefect import flow, get_run_logger, task
-from prefect.client.orchestration import get_client
-from prefect.exceptions import ObjectNotFound
 from resources.prefect_utils import get_ip_address
 
-
-def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:
-    """From Jupyter we need this hack to deploy prefect flows"""
-    coroutine = run_in_threadpool(func, *args, **kwargs)
-    return asyncio.create_task(coroutine)
-
-
-async def wait_for_deployment(name: str, wait=1, max_retry=30):
-    """Wait for prefect deployment to be finished."""
-    # Taken from prefect/cli/deployment.py::inspect
-    retry = 0
-    async with get_client() as client:
-        while True:
-            try:
-                await client.read_deployment_by_name(name)
-                print(f"Finished deploying prefect flow: {name!r}")
-                return
-            except ObjectNotFound:
-                retry += 1
-                if retry >= max_retry:
-                    raise
-                print(f"Wait for deployment of prefect flow: {name!r} ...")
-                await asyncio.sleep(wait)
+# NOTE: the main code outside the functions is run by both the client and prefect workers.
+# But this log won't show when run from a prefect worker because get_run_logger() is not available yet.
+logging.warning(
+    f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (main code)",
+)
+# You can test to write an empty file to check that it is written
+# on both the client and prefect workers filesystems.
+Path("/tmp/.empty").touch()
 
 
 #
@@ -66,7 +48,9 @@ async def wait_for_deployment(name: str, wait=1, max_retry=30):
 def flow_show_stars(github_repos: list[str], test_pip: str | None = None):
     """Flow: Show the number of stars that GitHub repos have"""
     logger = get_run_logger()
-    logger.warning(f"Flow IP address: {get_ip_address()}")
+    logger.warning(
+        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (flow)",
+    )
 
     # Test that "pip install xxx" was run in the worker container
     if test_pip:
@@ -86,7 +70,10 @@ def flow_show_stars(github_repos: list[str], test_pip: str | None = None):
 @task
 def task_fetch_stats(github_repo: str):
     """Task 1: Fetch the statistics for a GitHub repo"""
-    get_run_logger().warning(f"'fetch_stats' task IP address: {get_ip_address()}")
+    logger = get_run_logger()
+    logger.warning(
+        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task_fetch_stats)",
+    )
     # return httpx.get(f"https://api.github.com/repos/{github_repo}").json()
     # Mock the call to github to avoid flooding them
     return {"github_repo": github_repo, "stargazers_count": random.randint(100, 1000)}
@@ -96,7 +83,9 @@ def task_fetch_stats(github_repo: str):
 def task_get_stars(repo_stats: dict):
     """Task 2: Get the number of stars from GitHub repo statistics"""
     logger = get_run_logger()
-    logger.warning(f"'get_stars' task IP address: {get_ip_address()}")
+    logger.warning(
+        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task_fetch_stats)",
+    )
     try:
         return repo_stats["stargazers_count"]
     except KeyError:

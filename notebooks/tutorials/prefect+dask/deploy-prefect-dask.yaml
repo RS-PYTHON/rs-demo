@@ -1,19 +1,18 @@
 prefect-version: 3
-name: tuto-deploy-yaml-s3
+name: tuto-prefect-dask
 
 pull:
 - prefect.deployments.steps.run_shell_script:
-    # Download source code and wheels from S3 bucket using the prefect block named "s3".
-    # Install the downloaded wheels.
+    # Download source code from S3 bucket using the prefect block named "s3".
     # NOTE: we cannot use comments or break long lines, most of bash features don't work...
+    expand_env_vars: true
     script: |
         python -c "from prefect.filesystems import RemoteFileSystem; RemoteFileSystem.load('$PREFECT_BLOCK_S3').get_directory('users/jovyan', '.')"
-        pip install emoji --find-links ./wheels
 
 deployments:
-- name: tuto-deploy-yaml-s3
+- name: tuto-prefect-dask
   tags: ["tutorial"]
-  entrypoint: ./my_prefect.py:flow_show_stars
+  entrypoint: ./my_prefect_and_dask.py:my_flow
   work_pool:
     name: "{{ PREFECT_WORK_POOL }}"
     job_variables:
@@ -21,3 +20,6 @@ deployments:
             HELLO_FROM: "prefect"
             # Copy env vars from client environment
             PREFECT_BLOCK_S3: "{{ PREFECT_BLOCK_S3 }}"
+            DASK_GATEWAY_ADDRESS: "{{ DASK_GATEWAY_ADDRESS }}"
+            DASK_CLUSTER_NAME: "{{ DASK_CLUSTER_NAME }}"
+            RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
