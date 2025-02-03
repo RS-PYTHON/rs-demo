@@ -72,6 +72,8 @@ RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
 # Share data between the user, the client (jupyter or terminal) and prefect
 PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
 
+PREFECT_WORK_POOL = os.environ["PREFECT_WORK_POOL"]
+
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
 

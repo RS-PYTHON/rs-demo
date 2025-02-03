@@ -25,9 +25,11 @@ import typing
 
 from fastapi.concurrency import run_in_threadpool
 from prefect.blocks.system import JSON as JsonBlock
+from prefect.blocks.system import Secret
 from prefect.client.orchestration import get_client
 from prefect.exceptions import ObjectNotFound
-from prefect.filesystems import RemoteFileSystem
+from prefect.utilities.asyncutils import sync_compatible
+from prefect_aws import AwsCredentials, S3Bucket
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -35,12 +37,8 @@ from prefect.filesystems import RemoteFileSystem
 local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
-RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
-PREFECT_WORK_POOL = os.environ["PREFECT_WORK_POOL"]
-PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
-
 # Prefect blocks
-PREFECT_BLOCK_S3: RemoteFileSystem = None
+PREFECT_BLOCK_S3: S3Bucket = None
 
 
 def get_ip_address() -> str:
@@ -48,6 +46,7 @@ def get_ip_address() -> str:
     return socket.gethostbyname(socket.gethostname())
 
 
+@sync_compatible
 async def init_prefect_blocks():
     global PREFECT_BLOCK_S3
 
@@ -56,25 +55,32 @@ async def init_prefect_blocks():
     if not local_mode:
         return
 
-    # Save authentication to connect to the Dask gateway.
+    # Save authentication as a secret to connect to the Dask gateway.
     # In local mode, use username/password.
     # In cluster mode, it should contain {"JUPYTERHUB_API_TOKEN": "<value>"}
-    auth = JsonBlock(
-        value={
-            "username": RSPY_HOST_USER,
-            "password": secrets.token_urlsafe(32),  # generate random password
-        },
-    )
-    await auth.save(os.environ["PREFECT_BLOCK_AUTH"], overwrite=True)
+    # We generate a random password and save the block only once (overwrite=False).
+    # Maybe this is overkill and we could just use a hardcoded password in local mode.
+    try:
+        secret = Secret(
+            value={
+                "username": os.environ["RSPY_HOST_USER"],
+                "password": secrets.token_urlsafe(32),
+            },
+        )
+        await secret.save(os.environ["PREFECT_BLOCK_AUTH"], overwrite=True)
+    except ValueError:  # do nothing if the block was already saved
+        pass
 
     # Share data between the user, the client (jupyter or terminal) and prefect
-    PREFECT_BLOCK_S3 = RemoteFileSystem(
-        basepath=f"s3://{PREFECT_SHARE_BUCKET}",
-        settings={
-            "key": os.environ["S3_ACCESSKEY"],
-            "secret": os.environ["S3_SECRETKEY"],
-            "client_kwargs": {"endpoint_url": os.environ["S3_ENDPOINT"]},
-        },
+    aws_credentials = AwsCredentials(
+        aws_access_key_id=os.environ["S3_ACCESSKEY"],
+        aws_secret_access_key=os.environ["S3_SECRETKEY"],
+        region_name=os.environ["S3_REGION"],
+        aws_client_parameters={"endpoint_url": os.environ["S3_ENDPOINT"]},
+    )
+    PREFECT_BLOCK_S3 = S3Bucket(
+        bucket_name=os.environ["PREFECT_SHARE_BUCKET"],
+        credentials=aws_credentials,
     )
     await PREFECT_BLOCK_S3.save(os.environ["PREFECT_BLOCK_S3"], overwrite=True)
 

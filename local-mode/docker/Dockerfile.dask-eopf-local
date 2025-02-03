@@ -32,7 +32,7 @@ LABEL org.opencontainers.image.url="https://github.com/RS-PYTHON/rs-demo/blob/de
 RUN pip install -U pip && \
 pip install -U \
     dask[complete]=="${DASK_TAG}" \
-    prefect[dask]=="3.1.4"
+    prefect[dask,aws]=="3.1.4"
 
 # Install EOPF, see e.g. https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/packages/1677
 RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \

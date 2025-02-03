@@ -25,6 +25,7 @@ from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
 from prefect.blocks.system import JSON as JsonBlock
+from prefect.blocks.system import Secret
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -53,26 +54,31 @@ def get_dask_gateway(
 
     # Read the prefect block for authentication
     PREFECT_BLOCK_AUTH: str = os.environ["PREFECT_BLOCK_AUTH"]
-    block = JsonBlock.load(PREFECT_BLOCK_AUTH).value
+    try:
+        secret = Secret.load(PREFECT_BLOCK_AUTH)
+    except ValueError as error:
+        if local_mode:
+            raise ValueError(
+                "In local mode, call prefect_utils.py::init_prefect_blocks() before this function.",
+            ) from error
+        else:
+            raise ValueError(
+                f"The Prefect secret block {PREFECT_BLOCK_AUTH!r} must be initialized manually "
+                "before calling this function.",
+            ) from error
 
-    if cluster_mode:
-        pass
-    #     todo try/keyerror
-    #     if "JUPYTERHUB_API_TOKEN" not in block:
-    #         raise ValueError(
-    #             "JUPYTERHUB_API_TOKEN is missing from the Prefect block: {PREFECT_BLOCK_AUTH!r}",
-    #         )
-    #     auth = JupyterHubAuth(block[
-    # """Uses JupyterHub API tokens to authenticate"""
+    # In local mode, pass the username/password from the secret block
+    if local_mode:
+        auth = BasicAuth(**secret.get())
 
-    # def __init__(self, api_token=None):
-
-    # In local mode, pass the username from the prefect block
-    elif local_mode:
-        auth = BasicAuth(
-            username=os.environ["LOCAL_GATEWAY_USERNAME"],
-            password=os.environ["LOCAL_GATEWAY_PASSWORD"],
-        )
+    # In cluster mode, init the jupyter hub authentication
+    else:
+        try:
+            auth = JupyterHubAuth(secret.get()["JUPYTERHUB_API_TOKEN"])
+        except KeyError as error:
+            raise KeyError(
+                f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {PREFECT_BLOCK_AUTH!r}",
+            ) from error
 
     return Gateway(address=address, auth=auth)
 
