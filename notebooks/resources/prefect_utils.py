@@ -63,13 +63,16 @@ async def init_prefect_blocks():
     try:
         secret = Secret(
             value={
-                "username": os.environ["RSPY_HOST_USER"],
-                "password": secrets.token_urlsafe(32),
+                "LOCAL_DASK_USERNAME": os.environ["RSPY_HOST_USER"],
+                "LOCAL_DASK_PASSWORD": secrets.token_urlsafe(32),
             },
         )
         await secret.save(os.environ["PREFECT_BLOCK_AUTH"], overwrite=True)
     except ValueError:  # do nothing if the block was already saved
         pass
+
+    # Save the dask authentication from prefect blocks as env vars
+    await save_auth_env()
 
     # Share data between the user, the client (jupyter or terminal) and prefect
     aws_credentials = AwsCredentials(
@@ -83,6 +86,41 @@ async def init_prefect_blocks():
         credentials=aws_credentials,
     )
     await PREFECT_BLOCK_S3.save(os.environ["PREFECT_BLOCK_S3"], overwrite=True)
+
+
+@sync_compatible
+async def save_auth_env():
+    """
+    We need the auth block values to connect to the dask cluster.
+    We pass these values as env vars because some systems that use dask
+    may not have prefect installed to read from the blocks.
+    """
+
+    # Read the prefect block for authentication
+    PREFECT_BLOCK_AUTH: str = os.environ["PREFECT_BLOCK_AUTH"]
+    try:
+        secret = await Secret.load(PREFECT_BLOCK_AUTH)
+    except ValueError as error:
+        if local_mode:
+            raise ValueError(
+                "In local mode, call prefect_utils.py::init_prefect_blocks() before this function.",
+            ) from error
+        else:
+            raise ValueError(
+                f"The Prefect secret block {PREFECT_BLOCK_AUTH!r} must be initialized manually "
+                "before calling this function.",
+            ) from error
+
+    # In cluster mode, make sure it has the right keys.
+    # Don't do it in local mode, the keys are set internally by init_prefect_blocks()
+    auth = secret.get()
+    if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in auth):
+        raise KeyError(
+            f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {PREFECT_BLOCK_AUTH!r}",
+        )
+
+    # Save auth keys/values into env vars
+    os.environ.update(auth)
 
 
 def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:

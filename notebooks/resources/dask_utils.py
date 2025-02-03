@@ -24,8 +24,6 @@ from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
-from prefect.blocks.system import JSON as JsonBlock
-from prefect.blocks.system import Secret
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -52,32 +50,23 @@ def get_dask_gateway(
 ) -> Gateway:
     """Return dask gateway"""
 
-    # Read the prefect block for authentication
-    PREFECT_BLOCK_AUTH: str = os.environ["PREFECT_BLOCK_AUTH"]
-    try:
-        secret = Secret.load(PREFECT_BLOCK_AUTH)
-    except ValueError as error:
-        if local_mode:
-            raise ValueError(
-                "In local mode, call prefect_utils.py::init_prefect_blocks() before this function.",
-            ) from error
-        else:
-            raise ValueError(
-                f"The Prefect secret block {PREFECT_BLOCK_AUTH!r} must be initialized manually "
-                "before calling this function.",
-            ) from error
-
-    # In local mode, pass the username/password from the secret block
-    if local_mode:
-        auth = BasicAuth(**secret.get())
-
-    # In cluster mode, init the jupyter hub authentication
-    else:
+    if cluster_mode:
         try:
-            auth = JupyterHubAuth(secret.get()["JUPYTERHUB_API_TOKEN"])
+            auth = JupyterHubAuth(os.environ["JUPYTERHUB_API_TOKEN"])
         except KeyError as error:
             raise KeyError(
-                f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {PREFECT_BLOCK_AUTH!r}",
+                "JUPYTERHUB_API_TOKEN environment variable is missing",
+            ) from error
+
+    else:  # local mode
+        try:
+            auth = BasicAuth(
+                os.environ["LOCAL_DASK_USERNAME"],
+                os.environ["LOCAL_DASK_PASSWORD"],
+            )
+        except KeyError as error:
+            raise KeyError(
+                "In local mode, call init_prefect_blocks() or save_auth_env() before this function.",
             ) from error
 
     return Gateway(address=address, auth=auth)

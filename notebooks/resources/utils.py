@@ -28,6 +28,7 @@ import requests
 import rs_common
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
+from resources.prefect_utils import init_prefect_blocks
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient

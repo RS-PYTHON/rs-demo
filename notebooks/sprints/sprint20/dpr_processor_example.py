@@ -1,42 +1,94 @@
-# Taken from: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/developer-guide/simple_processor_module/simple_processor_example.py
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+"""DPR processor example"""
 
+import logging
 import os
 import sys
+from pathlib import Path
 
-from dask.distributed import worker_client
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
 
+# My local "./resources" folder contains my utility modules.
+# I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
+# For this, I'm updating my PYTHONPATH.
 sys.path.append("./resources")
 import dask_utils
+import prefect_utils
+from dask_utils import get_ip_address
 
-gateway = dask_utils.get_dask_gateway(os.environ["DASK_GATEWAY_ADDRESS"])
-existing_cluster_name = os.environ["DASK_CLUSTER_NAME"]
-cluster = gateway.connect(existing_cluster_name)
-client = cluster.get_client()
+# Save the dask authentication from prefect blocks as env vars.
+# NOTE: we have a "was never awaited" when called from jupyter
+# but it's OK because this function is useless in this case.
+prefect_utils.save_auth_env()
 
-client.forward_logging()
+# Get the existing dask cluster info from the env vars passed by the client.
+dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
+    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_CLUSTER_NAME"],
+)
 
-client.upload_file("./resources/dask_utils.py")
+# Now I need to upload my local utility module to the dask workers
+dask_client.upload_file("./resources/dask_utils.py")
 
-# DEFINE CONFIGURATION TO ACCESS DATA FROM YOUR S3 BUCKET
+# NOTE: the main code outside the functions is run by both the client and prefect workers,
+# but NOT by the dask workers.
+# But this log won't show when run from a prefect worker because get_run_logger() is not available yet.
+# The dask workers will do the imports and run the tasks, but won't run the flow or code outside functions.
+logging.warning(
+    f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (main code)",
+)
+# You can test to write an empty file to check that it is written only on the client
+# and prefect workers filesystems, not on the dask workers filesystem.
+Path("/tmp/.empty").touch()
+
+# But the global variables are still passed to the dask workers
+HELLO_FROM_DASK = "dask"
+
+# S3 configuration so the dask workers can write to the bucket
 S3_CONFIG = {
-    "key": os.environ["S3_ACCESSKEY"],  # EDIT WITH YOUR S3 KEY
-    "secret": os.environ["S3_SECRETKEY"],  # EDIT WITH YOUR S3 SECRET KEY
+    "key": os.environ["S3_ACCESSKEY"],
+    "secret": os.environ["S3_SECRETKEY"],
     "client_kwargs": {
         "endpoint_url": os.environ["S3_ENDPOINT"],
         "region_name": os.environ["S3_REGION"],
-    },  # EDIT WITH YOUR CLIENT_KWARGS
+    },
 }
+
+# NOTE: the tasks are called only by the dask workers, not by the client or prefect.
 
 
 @task
-def single_dpr_task(PATH_TO_WRITE_YOUR_PRODUCT: str):
+def say_hello():
+    """Say hello from the dask task."""
     logger = get_run_logger()
-    logger.warning(f" IP address for task: {dask_utils.get_ip_address()}")
+    logger.warning(f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} (task)")
 
-    import os.path as osp
+    # NOTE: we could update env vars for dask with: os.environ["HELLO_WORLD"] = HELLO_FROM_DASK
+
+
+@task
+def single_dpr_task(s3_folder: str, s3_filename: str):
+    """
+    Dummy DPR processor, taken from:
+    https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/developer-guide/simple_processor_module/simple_processor_example.py
+
+    The tasks are run only by the dask workers, and eopf is installed only in the dask workers,
+    so put all the "import eopf ..." lines in the task, not outside.
+    """
     from typing import Any, Dict, Optional, cast
 
     import dask.array as da
@@ -224,30 +276,14 @@ def single_dpr_task(PATH_TO_WRITE_YOUR_PRODUCT: str):
     # Check if your new product is valid (it should be the case if it contains the necessary groups)
     new_eoproduct.is_valid()
 
-    # Write the input product on disk on zarr format
-    # EDIT THE FOLLOWING PATH
-    # PATH_TO_WRITE_YOUR_PRODUCT = osp.abspath(os.path.join(os.getcwd(), "docs", "build"))
-    os.makedirs(PATH_TO_WRITE_YOUR_PRODUCT, exist_ok=True)
     # write an EOProduct in zarr format
-    # Edit url with an existing path to make it work
-    # Edit the opening mode
-    # with new_eoproduct.open(
-    #     storage_driver=EOZarrStore,
-    #     url=osp.join(PATH_TO_WRITE_YOUR_PRODUCT, "new_zarr_product.zarr"),
-    #     mode=eopf.common.constants.OpeningMode.CREATE_OVERWRITE,
-    # ):
-    #     # Actually write the product to the store
-    #     new_eoproduct.write()
-    #     # the product will be automatically closed as it is a context manager
-    #     # but you can manually use new_eoproduct.close()
     with EOZarrStore(
-        # url=PATH_TO_WRITE_YOUR_PRODUCT
-        AnyPath("s3://prefect-share/myzarr/", **S3_CONFIG),
+        AnyPath(s3_folder, **S3_CONFIG),
     ).open(
         mode=eopf.common.constants.OpeningMode.CREATE_OVERWRITE,
     ) as st:
         # Actually write the product to the store in DIR_TO_WRITE_YOUR_PRODUCT/new_zarr_product.zarr
-        st["new_zarr_product"] = new_eoproduct
+        st[s3_filename] = new_eoproduct
         # the store will be automatically closed as it is a context manager
         # but you can manually use st.close()
 
@@ -259,17 +295,36 @@ def single_dpr_task(PATH_TO_WRITE_YOUR_PRODUCT: str):
         adfs=None,
         chunks=chunks,
     )
-    final_product["l1_sum_data"].tree()
+    return final_product["l1_sum_data"].tree()
 
 
 @flow(
     task_runner=DaskTaskRunner(
-        address=cluster.scheduler_address,
-        client_kwargs={"security": cluster.security},
+        address=dask_cluster.scheduler_address,
+        client_kwargs={"security": dask_cluster.security},
     ),
 )
-def dpr_flow(PATH_TO_WRITE_YOUR_PRODUCT: str):
-    logger = get_run_logger()
-    logger.warning(f" IP address for flow: {dask_utils.get_ip_address()}")
+def dpr_flow(s3_folder: str, s3_filenames: list[str]):
+    """
+    Main flow. Called only by the client or prefect worker (depending on how we call prefect),
+    not by the dask workers.
 
-    client.submit(single_dpr_task, PATH_TO_WRITE_YOUR_PRODUCT).result()
+    Args:
+        s3_folder: S3 folder where to write output zarr products as 's3://<bucket-name>/sub/folder
+        s3_filenames: output generated zarr filenames: 1 per output product.
+    """
+    logger = get_run_logger()
+    logger.warning(
+        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (flow)",
+    )
+    dask_client.submit(
+        say_hello,
+        pure=False,
+    ).result()  # use pure=False to disable cache
+
+    # Call the task for each output filename
+    futures = [
+        dask_client.submit(single_dpr_task, s3_folder, filename, pure=False)
+        for filename in s3_filenames
+    ]
+    return dask_client.gather(futures)

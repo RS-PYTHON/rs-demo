@@ -1,5 +1,5 @@
 prefect-version: 3
-name: tuto-prefect-dask
+name: sprint20-dpr-example
 
 pull:
 - prefect.deployments.steps.run_shell_script:
@@ -10,9 +10,9 @@ pull:
         python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('users/jovyan/code', '.')"
 
 deployments:
-- name: tuto-prefect-dask
-  tags: ["tutorial"]
-  entrypoint: ./my_prefect_and_dask.py:my_flow
+- name: sprint20-dpr-example
+  tags: ["demo"]
+  entrypoint: ./dpr_processor_example.py:dpr_flow
   work_pool:
     name: "{{ PREFECT_WORK_POOL }}"
     job_variables:
@@ -24,3 +24,7 @@ deployments:
             DASK_GATEWAY_ADDRESS: "{{ DASK_GATEWAY_ADDRESS }}"
             DASK_CLUSTER_NAME: "{{ DASK_CLUSTER_NAME }}"
             RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
+            S3_ACCESSKEY: "{{ S3_ACCESSKEY }}"
+            S3_SECRETKEY: "{{ S3_SECRETKEY }}"
+            S3_ENDPOINT: "{{ S3_ENDPOINT }}"
+            S3_REGION: "{{ S3_REGION }}"
