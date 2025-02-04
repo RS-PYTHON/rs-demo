@@ -408,6 +408,9 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     # In local mode only: create the s3 buckets, if they do not already exists
     create_s3_buckets()
 
+    # In local mode only: init the prefect blocks
+    init_prefect_blocks(_sync=True)
+
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
         http_session.cookies.set("session", os.environ["RSPY_OAUTH2_COOKIE"])

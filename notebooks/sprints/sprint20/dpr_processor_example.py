@@ -30,14 +30,12 @@ import dask_utils
 import prefect_utils
 from dask_utils import get_ip_address
 
-# Save the dask authentication from prefect blocks as env vars.
-# NOTE: we have a "was never awaited" when called from jupyter
-# but it's OK because this function is useless in this case.
-prefect_utils.save_auth_env()
+# Save the dask authentication from prefect blocks as env vars
+prefect_utils.save_auth_env(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     os.environ["DASK_CLUSTER_NAME"],
 )
 
@@ -72,23 +70,21 @@ S3_CONFIG = {
 
 
 @task
-def say_hello():
-    """Say hello from the dask task."""
-    logger = get_run_logger()
-    logger.warning(f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} (task)")
-
-    # NOTE: we could update env vars for dask with: os.environ["HELLO_WORLD"] = HELLO_FROM_DASK
-
-
-@task
-def single_dpr_task(s3_folder: str, s3_filename: str):
+def single_dpr_task(logger, s3_folder: str, s3_filename: str):
     """
     Dummy DPR processor, taken from:
     https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/developer-guide/simple_processor_module/simple_processor_example.py
-
-    The tasks are run only by the dask workers, and eopf is installed only in the dask workers,
-    so put all the "import eopf ..." lines in the task, not outside.
     """
+
+    # Say hello from the dask task
+    logger.warning(
+        f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} ({s3_filename})",
+    )
+    # NOTE: we could update env vars for dask with: os.environ["HELLO_FROM"] = HELLO_FROM_DASK
+
+    # NOTE: eopf is installed only in the dask workers, so put all the "import eopf ..." lines
+    # in the task, not outside.
+
     from typing import Any, Dict, Optional, cast
 
     import dask.array as da
@@ -295,7 +291,7 @@ def single_dpr_task(s3_folder: str, s3_filename: str):
         adfs=None,
         chunks=chunks,
     )
-    return final_product["l1_sum_data"].tree()
+    return final_product["l1_sum_data"]._repr_html_()
 
 
 @flow(
@@ -317,14 +313,16 @@ def dpr_flow(s3_folder: str, s3_filenames: list[str]):
     logger.warning(
         f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (flow)",
     )
-    dask_client.submit(
-        say_hello,
-        pure=False,
-    ).result()  # use pure=False to disable cache
 
     # Call the task for each output filename
     futures = [
-        dask_client.submit(single_dpr_task, s3_folder, filename, pure=False)
+        dask_client.submit(
+            single_dpr_task,
+            logger,
+            s3_folder,
+            filename,
+            pure=False,
+        )  # use pure=False to disable cache
         for filename in s3_filenames
     ]
     return dask_client.gather(futures)

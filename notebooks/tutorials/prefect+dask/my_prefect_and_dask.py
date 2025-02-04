@@ -42,14 +42,12 @@ import dask_utils
 import prefect_utils
 from dask_utils import get_ip_address
 
-# Save the dask authentication from prefect blocks as env vars.
-# NOTE: we have a "was never awaited" when called from jupyter
-# but it's OK because this function is useless in this case.
-prefect_utils.save_auth_env()
+# Save the dask authentication from prefect blocks as env vars
+prefect_utils.save_auth_env(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     os.environ["DASK_CLUSTER_NAME"],
 )
 
@@ -74,20 +72,12 @@ HELLO_FROM_DASK = "dask"
 
 
 @task
-def say_hello():
-    """Say hello from the dask task."""
-    logger = get_run_logger()
+def calling_compute_in_a_task(logger, start: str, end: str, freq: str) -> DataFrame:
+    """Compute dataframe in a dask task."""
+
     logger.warning(f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} (task)")
+    # NOTE: we could update env vars for dask with: os.environ["HELLO_FROM"] = HELLO_FROM_DASK
 
-    # NOTE: we could update env vars for dask with: os.environ["HELLO_WORLD"] = HELLO_FROM_DASK
-
-
-@task
-def calling_compute_in_a_task(start: str, end: str, freq: str) -> DataFrame:
-    """
-    Compute dataframe in a dask task. This task is distributed and called many times.
-    You can try to add a logging inside but this will crash your Jupyter instance...
-    """
     # Create timeseries dataframe with random data
     df: DataFrame = dask.datasets.timeseries(start, end, partition_freq=freq)
 
@@ -116,16 +106,14 @@ def my_flow(start: str, end: str, freq: str) -> DataFrame:
     logger.warning(
         f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (flow)",
     )
-    dask_client.submit(
-        say_hello,
-        pure=False,
-    ).result()  # use pure=False to disable cache
+
     future: Future = dask_client.submit(
         calling_compute_in_a_task,
+        logger,
         start,
         end,
         freq,
-        pure=False,
+        pure=False,  # use pure=False to disable cache
     )
     result: DataFrame = future.result()
     logger.warning(f"\nResults:\n{result}")

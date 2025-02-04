@@ -18,6 +18,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import asyncio
+import getpass
 import os
 import secrets
 import socket
@@ -84,6 +85,7 @@ async def init_prefect_blocks():
     PREFECT_BLOCK_S3 = S3Bucket(
         bucket_name=os.environ["PREFECT_SHARE_BUCKET"],
         credentials=aws_credentials,
+        bucket_folder="sub/dir",
     )
     await PREFECT_BLOCK_S3.save(os.environ["PREFECT_BLOCK_S3"], overwrite=True)
 
