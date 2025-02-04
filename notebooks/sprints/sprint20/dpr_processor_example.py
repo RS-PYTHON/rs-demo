@@ -70,20 +70,13 @@ S3_CONFIG = {
 
 
 @task
-def single_dpr_task(logger, s3_folder: str, s3_filename: str):
+def all_my_eopf_code(s3_folder: str, s3_filename: str):
     """
+    EOPF is installed only in the dask workers, so put all the "import eopf ..." lines in the task, not outside.
+
     Dummy DPR processor, taken from:
     https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/developer-guide/simple_processor_module/simple_processor_example.py
     """
-
-    # Say hello from the dask task
-    logger.warning(
-        f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} ({s3_filename})",
-    )
-    # NOTE: we could update env vars for dask with: os.environ["HELLO_FROM"] = HELLO_FROM_DASK
-
-    # NOTE: eopf is installed only in the dask workers, so put all the "import eopf ..." lines
-    # in the task, not outside.
 
     from typing import Any, Dict, Optional, cast
 
@@ -294,6 +287,20 @@ def single_dpr_task(logger, s3_folder: str, s3_filename: str):
     return final_product["l1_sum_data"]._repr_html_()
 
 
+@task
+def single_dpr_task(logger, s3_folder: str, s3_filename: str):
+    """
+    Call the EOPF code.
+    """
+    # Say hello from the dask task
+    logger.warning(
+        f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} ({s3_filename})",
+    )
+    # NOTE: we could update env vars for dask with: os.environ["HELLO_FROM"] = HELLO_FROM_DASK
+
+    return all_my_eopf_code(s3_folder, s3_filename)
+
+
 @flow(
     task_runner=DaskTaskRunner(
         address=dask_cluster.scheduler_address,
@@ -325,4 +332,23 @@ def dpr_flow(s3_folder: str, s3_filenames: list[str]):
         )  # use pure=False to disable cache
         for filename in s3_filenames
     ]
-    return dask_client.gather(futures)
+
+    # We should do this
+    # return dask_client.gather(futures)
+
+    # Workaround to try several times... to be removed
+    results = []
+    for future in futures:
+        tries = 0
+        while True:
+            try:
+                tries += 1
+                logger.info(f"Try #{tries}")
+                results.append(future.result(timeout=10))
+                break
+            except Exception as exception:
+                if tries >= 5:
+                    raise
+                logger.error(exception)
+
+    return results

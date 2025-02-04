@@ -173,12 +173,15 @@ def get_existing_cluster(
         ) from exception
 
 
-def shutdown_dask_clusters(gateway: Gateway):
-    """Shutdown all gateway clusters"""
+def shutdown_dask_clusters(gateway: Gateway, name: str | None):
+    """
+    Shutdown the given gateway cluster, or all clusters if the name is None.
+    """
     for cluster_info in gateway.list_clusters():
         try:
-            cluster = gateway.connect(cluster_info.name)
-            cluster.shutdown()
-            print(f"Shutting down cluster {cluster_info.name!r} ...")
+            if (name is None) or (name == cluster_info.name):
+                cluster = gateway.connect(cluster_info.name)
+                cluster.shutdown()
+                print(f"Shutting down cluster {cluster_info.name!r} ...")
         except Exception as e:
             print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
