@@ -22,12 +22,6 @@ ARG USER=dask:dask
 
 ARG EOPF_PIP_VERSION
 
-# Set labels based on the Open Containers Initiative (OCI):
-# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
-#
-LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
-
 # Install complete dask subsets + prefect
 RUN pip install -U pip && \
 pip install -U \
@@ -43,3 +37,10 @@ RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \
 USER root
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/*
 USER $USER
+
+# Set labels based on the Open Containers Initiative (OCI):
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+#
+LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"

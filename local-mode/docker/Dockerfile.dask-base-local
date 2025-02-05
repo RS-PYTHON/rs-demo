@@ -22,12 +22,6 @@ FROM python:3.11.7-slim-bookworm
 ARG DASK_TAG=xxx
 ARG DASK_GATEWAY_TAG=xxx
 
-# Set labels based on the Open Containers Initiative (OCI):
-# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
-#
-LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-base-local"
-
 # Install tini and upgrade linux packages are updated to patch known
 # vulnerabilities.
 RUN apt-get update \
@@ -61,3 +55,10 @@ RUN pip install \
 
 ENTRYPOINT ["tini", "-g", "--"]
 CMD ["dask-gateway-server"]
+
+# Set labels based on the Open Containers Initiative (OCI):
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+#
+LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/base/local"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-base-local"
