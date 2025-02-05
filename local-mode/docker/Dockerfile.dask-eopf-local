@@ -13,25 +13,25 @@
 # limitations under the License.
 
 # We will add eopf to the dask-gateway-server image for local mode
-ARG DASK_TAG=xxx
-FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_TAG}
-ARG DASK_TAG=xxx
+ARG DASK_GATEWAY_TAG=xxx
+FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
+ARG DASK_GATEWAY_TAG=xxx
+
+ARG EOPF_PIP_VERSION=xxx
+ARG PREFECT_TAG=xxx
 
 # Default user from parent image
 ARG USER=dask:dask
 
-ARG EOPF_PIP_VERSION
-
-# Install complete dask subsets + prefect
-RUN pip install -U pip && \
-pip install -U \
-    dask[complete]=="${DASK_TAG}" \
-    prefect[dask,aws]=="3.1.4"
-
 # Install EOPF, see e.g. https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/packages/1677
 RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \
-    pip install eopf${EOPF_PIP_VERSION} \
+    pip install eopf=="${EOPF_PIP_VERSION}" \
     --index-url https://__token__:${EOPF_TOKEN}@gitlab.eopf.copernicus.eu/api/v4/projects/14/packages/pypi/simple
+
+# Install complete dask subsets + prefect
+RUN pip install \
+    dask[complete] \
+    prefect[dask,aws]=="${PREFECT_TAG}"
 
 # Clean everything
 USER root
@@ -44,3 +44,6 @@ USER $USER
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
+
+LABEL org.opencontainers.image.version="dask-gateway-server==${DASK_GATEWAY_TAG} eopf==${EOPF_PIP_VERSION}"
+LABEL org.opencontainers.image.description="dask-gateway-server image in which we installed the EOPF wheel package."

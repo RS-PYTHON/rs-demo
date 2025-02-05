@@ -123,8 +123,16 @@ def init_dask_cluster_staging(scale: int, *args, **kwargs):
     """Init existing staging dask cluster or create one"""
     global dask_gateway_staging, dask_cluster_staging, dask_client_staging
     dask_gateway_staging, dask_cluster_staging, dask_client_staging = init_dask_cluster(
-        os.environ["DASK_GATEWAY_STAGING_ADDRESS"],
-        os.environ["DASK_GATEWAY_STAGING_PUBLIC"],
+        (
+            os.environ["DASK_GATEWAY_ADDRESS"]
+            if cluster_mode
+            else os.environ["DASK_GATEWAY_STAGING_ADDRESS"]
+        ),
+        (
+            os.environ["DASK_GATEWAY_PUBLIC"]
+            if cluster_mode
+            else os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
+        ),
         scale,
         image="ghcr.io/rs-python/rs-infrastructure-dask-gateway:latest",
         cluster_tag="dask-staging",
@@ -137,8 +145,16 @@ def init_dask_cluster_eopf(scale: int, *args, **kwargs):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
-        os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
-        os.environ["DASK_GATEWAY_EOPF_PUBLIC"],
+        (
+            os.environ["DASK_GATEWAY_ADDRESS"]
+            if cluster_mode
+            else os.environ["DASK_GATEWAY_EOPF_ADDRESS"]
+        ),
+        (
+            os.environ["DASK_GATEWAY_PUBLIC"]
+            if cluster_mode
+            else os.environ["DASK_GATEWAY_EOPF_PUBLIC"]
+        ),
         scale,
         image="ghcr.io/rs-python/rs-infrastructure-dask-gateway/eopf:latest",  # TODO: TO BE DEFINED
         cluster_tag="dask-eopf",

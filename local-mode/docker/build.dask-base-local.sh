@@ -18,7 +18,6 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-DASK_TAG="2024.5.2"
 DASK_GATEWAY_TAG="2024.1.0"
 
 # Use the same requirements as for the dask-gateway-server docker image.
@@ -37,13 +36,12 @@ sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/base/local"
 docker build \
-    --build-arg "DASK_TAG=${DASK_TAG}" \
     --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
     -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
-    -t "${registry}:${DASK_TAG}" \
+    -t "${registry}:${DASK_GATEWAY_TAG}" \
     --progress=plain \
     "$tmp"
 
-# Push the images
-docker login https://ghcr.io/v2/rs-python
-docker push "${registry}:${DASK_TAG}"
+# # Push the images
+# docker login https://ghcr.io/v2/rs-python
+# docker push "${registry}:${DASK_GATEWAY_TAG}"

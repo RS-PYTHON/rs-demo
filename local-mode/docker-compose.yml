@@ -376,7 +376,7 @@ services:
       retries: 10
 
   # Use several identical workers
-  prefect-worker1:
+  prefect-worker:
     image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
     depends_on:
       prefect-server:
@@ -386,17 +386,9 @@ services:
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
-  prefect-worker2:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
-    depends_on:
-      prefect-server:
-        condition: service_healthy
-    links:
-      - prefect-server
-      - prefect-worker1 # wait for the previous worker to finish init
-    environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
-    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
+    deploy:
+      mode: replicated
+      replicas: 2
 
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:2024.5.2
@@ -527,7 +519,7 @@ services:
       # prefect
       PREFECT_URL: ${PREFECT_URL}
       PREFECT_API_URL: ${PREFECT_API_URL}
-      PREFECT_PUBLIC: ${PREFECT_PUBLIC}
+      RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
       PREFECT_WORK_POOL: ${PREFECT_WORK_POOL}
       PREFECT_BLOCK_AUTH: ${PREFECT_BLOCK_AUTH}
       PREFECT_BLOCK_S3: ${PREFECT_BLOCK_S3}

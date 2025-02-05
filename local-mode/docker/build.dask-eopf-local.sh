@@ -18,8 +18,9 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-DASK_TAG=2024.5.2 # same as in the eopf version below
-EOPF_PIP_VERSION="==2.5.2"
+DASK_GATEWAY_TAG="2024.1.0"
+PREFECT_TAG="3.1.4"
+EOPF_PIP_VERSION="2.5.2"
 
 set +x
 if [[ -z "${EOPF_TOKEN:-}" ]]; then
@@ -31,14 +32,15 @@ set -x
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/eopf/local"
 docker build \
-    --build-arg "DASK_TAG=${DASK_TAG}" \
+    --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
+    --build-arg "PREFECT_TAG=${PREFECT_TAG}" \
     --build-arg "EOPF_PIP_VERSION=${EOPF_PIP_VERSION}" \
     --secret id=EOPF_TOKEN \
     -f "${SCRIPT_DIR}/Dockerfile.dask-eopf-local" \
-    -t "${registry}:${DASK_TAG}" \
+    -t "${registry}:${EOPF_PIP_VERSION}" \
     --progress=plain \
     "$SCRIPT_DIR" \
 
 # # Push the images
 # docker login https://ghcr.io/v2/rs-python
-# docker push "${registry}:${DASK_TAG}"
+# docker push "${registry}:${EOPF_PIP_VERSION}"
