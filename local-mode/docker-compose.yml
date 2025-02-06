@@ -360,7 +360,7 @@ services:
   ####################
 
   prefect-server:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local
     ports:
       - 4200:4200
     depends_on:
@@ -377,7 +377,7 @@ services:
 
   # Use several identical workers
   prefect-worker:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries:3.1.4
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -391,12 +391,12 @@ services:
       replicas: 2
 
   dask-staging:
-    image: ghcr.io/rs-python/dask-gateway-server/staging/local:2024.5.2
+    image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
       - 8701:8000
 
   dask-eopf:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:2024.5.2
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:2.5.2
     ports:
       - 8702:8000
 

@@ -25,7 +25,7 @@ ARG USER=dask:dask
 
 # Install EOPF, see e.g. https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/packages/1677
 RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \
-    pip install eopf=="${EOPF_PIP_VERSION}" \
+    pip install -U eopf=="${EOPF_PIP_VERSION}" \
     --index-url https://__token__:${EOPF_TOKEN}@gitlab.eopf.copernicus.eu/api/v4/projects/14/packages/pypi/simple
 
 # Install complete dask subsets + prefect
@@ -46,4 +46,4 @@ LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/e
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
 
 LABEL org.opencontainers.image.version="dask-gateway-server==${DASK_GATEWAY_TAG} eopf==${EOPF_PIP_VERSION}"
-LABEL org.opencontainers.image.description="dask-gateway-server image in which we installed the EOPF wheel package."
+LABEL org.opencontainers.image.description="dask-gateway-server image for local mode in which we installed the EOPF wheel package."

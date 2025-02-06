@@ -42,6 +42,6 @@ docker build \
     --progress=plain \
     "$tmp"
 
-# # Push the images
-# docker login https://ghcr.io/v2/rs-python
-# docker push "${registry}:${DASK_GATEWAY_TAG}"
+# Push the images
+docker login https://ghcr.io/v2/rs-python
+docker push "${registry}:${DASK_GATEWAY_TAG}"
