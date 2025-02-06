@@ -14,7 +14,7 @@ deployments:
   tags: ["demo"]
   entrypoint: ./dpr_processor_example.py:dpr_flow
   work_pool:
-    name: "{{ PREFECT_WORK_POOL }}"
+    name: "{{ PREFECT_WORK_POOL_EOPF }}"
     job_variables:
         env:
             HELLO_FROM: "prefect"

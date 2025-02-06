@@ -13,7 +13,7 @@ deployments:
   tags: ["tutorial"]
   entrypoint: ./notebooks/tutorials/prefect+dask/my_prefect.py:flow_show_stars
   work_pool:
-    name: "{{ PREFECT_WORK_POOL }}"
+    name: "{{ PREFECT_WORK_POOL_STAGING }}" # we can use the staging or eopf work pool
     job_variables:
         env:
             HELLO_FROM: "prefect"

@@ -375,8 +375,7 @@ services:
       interval: 2s
       retries: 10
 
-  # Use several identical workers
-  prefect-worker:
+  prefect-worker-staging:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local
     depends_on:
       prefect-server:
@@ -385,7 +384,21 @@ services:
       - prefect-server
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
-    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL", "--type", "process"]
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  prefect-worker-eopf:
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    links:
+      - prefect-server
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 2
@@ -399,6 +412,9 @@ services:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/local:2.5.2
     ports:
       - 8702:8000
+    volumes:
+      # TEMP FOR DEBUGGING
+      - /home/jgaucher/projects/rspy/working/eopf/eopf-cpm/eopf:/home/dask/.local/lib/python3.11/site-packages/eopf
 
   #################
   # OPENTELEMETRY #
@@ -520,7 +536,8 @@ services:
       PREFECT_URL: ${PREFECT_URL}
       PREFECT_API_URL: ${PREFECT_API_URL}
       RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
-      PREFECT_WORK_POOL: ${PREFECT_WORK_POOL}
+      PREFECT_WORK_POOL_STAGING: ${PREFECT_WORK_POOL_STAGING}
+      PREFECT_WORK_POOL_EOPF: ${PREFECT_WORK_POOL_EOPF}
       PREFECT_BLOCK_AUTH: ${PREFECT_BLOCK_AUTH}
       PREFECT_BLOCK_S3: ${PREFECT_BLOCK_S3}
       # dask
