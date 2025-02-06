@@ -278,13 +278,19 @@ services:
     depends_on:
       - rs-server-adgs
     environment:
-      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-      OIDC_REALM: rspy
-      PUBLIC_CLIENT_ID: fastapi_public
+      SB_authConfig: |
+            {
+              "type": "openIdConnect",
+              "openIdConnectUrl": "https://iam.dev-rspy.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "oidcConfig": {
+                "client_id": "fastapi_public"
+              }
+            }
       SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8001
       SB_detectLocaleFromBrowser: true
+      SB_socialSharing: email,bsky,mastodon
 
   # STAC browser on rs-server-cadip
   stac-browser-cadip:
@@ -295,13 +301,19 @@ services:
     depends_on:
       - rs-server-cadip
     environment:
-      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-      OIDC_REALM: rspy
-      PUBLIC_CLIENT_ID: fastapi_public
+      SB_authConfig: |
+            {
+              "type": "openIdConnect",
+              "openIdConnectUrl": "https://iam.dev-rspy.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "oidcConfig": {
+                "client_id": "fastapi_public"
+              }
+            }
       SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8002
       SB_detectLocaleFromBrowser: true
+      SB_socialSharing: email,bsky,mastodon
 
   # STAC browser on rs-server-catalog
   stac-browser-catalog:
@@ -312,13 +324,19 @@ services:
     depends_on:
       - rs-server-catalog
     environment:
-      OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-      OIDC_REALM: rspy
-      PUBLIC_CLIENT_ID: fastapi_public
+      SB_authConfig: |
+            {
+              "type": "openIdConnect",
+              "openIdConnectUrl": "https://iam.dev-rspy.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "oidcConfig": {
+                "client_id": "fastapi_public"
+              }
+            }
       SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8003
       SB_detectLocaleFromBrowser: true
+      SB_socialSharing: email,bsky,mastodon
 
   catalog-db:
     container_name: catalog-db
@@ -502,9 +520,9 @@ services:
       - dpr-simulator
     # variables are set in the .env file
     environment:
-
       RSPY_HOST_USER: ${USER}
       RSPY_LOCAL_MODE: 1
+      RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION: 0
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -521,6 +539,7 @@ services:
       RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
       RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
       RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
+      RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}

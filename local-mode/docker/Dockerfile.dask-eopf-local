@@ -24,7 +24,7 @@ ARG PREFECT_TAG=xxx
 ARG USER=dask:dask
 
 # Install EOPF, see e.g. https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/packages/1677
-RUN --mount=type=secret,id=EOPF_TOKEN,env=EOPF_TOKEN \
+RUN --mount=type=secret,id=EOPF_TOKEN \
     pip install -U eopf=="${EOPF_PIP_VERSION}" \
     --index-url https://__token__:${EOPF_TOKEN}@gitlab.eopf.copernicus.eu/api/v4/projects/14/packages/pypi/simple
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Publish Docker image for dask-gateway-server and eopf for local mode
+name: Docker for dask-gateway-server + eopf
 
 # Run workflow only on manual trigger
 on:
@@ -52,5 +52,9 @@ jobs:
           dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           docker_tag: latest
+          build_args: |
+            EOPF_PIP_VERSION=${{ inputs.EOPF_PIP_VERSION }}
+            DASK_GATEWAY_TAG=${{ inputs.DASK_GATEWAY_TAG }}
+            PREFECT_TAG=${{ inputs.PREFECT_TAG }}
           secrets: |
-            ${{ secrets.MYSECRET }}
+            EOPF_TOKEN=${{ secrets.MYSECRET }}
