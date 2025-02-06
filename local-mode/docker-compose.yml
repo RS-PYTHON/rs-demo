@@ -360,7 +360,7 @@ services:
   ####################
 
   prefect-server:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     ports:
       - 4200:4200
     depends_on:
@@ -376,7 +376,7 @@ services:
       retries: 10
 
   prefect-worker-staging:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -387,10 +387,10 @@ services:
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
 
   prefect-worker-eopf:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -401,7 +401,7 @@ services:
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
 
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
@@ -409,12 +409,9 @@ services:
       - 8701:8000
 
   dask-eopf:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:2.5.2
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
     ports:
       - 8702:8000
-    volumes:
-      # TEMP FOR DEBUGGING
-      - /home/jgaucher/projects/rspy/working/eopf/eopf-cpm/eopf:/home/dask/.local/lib/python3.11/site-packages/eopf
 
   #################
   # OPENTELEMETRY #
