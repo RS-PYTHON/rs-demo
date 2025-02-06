@@ -270,6 +270,7 @@ def all_my_eopf_code(s3_folder: str, s3_filename: str):
         AnyPath(s3_folder, **S3_CONFIG),
     ).open(
         mode=eopf.common.constants.OpeningMode.CREATE_OVERWRITE,
+        delayed_writing=False,
     ) as st:
         # Actually write the product to the store in DIR_TO_WRITE_YOUR_PRODUCT/new_zarr_product.zarr
         st[s3_filename] = new_eoproduct
