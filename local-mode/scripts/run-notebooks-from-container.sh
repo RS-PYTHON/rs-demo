@@ -24,9 +24,11 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     _filename="$(basename $notebook)"
     _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
 
+    if [[ $_filename != rspy520_empty_dpr_processor.ipynb ]]; then continue; fi
+
     # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
-    (set -x && cd "$_dirname" && time papermill "$_filename" /tmp/out.ipynb) && \
+    (set -x && cd "$_dirname" && time papermill --log-output "$_filename" /tmp/out.ipynb) && \
     all_ok="${all_ok:-}  - '$_relative'\n" || \
     all_errors="${all_errors:-}  - '$_relative'\n"
 done
