@@ -39,3 +39,4 @@ docker build \
 # Push the images
 docker login https://ghcr.io/v2/rs-python
 docker push "${registry}:${EOPF_PIP_VERSION}"
+docker push "${registry}:latest"

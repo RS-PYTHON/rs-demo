@@ -398,8 +398,6 @@ services:
     depends_on:
       prefect-server:
         condition: service_healthy
-    links:
-      - prefect-server
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
@@ -412,8 +410,6 @@ services:
     depends_on:
       prefect-server:
         condition: service_healthy
-    links:
-      - prefect-server
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
@@ -514,10 +510,7 @@ services:
     ports:
       - 8888:8888
     depends_on:
-      - rs-server-adgs
-      - rs-server-cadip
       - minio # used to check manually the s3 bucket contents
-      - dpr-simulator
     # variables are set in the .env file
     environment:
       RSPY_HOST_USER: ${USER}
