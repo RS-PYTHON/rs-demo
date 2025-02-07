@@ -53,10 +53,9 @@ logging.warning(
 # and prefect workers filesystems, not on the dask workers filesystem.
 Path("/tmp/.empty").touch()
 
-# But the global variables are still passed to the dask workers
-HELLO_FROM_DASK = "dask"
-
-# S3 configuration so the dask workers can write to the bucket
+# But the global variables are still passed to the dask workers.
+# Init the S3 configuration so the dask workers can write to the bucket
+# with the env variables from the client or prefect.
 S3_CONFIG = {
     "key": os.environ["S3_ACCESSKEY"],
     "secret": os.environ["S3_SECRETKEY"],
@@ -295,9 +294,8 @@ def single_dpr_task(logger, s3_folder: str, s3_filename: str):
     """
     # Say hello from the dask task
     logger.warning(
-        f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} ({s3_filename})",
+        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task)",
     )
-    # NOTE: we could update env vars for dask with: os.environ["HELLO_FROM"] = HELLO_FROM_DASK
 
     return all_my_eopf_code(s3_folder, s3_filename)
 

@@ -19,6 +19,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 
 import os
 import socket
+import time
 
 from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
@@ -111,6 +112,20 @@ def init_dask_cluster(
     # Scale the cluster and get the client
     gateway.scale_cluster(cluster.name, scale)
     client = cluster.get_client()
+
+    # Wait for all workers to be up
+    tries = 0
+    while True:
+        scaled = len(client.scheduler_info()["workers"])
+        print(f"Dask workers for {cluster_tag!r} are up: {scaled}/{scale}")
+        if scaled >= scale:
+            break
+        tries += 1
+        if tries >= 30:
+            raise TimeoutError(
+                f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
+            )
+        time.sleep(1)
 
     # Forward logging from dask workers to the caller.
     # NOTE: we need to use the logging in the workers, "print" won't be forwarded.

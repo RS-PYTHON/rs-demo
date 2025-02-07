@@ -65,18 +65,16 @@ logging.warning(
 # and prefect workers filesystems, not on the dask workers filesystem.
 Path("/tmp/.empty").touch()
 
-# But the global variables are still passed to the dask workers
-HELLO_FROM_DASK = "dask"
-
 # NOTE: the tasks are called only by the dask workers, not by the client or prefect.
 
 
 @task
 def calling_compute_in_a_task(logger, start: str, end: str, freq: str) -> DataFrame:
     """Compute dataframe in a dask task."""
-
-    logger.warning(f"Hello from {HELLO_FROM_DASK!r} {get_ip_address()!r} (task)")
-    # NOTE: we could update env vars for dask with: os.environ["HELLO_FROM"] = HELLO_FROM_DASK
+    # Say hello from the dask task
+    logger.warning(
+        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task)",
+    )
 
     # Create timeseries dataframe with random data
     df: DataFrame = dask.datasets.timeseries(start, end, partition_freq=freq)
