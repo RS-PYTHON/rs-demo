@@ -58,7 +58,6 @@ wait_for_service() {
 wait_for_service 8001 "health" # adgs
 wait_for_service 8002 "health" # cadip
 wait_for_service 8003 "_mgmt/ping" # catalog
-wait_for_service 4200 "health" # prefect
 
 # Run the notebooks from a container, in the same network than the docker-compose,
 # with the same options than the jupyter service in the docker-compose.
