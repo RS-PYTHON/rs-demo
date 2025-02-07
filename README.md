@@ -108,8 +108,7 @@ On local mode, docker-compose and Docker images are used to run services and lib
   * You have checked out this git project:
 
     ```shell
-    git clone git@github.com:RS-PYTHON/rs-demo.git # either with SSH
-    # git clone https://github.com/RS-PYTHON/rs-demo.git # or with HTTPS
+    git clone https://github.com/RS-PYTHON/rs-demo.git
 
     # Get last version
     cd rs-demo
