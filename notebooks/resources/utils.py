@@ -28,15 +28,16 @@ from time import sleep
 import boto3
 import requests
 import rs_common
-from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
+from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent, ItemCollection
 from pystac_client import CollectionClient
+from pystac_client.item_search import DatetimeLike
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
 from rs_client.staging_client import StagingClient
 from rs_common.config import ECadipStation, EDownloadStatus
-
+from typing import Optional
 # Variables
 # Set logger level to info
 rs_common.logging.Logging.level = logging.INFO
@@ -128,14 +129,14 @@ def create_s3_buckets():
     """In local mode only: create the s3 buckets, if they do not already exists."""
     if not local_mode:
         return
-    s3_client = get_s3_client()
+    s3_client = get_s3_client()    
     for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
             s3_client.exceptions.BucketAlreadyExists,
             s3_client.exceptions.BucketAlreadyOwnedByYou,
-        ):
+        ):            
             pass  # do nothing if already exists
 
 
@@ -176,24 +177,26 @@ def init_rsclient(owner_id=None, cadip_station=ECadipStation.CADIP):
     # Create a client to launch staging
     staging_client = generic_client.get_staging_client()
 
-    print(f"Auxip service: {auxip_client.href_adgs}")
-    print(f"CADIP service: {cadip_client.href_cadip}")
-    print(f"Catalog service: {stac_client.href_catalog}")
-    print(f"Staging service: {staging_client.href_staging}")
+    print(f"Auxip service: {auxip_client.href_srv}")
+    print(f"CADIP service: {cadip_client.href_srv}")
+    print(f"Catalog service: {stac_client.href_srv}")
+    print(f"Staging service: {staging_client.href_srv}")
 
     return auxip_client, cadip_client, stac_client, staging_client
 
 
-def create_test_collection() -> CollectionClient:
+def create_test_collection(collection_id = None) -> CollectionClient:
     """Create and return a test STAC collection"""
 
+    if not collection_id:
+        collection_id = TEST_COLLECTION
     # Clean the existing collection, if any
-    stac_client.remove_collection(TEST_COLLECTION)
+    stac_client.remove_collection(collection_id)
 
     # Add new collection
     response = stac_client.add_collection(
         Collection(
-            id=TEST_COLLECTION,
+            id=collection_id,
             description=None,  # rs-client will provide a default description for us
             extent=Extent(
                 spatial=SpatialExtent(bboxes=[-180.0, -90.0, 180.0, 90.0]),
@@ -204,19 +207,20 @@ def create_test_collection() -> CollectionClient:
     response.raise_for_status()
 
     # Return the inserted collection
-    inserted_collection = stac_client.get_collection(collection_id=TEST_COLLECTION)
+    inserted_collection = stac_client.get_collection(collection_id=collection_id)
     assert inserted_collection, "Collection was not inserted"
     return inserted_collection
 
 
-def truncate_features_by_limit(feature_collection, limit):
+def truncate_features_by_limit(item_collection, limit):
     """Truncate a response from a station to a limit of files"""
     # Load the dictionary from the file
 
     total_count = 0  # To keep track of the global count of assets
     truncated_features = []
+    truncated_dict = item_collection.to_dict()
 
-    for feature in feature_collection["features"]:
+    for feature in truncated_dict["features"]:
         assets = feature.get("assets", {})
         asset_count = len(assets)
 
@@ -230,28 +234,31 @@ def truncate_features_by_limit(feature_collection, limit):
             truncated_features.append(feature)
             break
     # Update the dictionary with the truncated features
-    feature_collection["features"] = truncated_features
+    truncated_dict["features"] = truncated_features
+    return ItemCollection.from_dict(truncated_dict)
 
-    return feature_collection
 
-
-def stage_test_items(client, nb_of_items, collection_id=None):
+def stage_test_objects(client, 
+                       nb_of_objects,                        
+                       collection_id=None,
+                       objects_are_files = True,
+                       timestamp: Optional[DatetimeLike]=None):
     """Stage several files from cadip or auxip into the STAC catalog and return it."""
 
     # The search method is based on a time interval
-    feature_collection = client.search_stations(
-        start_date,
-        stop_date,
-        limit=nb_of_items,
+    item_collection = client.search(     
+        timestamp = timestamp if timestamp else stop_date, 
+        max_items = nb_of_objects,
     )
-    assert isinstance(feature_collection, dict)
-    assert "features" in feature_collection.keys()
-    feature_collection = truncate_features_by_limit(feature_collection, nb_of_items)
-    print(f"\nAFTER truncate: feature_collection = {feature_collection}")
+    
+    assert isinstance(item_collection, ItemCollection)
+    if objects_are_files:
+        # truncate by number of files. In cadip case, the items are sessions which have more than one file
+        item_collection = truncate_features_by_limit(item_collection, nb_of_objects)    
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
     job_id = staging_client.run_staging(
-        feature_collection,
+        item_collection.to_dict(),
         collection_id if collection_id else TEST_COLLECTION,
     )
     timeout = 120
@@ -265,21 +272,17 @@ def stage_test_items(client, nb_of_items, collection_id=None):
         print("\n")
         if "successful" in job_info["status"]:
             print(" ----- Job COMPLETED \n")
-            break
+            return True
         if "failed" in job_info["status"]:
             print("-----Job FAILED \n")
             break
         time.sleep(2)
         timeout -= 2
-    test_collection = stac_client.get_collection(
-        collection_id=collection_id if collection_id else TEST_COLLECTION,
-    )
-    return test_collection.get_items()
-
+        
+    return False
 
 #
 # Init
-
 
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
