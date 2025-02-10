@@ -247,7 +247,7 @@ def stage_test_objects(client,
 
     # The search method is based on a time interval
     item_collection = client.search(     
-        timestamp = timestamp if timestamp else stop_date, 
+        timestamp = timestamp if timestamp else [start_date, stop_date], 
         max_items = nb_of_objects,
     )
     
