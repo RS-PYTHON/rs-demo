@@ -67,7 +67,7 @@ def get_dask_gateway(
             )
         except KeyError as error:
             raise KeyError(
-                "In local mode, call init_prefect_blocks() or save_auth_env() before this function.",
+                "In local mode, call init_prefect_blocks() or blocks_to_env_vars() before this function.",
             ) from error
 
     return Gateway(address=address, auth=auth)
@@ -88,14 +88,37 @@ def init_dask_cluster(
     print(f"Connecting to dask gateway for {cluster_tag!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
-    # If a cluster has already been initialized, retrieve it
+    # Get existing dask cluster name, if any.
+    existing = None
     if clusters := gateway.list_clusters():
-        cluster = gateway.connect(clusters[0].name)
+
+        # In local mode, just get the first existing cluster.
+        if local_mode:
+            existing = clusters[0].name
+
+        # In cluster mode, also check the docker image name
+        else:
+            existing = next(
+                (
+                    report.name
+                    for report in clusters
+                    if report.options.get("image") == image
+                ),
+                None,
+            )
+
+    # If a cluster has already been initialized, retrieve it
+    if existing:
+        print(f"Get existing dask cluster: {existing!r}")
+        cluster = gateway.connect(existing)
 
     # Else create one
     elif local_mode:
+        print(f"Create new dask cluster")
         cluster = gateway.new_cluster()
+
     else:  # cluster_mode
+        print(f"Create new dask cluster from docker image: {image!r}")
         cluster = gateway.new_cluster(
             worker_cores=worker_cores,
             worker_memory=worker_memory,
@@ -121,11 +144,11 @@ def init_dask_cluster(
         if scaled >= scale:
             break
         tries += 1
-        if tries >= 30:
+        if tries >= 60:
             raise TimeoutError(
                 f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
             )
-        time.sleep(1)
+        time.sleep(5)
 
     # Forward logging from dask workers to the caller.
     # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
@@ -134,7 +157,12 @@ def init_dask_cluster(
     return gateway, cluster, client
 
 
-def init_dask_cluster_staging(scale: int, *args, **kwargs):
+def init_dask_cluster_staging(
+    scale: int,
+    image: str = "ghcr.io/rs-python/rs-infrastructure-dask-staging:latest",
+    *args,
+    **kwargs,
+):
     """Init existing staging dask cluster or create one"""
     global dask_gateway_staging, dask_cluster_staging, dask_client_staging
     dask_gateway_staging, dask_cluster_staging, dask_client_staging = init_dask_cluster(
@@ -149,14 +177,19 @@ def init_dask_cluster_staging(scale: int, *args, **kwargs):
             else os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
         ),
         scale,
-        image="ghcr.io/rs-python/rs-infrastructure-dask-gateway:latest",
+        image=image,
         cluster_tag="dask-staging",
         *args,
         **kwargs,
     )
 
 
-def init_dask_cluster_eopf(scale: int, *args, **kwargs):
+def init_dask_cluster_eopf(
+    scale: int,
+    image: str = "ghcr.io/rs-python/rs-infrastructure-dask-eopf:latest",
+    *args,
+    **kwargs,
+):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
@@ -171,7 +204,7 @@ def init_dask_cluster_eopf(scale: int, *args, **kwargs):
             else os.environ["DASK_GATEWAY_EOPF_PUBLIC"]
         ),
         scale,
-        image="ghcr.io/rs-python/rs-infrastructure-dask-gateway/eopf:latest",  # TODO: TO BE DEFINED
+        image=image,
         cluster_tag="dask-eopf",
         *args,
         **kwargs,

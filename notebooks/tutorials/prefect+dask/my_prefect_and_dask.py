@@ -42,12 +42,12 @@ import dask_utils
 import prefect_utils
 from dask_utils import get_ip_address
 
-# Save the dask authentication from prefect blocks as env vars
-prefect_utils.save_auth_env(_sync=True)
+# Convert the prefect blocks into environment variables
+prefect_utils.blocks_to_env_vars(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
+    os.environ["DASK_GATEWAY_ADDRESS"],
     os.environ["DASK_CLUSTER_NAME"],
 )
 

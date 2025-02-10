@@ -46,9 +46,6 @@ rs_common.logging.Logging.level = logging.INFO
 local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
-# Username
-RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
-
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str | None = None
 
@@ -70,8 +67,15 @@ http_session: requests.Session = requests.Session()
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
-# Share data between the user, the client (jupyter or terminal) and prefect
-PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
+
+# For local mode only
+if local_mode:
+
+    # Username
+    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
+
+    # Share data between the user, the client (jupyter or terminal) and prefect
+    PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
 
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
