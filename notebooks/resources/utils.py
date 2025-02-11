@@ -410,6 +410,12 @@ def temporary_fix_adgs_feature(items_collection):
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
 
+    # Some kind of workaround for boto3 to avoid checksum being added inside
+    # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
+    # See: https://github.com/boto/boto3/issues/4435
+    os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
+    os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
+
     # In local mode only: create the s3 buckets, if they do not already exists
     create_s3_buckets()
 
