@@ -77,6 +77,8 @@ if local_mode:
     # Share data between the user, the client (jupyter or terminal) and prefect
     PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
 
+OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
+
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
 
@@ -428,7 +430,7 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Default owner_id
     if not owner_id:
-        owner_id = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
+        owner_id = OWNER_ID
 
     # Init RsClient instances
     return init_rsclient(owner_id, cadip_station)

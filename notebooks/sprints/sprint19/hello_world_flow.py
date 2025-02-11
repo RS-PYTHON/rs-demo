@@ -13,10 +13,8 @@
 # limitations under the License.
 """ Module that implements a prefect flow to be launched in a dask cluster """
 
-import logging
 import os
 import sys
-from pathlib import Path
 
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
