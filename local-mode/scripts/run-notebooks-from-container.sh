@@ -25,7 +25,7 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
 
     # NOTE: this notebook from the ci/cd because we have random errors with eopf
-    if [[ "$_filename" == "rspy520_empty_dpr_processor.ipynb" ]]; then continue; fi
+    if [[ "$_filename" == "dpr_processor_example.ipynb" ]]; then continue; fi
 
     # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
