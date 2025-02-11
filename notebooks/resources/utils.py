@@ -272,14 +272,14 @@ def stage_test_objects(client,
         print("\n")
         if "successful" in job_info["status"]:
             print(" ----- Job COMPLETED \n")
-            return True
+            return item_collection
         if "failed" in job_info["status"]:
             print("-----Job FAILED \n")
             break
         time.sleep(2)
         timeout -= 2
         
-    return False
+    return None
 
 #
 # Init
