@@ -1,0 +1,32 @@
+# Generic metadata about this project
+name: sprint19-hello-world
+prefect-version: 3
+
+pull:
+- prefect.deployments.steps.run_shell_script:
+    # Download source code from S3 bucket using the prefect block named "s3".
+    # NOTE: we cannot use comments or break long lines, most of bash features don't work...
+    expand_env_vars: true
+    script: |
+        python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('$S3_CODE_FOLDER', '.')"
+
+deployments:
+- name: sprint19-hello-world
+  tags: ["demo"]
+  entrypoint: ./hello_world_flow.py:hello_world
+  # schedules:
+  #   - cron: "0 * * * *"
+  #     timezone: "Europe/London"
+  #     active: true
+  # flow_name: hello_world
+  work_pool:
+    name: "{{ PREFECT_WORK_POOL_STAGING }}"
+    job_variables:
+        env:
+            # Copy env vars from client environment
+            S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
+            PREFECT_BLOCK_AUTH: "{{ PREFECT_BLOCK_AUTH }}"
+            PREFECT_BLOCK_S3: "{{ PREFECT_BLOCK_S3 }}"
+            DASK_GATEWAY_ADDRESS: "{{ DASK_GATEWAY_ADDRESS }}"
+            DASK_CLUSTER_NAME: "{{ DASK_CLUSTER_NAME }}"
+            RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"

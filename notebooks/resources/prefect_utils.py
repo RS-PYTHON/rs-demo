@@ -117,32 +117,34 @@ async def blocks_to_env_vars():
     that don't have prefect installed.
     """
     global PREFECT_BLOCK_S3
-    block_auth = os.environ["PREFECT_BLOCK_AUTH"]
-    block_s3 = os.environ["PREFECT_BLOCK_S3"]
 
-    # Read the prefect block for authentication
-    auth: dict = (await read_block(Secret, block_auth)).get()
+    if block_auth := os.environ.get("PREFECT_BLOCK_AUTH"):
 
-    # In cluster mode, make sure it has the right keys.
-    # Don't do it in local mode, the keys are set internally by init_prefect_blocks()
-    if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in auth):
-        raise KeyError(
-            f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {block_auth!r}",
+        # Read the prefect block for authentication
+        auth: dict = (await read_block(Secret, block_auth)).get()
+
+        # In cluster mode, make sure it has the right keys.
+        # Don't do it in local mode, the keys are set internally by init_prefect_blocks()
+        if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in auth):
+            raise KeyError(
+                f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {block_auth!r}",
+            )
+
+        # Save auth keys/values into env vars
+        os.environ.update(auth)
+
+    if block_s3 := os.environ["PREFECT_BLOCK_S3"]:
+
+        # Read the prefect S3 block
+        PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
+        os.environ.update(
+            {
+                "S3_ACCESSKEY": PREFECT_BLOCK_S3.credentials.aws_access_key_id,
+                "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
+                "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
+                "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
+            },
         )
-
-    # Save auth keys/values into env vars
-    os.environ.update(auth)
-
-    # Read the prefect S3 block
-    PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
-    os.environ.update(
-        {
-            "S3_ACCESSKEY": PREFECT_BLOCK_S3.credentials.aws_access_key_id,
-            "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
-            "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
-            "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
-        },
-    )
 
 
 def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:
