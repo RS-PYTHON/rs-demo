@@ -45,6 +45,56 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 * You have access to the RS-Server website: <https://rspy.ops.rs-python.eu/docs>
 * You have generated an API key from the RS-Server website.
 
+### Initialize the Prefect blocs
+
+Before the first use, you need to initialize the Prefect blocks that contain the S3 bucket access and authentication.
+
+Run this Python code from any Jupyter notebook:
+
+```python
+import os
+from prefect_aws import AwsCredentials, S3Bucket
+from prefect.blocks.system import Secret
+
+# S3 bucket name and subfolder that the Jupyter user,
+# Prefect and EOPF dask workers will have access to.
+BUCKET_NAME="rs-cluster-temp"
+BUCKET_FOLDER="prefect-share"
+
+# See: https://docs.prefect.io/integrations/prefect-aws/index
+aws_credentials = AwsCredentials(
+    aws_access_key_id="<your-access-key>", # access_key from ~/.s3cfg
+    aws_secret_access_key="<your-secret-key>", # secret_key from ~/.s3cfg
+    region_name="<your-region>", # bucket_location from ~/.s3cfg
+    aws_client_parameters={"endpoint_url": "<your-endpoint>"}, # host_bucket from ~/.s3cfg
+)
+block_s3 = S3Bucket(
+    bucket_name=BUCKET_NAME,
+    credentials=aws_credentials,
+    bucket_folder=BUCKET_FOLDER,
+)
+await block_s3.save(os.environ["PREFECT_BLOCK_S3"], overwrite=True)
+
+# Token that was used to setup the Dask clusters.
+# See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
+block_auth = Secret(
+    value={
+        "JUPYTERHUB_API_TOKEN": "<your-token-value>",
+    },
+)
+await block_auth.save(os.environ["PREFECT_BLOCK_AUTH"], overwrite=True)
+```
+
+From a bash Terminal in Jupyter, check your values with:
+```bash
+# View all configured blocks
+prefect block ls
+
+# Displays details about the configured blocks
+prefect block inspect s3-bucket/user-s3
+prefect block inspect secret/auth
+```
+
 ### Run the demos on cluster mode
 
 * Open a JupyterHub session.
