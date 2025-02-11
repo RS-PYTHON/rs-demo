@@ -35,6 +35,34 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
           * Username: `minio`
           * Password: `Strong#Pass#1234`
 
+## Prefect and Dask
+
+### EOPF/DPR
+
+![Prefect and Dask EOPF](./doc/images/prefect-dask-eopf.drawio.png "Prefect and Dask EOPF")
+
+When calling EOPF (DPR) with Prefect and Dask:
+
+  1. The **client** (Jupyter notebook, Prefect dashboard or terminal) runs a **Prefect flow**
+  (implemented as a Python function) on the **Prefect workers** on the Kubernetes cluster.
+  1. The flow calls the **tasks** (implemented as Python functions) on the **Dask workers**
+  on the Kubernetes cluster.
+  1. The tasks call the **EOPF Python functions** that are installed as a Python package (wheel) on the Dask pods.
+
+### Staging
+
+![Prefect and Dask staging](./doc/images/prefect-dask-staging.drawio.png "Prefect and Dask staging")
+
+When calling the staging with Prefect and Dask:
+
+  1. The **client** (Jupyter notebook, Prefect dashboard or terminal) runs a **Prefect flow**
+  (implemented as a Python function) on the **Prefect workers** on the Kubernetes cluster.
+  1. The flow makes **HTTP requests** to the **rs-server-staging** web service on the Kubernetes cluster.
+  1. The service calls the **tasks** (implemented as Python functions) on the **Dask workers**
+  on the Kubernetes cluster.
+  1. The tasks call the **rs-server-staging Python functions** that are installed as a Python package (wheel)
+  on the Dask pods.
+
 ## Run on cluster mode
 
 On cluster mode, we run the Jupyter notebooks from our JupyterHub session deployed on the cluster. They connect to the services deployed on the RS-Server website (=cluster). Authentication is required for this mode.
