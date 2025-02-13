@@ -1,0 +1,48 @@
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# We will add eopf to the dask-gateway-server image for local mode
+ARG DASK_GATEWAY_TAG=xxx
+FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
+ARG DASK_GATEWAY_TAG=xxx
+
+ARG EOPF_PIP_VERSION=xxx
+ARG PREFECT_TAG=xxx
+
+# Default user from parent image
+ARG USER=dask:dask
+
+# Install EOPF
+RUN pip install eopf=="${EOPF_PIP_VERSION}" \
+    --index-url https://gitlab.eopf.copernicus.eu/api/v4/projects/14/packages/pypi/simple
+
+# Install complete dask subsets + prefect
+RUN pip install \
+    dask[complete] \
+    prefect[dask,aws]=="${PREFECT_TAG}"
+
+# Clean everything
+USER root
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/*
+USER $USER
+
+# Set labels based on the Open Containers Initiative (OCI):
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+#
+LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
+
+LABEL org.opencontainers.image.version="dask-gateway-server==${DASK_GATEWAY_TAG} eopf==${EOPF_PIP_VERSION}"
+LABEL org.opencontainers.image.description="dask-gateway-server image for local mode in which we installed the EOPF wheel package."

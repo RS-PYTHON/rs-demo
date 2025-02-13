@@ -30,7 +30,11 @@ import requests
 import rs_common
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent, ItemCollection
 from pystac_client import CollectionClient
+<<<<<<< HEAD
 from pystac_client.item_search import DatetimeLike
+=======
+from resources.prefect_utils import init_prefect_blocks
+>>>>>>> origin/develop
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
@@ -69,6 +73,17 @@ http_session: requests.Session = requests.Session()
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
+
+# For local mode only
+if local_mode:
+
+    # Username
+    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
+
+    # Share data between the user, the client (jupyter or terminal) and prefect
+    PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
+
+OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
@@ -129,8 +144,8 @@ def create_s3_buckets():
     """In local mode only: create the s3 buckets, if they do not already exists."""
     if not local_mode:
         return
-    s3_client = get_s3_client()    
-    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET:
+    s3_client = get_s3_client()
+    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET, PREFECT_SHARE_BUCKET:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
@@ -281,14 +296,40 @@ def stage_test_objects(client,
         
     return None
 
-#
-# Init
+def temporary_fix_adgs_feature(items_collection):
+    # Disable instruments for moment
+    for feature in items_collection["features"]:
+        if "instruments" in feature["properties"]:
+            del feature["properties"]["instruments"]
+    # Update href and title
+    for feature in items_collection["features"]:
+        for asset in feature["assets"]:
+            feature["assets"][asset]["title"] = asset
+            feature["assets"][asset][
+                "href"
+            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
+    return items_collection
+
+
+########
+# Init #
+########
+
 
 def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     """Init environment before running a demo notebook."""
 
-    # In local mode only: create the s3 buckets, if they do not already exists.
+    # Some kind of workaround for boto3 to avoid checksum being added inside
+    # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
+    # See: https://github.com/boto/boto3/issues/4435
+    os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
+    os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
+
+    # In local mode only: create the s3 buckets, if they do not already exists
     create_s3_buckets()
+
+    # In local mode only: init the prefect blocks
+    init_prefect_blocks(_sync=True)
 
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
@@ -296,11 +337,7 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
 
     # Default owner_id
     if not owner_id:
-        owner_id = (
-            os.environ["JUPYTERHUB_USER"]
-            if cluster_mode
-            else os.environ["RSPY_HOST_USER"]
-        )
+        owner_id = OWNER_ID
 
     # Init RsClient instances
     return init_rsclient(owner_id, cadip_station)
