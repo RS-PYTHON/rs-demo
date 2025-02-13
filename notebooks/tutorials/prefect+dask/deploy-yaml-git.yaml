@@ -4,7 +4,7 @@ name: tuto-deploy-yaml-git
 pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/RS-PYTHON/rs-demo.git
-    branch: feat/rspy570-empty-dpr-processor
+    branch: develop
 - prefect.deployments.steps.run_shell_script:
     script: pip install argh
 
