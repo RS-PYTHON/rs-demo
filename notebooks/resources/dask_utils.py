@@ -83,26 +83,46 @@ def init_dask_cluster(
     worker_memory: float = 2.0,
     namespace="dask-gateway",
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
-    """Return existing dask cluster or create one"""
+    """
+    Return existing dask cluster or create one.
+
+    Args:
+        address: dask gateway url (internal to the cluster or docker network)
+        public_domain: dask gateway public url domain
+        scale: number of dask workers to create
+        image: docker image name to use for the workers
+        cluster_tag: cluster name: "dask-staging" or "dask-eopf"
+        worker_cores: number of worker cores
+        worker_memory: worker memory
+        namespace: dask gateway namespace
+    """
 
     print(f"Connecting to dask gateway for {cluster_tag!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
+    # Sort the clusters by newest first
+    clusters = sorted(
+        gateway.list_clusters(),
+        key=lambda cluster: cluster.start_time,
+        reverse=True,
+    )
+
     # Get existing dask cluster name, if any.
     existing = None
-    if clusters := gateway.list_clusters():
+    if clusters:
 
         # In local mode, just get the first existing cluster.
         if local_mode:
             existing = clusters[0].name
 
-        # In cluster mode, also check the docker image name
+        # In cluster mode, also check the docker image name and cluster name
         else:
             existing = next(
                 (
                     report.name
                     for report in clusters
-                    if report.options.get("image") == image
+                    if (report.options.get("image") == image)
+                    and (report.options.get("cluster_name") == cluster_tag)
                 ),
                 None,
             )

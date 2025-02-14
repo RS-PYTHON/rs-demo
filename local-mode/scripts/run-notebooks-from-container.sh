@@ -16,6 +16,7 @@ source ${ROOT_DIR}/local-mode/.env
 
 all_ok=
 all_errors=
+all_ignored=
 
 # For each demo notebook, sorted by name
 for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
@@ -24,8 +25,11 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     _filename="$(basename $notebook)"
     _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
 
-    # NOTE: this notebook from the ci/cd because we have random errors with eopf
-    if [[ "$_filename" == "dpr_processor_example.ipynb" ]]; then continue; fi
+    # Ignore these notebooks
+    if grep -q "$_relative" "${SCRIPT_DIR}/ignored-notebooks.txt"; then
+        all_ignored="${all_ignored:-}  - '$_relative'\n"
+        continue
+    fi
 
     # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
@@ -37,6 +41,10 @@ done
 
 if [[ -n "$all_ok" ]]; then
     >&2 echo -e "\nNOTEBOOKS RUN SUCCESSFULLY:\n${all_ok}"
+fi
+
+if [[ -n "$all_ignored" ]]; then
+    >&2 echo -e "\nIGNORED:\n${all_ignored}"
 fi
 
 if [[ -n "$all_errors" ]]; then
