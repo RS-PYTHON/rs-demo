@@ -88,9 +88,16 @@ def init_dask_cluster(
     print(f"Connecting to dask gateway for {cluster_tag!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
+    # Sort the clusters by newest first
+    clusters = sorted(
+        gateway.list_clusters(),
+        key=lambda cluster: cluster.start_time,
+        reverse=True,
+    )
+
     # Get existing dask cluster name, if any.
     existing = None
-    if clusters := gateway.list_clusters():
+    if clusters:
 
         # In local mode, just get the first existing cluster.
         if local_mode:
