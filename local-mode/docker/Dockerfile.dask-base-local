@@ -51,7 +51,7 @@ RUN pip install --no-cache-dir \
 RUN pip install \
         dask-gateway==${DASK_GATEWAY_TAG} \
         dask-gateway-server[local]==${DASK_GATEWAY_TAG} \
-        bokeh>=3.1.0 \
+        bokeh">=3.1.0" \
         jupyter-server-proxy
 
 ENTRYPOINT ["tini", "-g", "--"]
