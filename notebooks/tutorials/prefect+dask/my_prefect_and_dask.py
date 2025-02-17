@@ -30,6 +30,7 @@ from pathlib import Path
 
 import dask
 from dask_expr._collection import DataFrame
+from distributed import worker_client
 from distributed.client import Future
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
@@ -71,22 +72,24 @@ Path("/tmp/.empty").touch()
 @task
 def calling_compute_in_a_task(logger, start: str, end: str, freq: str) -> DataFrame:
     """Compute dataframe in a dask task."""
-    # Say hello from the dask task
-    logger.warning(
-        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task)",
-    )
+    with worker_client(separate_thread=False):  # as client:
 
-    # Create timeseries dataframe with random data
-    df: DataFrame = dask.datasets.timeseries(start, end, partition_freq=freq)
+        # Say hello from the dask task
+        logger.warning(
+            f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task)",
+        )
 
-    # Generate descriptive statistics
-    # https://docs.dask.org/en/latest/generated/dask.dataframe.DataFrame.describe.html
-    summary_df: DataFrame = df.describe()
+        # Create timeseries dataframe with random data
+        df: DataFrame = dask.datasets.timeseries(start, end, partition_freq=freq)
 
-    # Compute this DataFrame
-    # https://docs.dask.org/en/stable/generated/dask.dataframe.DataFrame.compute.html
-    summary_df.compute()
-    return summary_df
+        # Generate descriptive statistics
+        # https://docs.dask.org/en/latest/generated/dask.dataframe.DataFrame.describe.html
+        summary_df: DataFrame = df.describe()
+
+        # Compute this DataFrame
+        # https://docs.dask.org/en/stable/generated/dask.dataframe.DataFrame.compute.html
+        summary_df.compute()
+        return summary_df
 
 
 @flow(
@@ -105,13 +108,11 @@ def my_flow(start: str, end: str, freq: str) -> DataFrame:
         f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (flow)",
     )
 
-    future: Future = dask_client.submit(
-        calling_compute_in_a_task,
+    future: Future = calling_compute_in_a_task.submit(
         logger,
         start,
         end,
         freq,
-        pure=False,  # use pure=False to disable cache
     )
     result: DataFrame = future.result()
     logger.warning(f"\nResults:\n{result}")
