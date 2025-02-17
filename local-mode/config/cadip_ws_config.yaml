@@ -101,8 +101,10 @@ cadip:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -205,8 +207,10 @@ ins:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -309,8 +313,10 @@ mps:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -413,8 +419,10 @@ mti:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -517,8 +525,10 @@ nsg:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -621,8 +631,10 @@ sgs:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
@@ -648,6 +660,7 @@ cadip_session:
     auth_uri: http://cadip-station:5000/oauth2/token
     token_type: json
     token_key: access_token
+    refresh_token_key: refresh_token
     request_method: POST
     req_data:
       client_id: PLACEHOLDER
@@ -762,10 +775,27 @@ cadip_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq {id}
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq {AcquisitionId}
+          - AntennaId eq {AntennaId}
+          - StationUnitId eq {StationUnitId}
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
           - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -810,6 +840,7 @@ ins_session:
     auth_uri: http://cadip-station:5000/oauth2/token
     token_type: json
     token_key: access_token
+    refresh_token_key: refresh_token
     request_method: POST
     req_data:
       client_id: PLACEHOLDER
@@ -924,10 +955,27 @@ ins_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq {id}
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq {AcquisitionId}
+          - AntennaId eq {AntennaId}
+          - StationUnitId eq {StationUnitId}
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
           - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -972,6 +1020,7 @@ mps_session:
     auth_uri: http://cadip-station:5000/oauth2/token
     token_type: json
     token_key: access_token
+    refresh_token_key: refresh_token
     request_method: POST
     req_data:
       client_id: PLACEHOLDER
@@ -1086,10 +1135,27 @@ mps_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq {id}
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq {AcquisitionId}
+          - AntennaId eq {AntennaId}
+          - StationUnitId eq {StationUnitId}
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
           - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -1134,6 +1200,7 @@ mti_session:
     auth_uri: http://cadip-station:5000/oauth2/token
     token_type: json
     token_key: access_token
+    refresh_token_key: refresh_token
     request_method: POST
     req_data:
       client_id: PLACEHOLDER
@@ -1248,10 +1315,27 @@ mti_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq {id}
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq {AcquisitionId}
+          - AntennaId eq {AntennaId}
+          - StationUnitId eq {StationUnitId}
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
           - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -1296,6 +1380,7 @@ nsg_session:
     auth_uri: http://cadip-station:5000/oauth2/token
     token_type: json
     token_key: access_token
+    refresh_token_key: refresh_token
     request_method: POST
     req_data:
       client_id: PLACEHOLDER
@@ -1410,10 +1495,27 @@ nsg_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq {id}
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq {AcquisitionId}
+          - AntennaId eq {AntennaId}
+          - StationUnitId eq {StationUnitId}
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
           - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
@@ -1458,6 +1560,7 @@ sgs_session:
     auth_uri: http://cadip-station:5000/oauth2/token
     token_type: json
     token_key: access_token
+    refresh_token_key: refresh_token
     request_method: POST
     req_data:
       client_id: PLACEHOLDER
@@ -1572,10 +1675,27 @@ sgs_session:
           - SessionId eq {SessionId}
           - Satellite eq {platform}
           - Satellite in ({platforms})
-          - PublicationDate gte {StartPublicationDate#to_iso_utc_datetime}
-          - PublicationDate lte {StopPublicationDate#to_iso_utc_datetime}
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
           - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq {id}
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq {AcquisitionId}
+          - AntennaId eq {AntennaId}
+          - StationUnitId eq {StationUnitId}
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
           - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
     sort:
       sort_by_tpl: '&$orderby={sort_param} {sort_order}'
       sort_param_mapping:
