@@ -24,11 +24,20 @@ import pprint
 import time
 from datetime import datetime
 from time import sleep
+from typing import Optional
 
 import boto3
 import requests
 import rs_common
-from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent, ItemCollection
+from pystac import (
+    Asset,
+    Collection,
+    Extent,
+    Item,
+    ItemCollection,
+    SpatialExtent,
+    TemporalExtent,
+)
 from pystac_client import CollectionClient
 from pystac_client.item_search import DatetimeLike
 from resources.prefect_utils import init_prefect_blocks
@@ -37,7 +46,7 @@ from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
 from rs_client.stac_client import StacClient
 from rs_client.staging_client import StagingClient
-from typing import Optional
+
 # Variables
 # Set logger level to info
 rs_common.logging.Logging.level = logging.INFO
@@ -147,7 +156,7 @@ def create_s3_buckets():
         except (
             s3_client.exceptions.BucketAlreadyExists,
             s3_client.exceptions.BucketAlreadyOwnedByYou,
-        ):            
+        ):
             pass  # do nothing if already exists
 
 
@@ -196,7 +205,7 @@ def init_rsclient(owner_id=None, cadip_station="CADIP", adgs_station="AUXIP"):
     return auxip_client, cadip_client, stac_client, staging_client
 
 
-def create_test_collection(collection_id = None) -> CollectionClient:
+def create_test_collection(collection_id=None) -> CollectionClient:
     """Create and return a test STAC collection"""
 
     if not collection_id:
@@ -249,23 +258,25 @@ def truncate_features_by_limit(item_collection, limit):
     return ItemCollection.from_dict(truncated_dict)
 
 
-def stage_test_objects(client, 
-                       nb_of_objects,                        
-                       collection_id=None,
-                       objects_are_files = True,
-                       timestamp: Optional[DatetimeLike]=None):
+def stage_test_objects(
+    client,
+    nb_of_objects,
+    collection_id=None,
+    objects_are_files=True,
+    timestamp: Optional[DatetimeLike] = None,
+):
     """Stage several files from cadip or auxip into the STAC catalog and return it."""
 
     # The search method is based on a time interval
-    item_collection = client.search(     
-        timestamp = timestamp if timestamp else [start_date, stop_date], 
-        max_items = nb_of_objects,
+    item_collection = client.search(
+        timestamp=timestamp if timestamp else [start_date, stop_date],
+        max_items=nb_of_objects,
     )
-    
+
     assert isinstance(item_collection, ItemCollection)
     if objects_are_files:
         # truncate by number of files. In cadip case, the items are sessions which have more than one file
-        item_collection = truncate_features_by_limit(item_collection, nb_of_objects)    
+        item_collection = truncate_features_by_limit(item_collection, nb_of_objects)
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
     job_id = staging_client.run_staging(
@@ -289,8 +300,9 @@ def stage_test_objects(client,
             break
         time.sleep(2)
         timeout -= 2
-        
+
     return None
+
 
 def temporary_fix_adgs_feature(items_collection):
     # Disable instruments for moment
