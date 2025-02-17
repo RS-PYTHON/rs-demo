@@ -160,7 +160,7 @@ def create_s3_buckets():
             pass  # do nothing if already exists
 
 
-def init_rsclient(owner_id=None, cadip_station="CADIP", adgs_station="AUXIP"):
+def init_rsclient(owner_id=None, cadip_station="CADIP", adgs_station="ADGS"):
     """Init RsClient instances"""
     global apikey, auxip_client, cadip_client, stac_client, staging_client
 
