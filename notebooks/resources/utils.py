@@ -324,7 +324,7 @@ def temporary_fix_adgs_feature(items_collection):
 ########
 
 
-def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
+def init_demo(owner_id=None, cadip_station="CADIP"):
     """Init environment before running a demo notebook."""
 
     # Some kind of workaround for boto3 to avoid checksum being added inside
