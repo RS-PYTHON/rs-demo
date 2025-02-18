@@ -35,6 +35,34 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
           * Username: `minio`
           * Password: `Strong#Pass#1234`
 
+## Prefect and Dask
+
+### EOPF/DPR
+
+![Prefect and Dask EOPF](./doc/images/prefect-dask-eopf.drawio.png "Prefect and Dask EOPF")
+
+When calling EOPF (DPR) with Prefect and Dask:
+
+  1. The **client** (Jupyter notebook, Prefect dashboard or terminal) runs a **Prefect flow**
+  (implemented as a Python function) on the **Prefect workers** on the Kubernetes cluster.
+  1. The flow calls the **tasks** (implemented as Python functions) on the **Dask workers**
+  on the Kubernetes cluster.
+  1. The tasks call the **EOPF Python functions** that are installed as a Python package (wheel) on the Dask pods.
+
+### Staging
+
+![Prefect and Dask staging](./doc/images/prefect-dask-staging.drawio.png "Prefect and Dask staging")
+
+When calling the staging with Prefect and Dask:
+
+  1. The **client** (Jupyter notebook, Prefect dashboard or terminal) runs a **Prefect flow**
+  (implemented as a Python function) on the **Prefect workers** on the Kubernetes cluster.
+  1. The flow makes **HTTP requests** to the **rs-server-staging** web service on the Kubernetes cluster.
+  1. The service calls the **tasks** (implemented as Python functions) on the **Dask workers**
+  on the Kubernetes cluster.
+  1. The tasks call the **rs-server-staging Python functions** that are installed as a Python package (wheel)
+  on the Dask pods.
+
 ## Run on cluster mode
 
 On cluster mode, we run the Jupyter notebooks from our JupyterHub session deployed on the cluster. They connect to the services deployed on the RS-Server website (=cluster). Authentication is required for this mode.
@@ -44,6 +72,56 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 * You have access to JupyterHub: <https://processing.ops.rs-python.eu/jupyter>
 * You have access to the RS-Server website: <https://rspy.ops.rs-python.eu/docs>
 * You have generated an API key from the RS-Server website.
+
+### Initialize the Prefect blocs
+
+Before the first use, you need to initialize the Prefect blocks that contain the S3 bucket access and authentication.
+
+Run this Python code from any Jupyter notebook:
+
+```python
+import os
+from prefect_aws import AwsCredentials, S3Bucket
+from prefect.blocks.system import Secret
+
+# S3 bucket name and subfolder that the Jupyter user,
+# Prefect and EOPF dask workers will have access to.
+BUCKET_NAME="rs-cluster-temp"
+BUCKET_FOLDER="prefect-share"
+
+# See: https://docs.prefect.io/integrations/prefect-aws/index
+aws_credentials = AwsCredentials(
+    aws_access_key_id="<your-access-key>", # access_key from ~/.s3cfg
+    aws_secret_access_key="<your-secret-key>", # secret_key from ~/.s3cfg
+    region_name="<your-region>", # bucket_location from ~/.s3cfg
+    aws_client_parameters={"endpoint_url": "<your-endpoint>"}, # host_bucket from ~/.s3cfg
+)
+block_s3 = S3Bucket(
+    bucket_name=BUCKET_NAME,
+    credentials=aws_credentials,
+    bucket_folder=BUCKET_FOLDER,
+)
+await block_s3.save(os.environ["PREFECT_BLOCK_S3"], overwrite=True)
+
+# Token that was used to setup the Dask clusters.
+# See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
+block_auth = Secret(
+    value={
+        "JUPYTERHUB_API_TOKEN": "<your-token-value>",
+    },
+)
+await block_auth.save(os.environ["PREFECT_BLOCK_AUTH"], overwrite=True)
+```
+
+From a bash Terminal in Jupyter, check your values with:
+```bash
+# View all configured blocks
+prefect block ls
+
+# Displays details about the configured blocks
+prefect block inspect s3-bucket/user-s3
+prefect block inspect secret/auth
+```
 
 ### Run the demos on cluster mode
 
@@ -108,8 +186,7 @@ On local mode, docker-compose and Docker images are used to run services and lib
   * You have checked out this git project:
 
     ```shell
-    git clone git@github.com:RS-PYTHON/rs-demo.git # either with SSH
-    # git clone https://github.com/RS-PYTHON/rs-demo.git # or with HTTPS
+    git clone https://github.com/RS-PYTHON/rs-demo.git
 
     # Get last version
     cd rs-demo

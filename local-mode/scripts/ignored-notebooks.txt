@@ -1,0 +1,9 @@
+# Ignore notebooks from the ci/cd
+
+# We have random errors with eopf
+notebooks/sprints/sprint20/dpr_processor_example.ipynb
+
+# Ignore dask and prefect tutorials, they take time and their functionnalities should be covered by demos
+notebooks/tutorials/prefect+dask/dask.ipynb
+notebooks/tutorials/prefect+dask/prefect.ipynb
+notebooks/tutorials/prefect+dask/prefect_and_dask.ipynb

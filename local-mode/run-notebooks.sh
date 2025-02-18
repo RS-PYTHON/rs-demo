@@ -10,7 +10,7 @@ ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
 #
 # Find the docker image:tag to use
 
-docker_image="ghcr.io/rs-python/rs-client-libraries_jupyter"
+docker_image="ghcr.io/rs-python/jupyter/rs-client-libraries/local"
 
 # Docker tag to use = 1st parameter passed to the script, or latest by default.
 docker_tag=${1:-latest}
@@ -59,9 +59,8 @@ wait_for_service 8001 "health" # adgs
 wait_for_service 8002 "health" # cadip
 wait_for_service 8003 "_mgmt/ping" # catalog
 
-# Run the notebook from a container, in the same network than the docker-compose,
+# Run the notebooks from a container, in the same network than the docker-compose,
 # with the same options than the jupyter service in the docker-compose.
-# Read the environment variables before running the notebook.
 (
     set -x;
     docker run --rm \
