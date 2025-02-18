@@ -296,10 +296,15 @@ def single_dpr_task(logger, s3_folder: str, s3_filename: str):
 
         # Say hello from the dask task
         logger.warning(
-            f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task)",
+            f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task {s3_filename!r})",
         )
 
-        return all_my_eopf_code(s3_folder, s3_filename)
+        ret = all_my_eopf_code(s3_folder, s3_filename)
+
+        logger.warning(
+            f"Goodbye from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task {s3_filename!r})",
+        )
+        return ret
 
 
 @flow(
@@ -333,21 +338,21 @@ def dpr_flow(s3_folder: str, s3_filenames: list[str]):
     ]
 
     # We should do this
-    # return dask_client.gather(futures)
+    return [future.result(timeout=10) for future in futures]
 
-    # Workaround to try several times... to be removed
-    results = []
-    for future in futures:
-        tries = 0
-        while True:
-            try:
-                tries += 1
-                logger.info(f"Try #{tries}")
-                results.append(future.result(timeout=10))
-                break
-            except Exception as exception:
-                if tries >= 5:
-                    raise
-                logger.error(exception)
+    # # Workaround to try several times... to be removed
+    # results = []
+    # for future in futures:
+    #     tries = 0
+    #     while True:
+    #         try:
+    #             tries += 1
+    #             logger.info(f"Try #{tries}")
+    #             results.append(future.result(timeout=10))
+    #             break
+    #         except Exception as exception:
+    #             if tries >= 5:
+    #                 raise
+    #             logger.error(exception)
 
     return results
