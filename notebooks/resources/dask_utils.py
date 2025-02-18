@@ -179,7 +179,7 @@ def init_dask_cluster(
 
 def init_dask_cluster_staging(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infrastructure-dask-staging:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-staging:latest",
     *args,
     **kwargs,
 ):
@@ -206,7 +206,7 @@ def init_dask_cluster_staging(
 
 def init_dask_cluster_eopf(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infrastructure-dask-eopf:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
     *args,
     **kwargs,
 ):
