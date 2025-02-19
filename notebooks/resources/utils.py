@@ -44,7 +44,7 @@ from resources.prefect_utils import init_prefect_blocks
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
-from rs_client.stac_client import StacClient
+from rs_client.catalog_client import CatalogClient
 from rs_client.staging_client import StagingClient
 
 # Variables
@@ -66,7 +66,7 @@ apikey_headers: dict = {}
 # Client instances
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
-stac_client: StacClient = None
+catalog_client: CatalogClient = None
 staging_client: StagingClient = None
 
 # HTTP request session
@@ -162,7 +162,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None, cadip_station="CADIP", adgs_station="ADGS"):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, stac_client, staging_client
+    global apikey, auxip_client, cadip_client, catalog_client, staging_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -192,17 +192,17 @@ def init_rsclient(owner_id=None, cadip_station="CADIP", adgs_station="ADGS"):
     cadip_client = generic_client.get_cadip_client(cadip_station)
 
     # Or get a Stac client to access the catalog
-    stac_client = generic_client.get_stac_client()
+    catalog_client = generic_client.get_catalog_client()
 
     # Create a client to launch staging
     staging_client = generic_client.get_staging_client()
 
-    print(f"Auxip service: {auxip_client.href_srv}")
-    print(f"CADIP service: {cadip_client.href_srv}")
-    print(f"Catalog service: {stac_client.href_srv}")
-    print(f"Staging service: {staging_client.href_srv}")
+    print(f"Auxip service: {auxip_client.href_service}")
+    print(f"CADIP service: {cadip_client.href_service}")
+    print(f"Catalog service: {catalog_client.href_service}")
+    print(f"Staging service: {staging_client.href_service}")
 
-    return auxip_client, cadip_client, stac_client, staging_client
+    return auxip_client, cadip_client, catalog_client, staging_client
 
 
 def create_test_collection(collection_id=None) -> CollectionClient:
@@ -211,10 +211,10 @@ def create_test_collection(collection_id=None) -> CollectionClient:
     if not collection_id:
         collection_id = TEST_COLLECTION
     # Clean the existing collection, if any
-    stac_client.remove_collection(collection_id)
+    catalog_client.remove_collection(collection_id)
 
     # Add new collection
-    response = stac_client.add_collection(
+    response = catalog_client.add_collection(
         Collection(
             id=collection_id,
             description=None,  # rs-client will provide a default description for us
@@ -227,7 +227,7 @@ def create_test_collection(collection_id=None) -> CollectionClient:
     response.raise_for_status()
 
     # Return the inserted collection
-    inserted_collection = stac_client.get_collection(collection_id=collection_id)
+    inserted_collection = catalog_client.get_collection(collection_id=collection_id)
     assert inserted_collection, "Collection was not inserted"
     return inserted_collection
 
