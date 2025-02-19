@@ -43,8 +43,8 @@ from pystac_client.item_search import DatetimeLike
 from resources.prefect_utils import init_prefect_blocks
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
-from rs_client.rs_client import RsClient
 from rs_client.catalog_client import CatalogClient
+from rs_client.rs_client import RsClient
 from rs_client.staging_client import StagingClient
 
 # Variables
