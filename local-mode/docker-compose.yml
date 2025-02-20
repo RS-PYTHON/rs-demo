@@ -28,7 +28,6 @@ services:
       - 8001:8000
     depends_on:
       - rspy-pre-actions
-    links:
       - postgres
       - minio
       - adgs-station
@@ -76,7 +75,6 @@ services:
       - 8002:8000
     depends_on:
       - rspy-pre-actions
-    links:
       - postgres
       - minio
       - cadip-station
@@ -124,8 +122,6 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
-    links:
-      - catalog-db
     # variables are set in the .env file
     environment:
 
@@ -187,15 +183,12 @@ services:
       - adgs-station
       - cadip-station
       - rs-server-catalog
-    volumes:
-      - ./config/staging.yaml:/etc/staging.yaml
-      - ./config/openapi.json:/etc/openapi.json
-      #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
     # variables are set in the .env file
     environment:
       RSPY_LOCAL_MODE: 1
       RSPY_HOST_CATALOG: http://rs-server-catalog:8000
+      RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
+      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -208,6 +201,11 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       #S3_ENDPOINT: http://127.0.0.1:9100
       S3_REGION: ${S3_REGION}
+    volumes:
+      - ./config/staging.yaml:/etc/staging.yaml
+      - ./config/openapi.json:/etc/openapi.json
+      #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
 
   ############
   # STATIONS #
@@ -377,48 +375,59 @@ services:
       - ./scripts/pgstac_post_actions.py:/scripts/pgstac_post_actions.py
     command: "bash -c 'pip3 install smart_open[http]; python3 /scripts/pgstac_post_actions.py'"
 
-  ###########
-  # PREFECT #
-  ###########
+  ####################
+  # PREFECT AND DASK #
+  ####################
 
-  # See: https://github.com/rpeden/prefect-docker-compose/blob/main/docker-compose.yml
-
-  ### Prefect Server API and UI
   prefect-server:
-    image: prefecthq/prefect:2.18.3-python3.11
-    restart: always
-    volumes:
-      - prefect_storage:/root/.prefect
-    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "server", "start"]
-    environment:
-      - PREFECT_UI_URL=http://127.0.0.1:4200/api
-      - PREFECT_API_URL=http://127.0.0.1:4200/api
-      # If you want to access Prefect Server UI from anywhere other than the Docker host machine, you will need to change
-      # PREFECT_UI_URL and PREFECT_API_URL to match the external hostname/IP of the host machine. For example:
-      #- PREFECT_UI_URL=http://external-ip:4200/api
-      #- PREFECT_API_URL=http://external-ip:4200/api
-      - PREFECT_SERVER_API_HOST=0.0.0.0
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-      # Uncomment the following line if you want to use the 'S3 Bucket' storage block instead of the older 'S3' storage
-      # - EXTRA_PIP_PACKAGES=prefect-aws
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     ports:
       - 4200:4200
-    links:
+    depends_on:
       - postgres
-    # profiles: ["server"]
+    environment:
+      - PREFECT_API_URL=http://127.0.0.1:4200/api
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    command: ["prefect", "server", "start"]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import requests; assert requests.get('http://127.0.0.1:4200/api/health').ok\""]
+      interval: 2s
+      retries: 10
 
-  ## Prefect Agent
-  prefect-agent:
-    image: prefecthq/prefect:2.11.5-python3.11
-    restart: always
-    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "agent", "start", "-q", "YOUR_WORK_QUEUE_NAME"]
+  prefect-worker-staging:
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
+    depends_on:
+      prefect-server:
+        condition: service_healthy
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
-#       Use PREFECT_API_KEY if connecting the agent to Prefect Cloud
-#     - PREFECT_API_KEY=YOUR_API_KEY
-    links:
-      - prefect-server
-    # profiles: ["agent"]
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  prefect-worker-eopf:
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  dask-staging:
+    image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
+    ports:
+      - 8701:8000
+
+  dask-eopf:
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+    ports:
+      - 8702:8000
 
   #################
   # OPENTELEMETRY #
@@ -430,6 +439,7 @@ services:
     image: grafana/grafana:10.4.10
     ports:
       - 3000:3000
+    attach: false # hide logs
     volumes:
       - ./config/grafana.ini:/etc/grafana/grafana.ini
       - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
@@ -437,17 +447,19 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-    links:
+    depends_on:
       - tempo
 
   loki:
     image: grafana/loki:2.9.6
     ports:
       - 3100:3100
+    attach: false # hide logs
     command: -config.file=/etc/loki/local-config.yaml
 
   tempo:
     image: grafana/tempo:2.4.1
+    attach: false # hide logs
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yaml:/etc/tempo.yaml
@@ -460,7 +472,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: postgres-${POSTGRES_DB}
+    container_name: ${POSTGRES_HOST}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     # variables are set in the .env file
@@ -495,17 +507,12 @@ services:
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
     # From: https://github.com/RS-PYTHON/rs-client-libraries/tree/develop/.github/dockerfiles/Dockerfile.jupyter
-    image: ghcr.io/rs-python/rs-client-libraries_jupyter:latest
+    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
     container_name: jupyter
     ports:
       - 8888:8888
-    links:
-      - rs-server-adgs
-      - rs-server-cadip
+    depends_on:
       - minio # used to check manually the s3 bucket contents
-      - prefect-server
-      - prefect-agent
-      - dpr-simulator
     # variables are set in the .env file
     environment:
       RSPY_HOST_USER: ${USER}
@@ -535,13 +542,25 @@ services:
       S3_REGION: ${S3_REGION}
       RSPY_TEMP_BUCKET: ${RSPY_TEMP_BUCKET}
       RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
+      PREFECT_SHARE_BUCKET: ${PREFECT_SHARE_BUCKET}
       # prefect
-      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_URL: ${PREFECT_URL}
+      PREFECT_API_URL: ${PREFECT_API_URL}
+      RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
+      PREFECT_WORK_POOL_STAGING: ${PREFECT_WORK_POOL_STAGING}
+      PREFECT_WORK_POOL_EOPF: ${PREFECT_WORK_POOL_EOPF}
+      PREFECT_BLOCK_AUTH: ${PREFECT_BLOCK_AUTH}
+      PREFECT_BLOCK_S3: ${PREFECT_BLOCK_S3}
+      # dask
+      DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
+      DASK_GATEWAY_STAGING_PUBLIC: ${DASK_GATEWAY_STAGING_PUBLIC}
+      DASK_GATEWAY_EOPF_PUBLIC: ${DASK_GATEWAY_EOPF_PUBLIC}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes:
-      - ../notebooks:/home/jovyan/rspy-notebooks
+      - ../notebooks:/home/jovyan/notebooks
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # Optional: test the api-key manager.
@@ -558,7 +577,7 @@ services:
   #   container_name: apikey-manager
   #   ports:
   #     - 9999:8000
-  #   links:
+  #   depends_on:
   #     - postgres
   #   environment:
   #    APIKM_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}

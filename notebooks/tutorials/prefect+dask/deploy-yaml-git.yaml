@@ -1,0 +1,19 @@
+prefect-version: 3
+name: tuto-deploy-yaml-git
+
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/RS-PYTHON/rs-demo.git
+    branch: develop
+- prefect.deployments.steps.run_shell_script:
+    script: pip install argh
+
+deployments:
+- name: tuto-deploy-yaml-git
+  tags: ["tutorial"]
+  entrypoint: ./notebooks/tutorials/prefect+dask/my_prefect.py:flow_show_stars
+  work_pool:
+    name: "{{ PREFECT_WORK_POOL_STAGING }}" # we can use the staging or eopf work pool
+    job_variables:
+        env:
+            HELLO_FROM: "prefect"

@@ -28,6 +28,7 @@ import requests
 import rs_common
 from pystac import Asset, Collection, Extent, Item, SpatialExtent, TemporalExtent
 from pystac_client import CollectionClient
+from resources.prefect_utils import init_prefect_blocks
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.rs_client import RsClient
@@ -66,6 +67,17 @@ http_session: requests.Session = requests.Session()
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
+
+# For local mode only
+if local_mode:
+
+    # Username
+    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
+
+    # Share data between the user, the client (jupyter or terminal) and prefect
+    PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
+
+OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
 # STAC catalog sample collection name
 TEST_COLLECTION: str = "my_test_collection"
@@ -127,7 +139,7 @@ def create_s3_buckets():
     if not local_mode:
         return
     s3_client = get_s3_client()
-    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET:
+    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET, PREFECT_SHARE_BUCKET:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
@@ -377,32 +389,6 @@ def stage_test_item():
     return inserted_item
 
 
-#
-# Init
-
-
-def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
-    """Init environment before running a demo notebook."""
-
-    # In local mode only: create the s3 buckets, if they do not already exists.
-    create_s3_buckets()
-
-    # Set OAuth2 authentication in the http request session
-    if cluster_mode:
-        http_session.cookies.set("session", os.environ["RSPY_OAUTH2_COOKIE"])
-
-    # Default owner_id
-    if not owner_id:
-        owner_id = (
-            os.environ["JUPYTERHUB_USER"]
-            if cluster_mode
-            else os.environ["RSPY_HOST_USER"]
-        )
-
-    # Init RsClient instances
-    return init_rsclient(owner_id, cadip_station)
-
-
 def temporary_fix_adgs_feature(items_collection):
     # Disable instruments for moment
     for feature in items_collection["features"]:
@@ -416,3 +402,49 @@ def temporary_fix_adgs_feature(items_collection):
                 "href"
             ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
     return items_collection
+
+
+########
+# Init #
+########
+
+
+def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
+    """Init environment before running a demo notebook."""
+
+    # Some kind of workaround for boto3 to avoid checksum being added inside
+    # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
+    # See: https://github.com/boto/boto3/issues/4435
+    os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
+    os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
+
+    # In local mode, create the s3 buckets, if they do not already exists
+    if local_mode:
+        create_s3_buckets()
+
+    # Init the prefect blocks.
+    # In local mode: create them. In cluster mode: read them.
+    init_prefect_blocks(_sync=True)
+
+    # Set OAuth2 authentication in the http request session
+    if cluster_mode:
+        http_session.cookies.set("session", os.environ["RSPY_OAUTH2_COOKIE"])
+
+    # Default owner_id
+    if not owner_id:
+        owner_id = OWNER_ID
+
+    # Init RsClient instances
+    ret = init_rsclient(owner_id, cadip_station)
+
+    # Save the local mode dask authentication in the staging
+    if local_mode:
+        http_session.post(
+            f"{staging_client.href_staging}/staging/dask/auth",
+            params={
+                "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
+                "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
+            },
+        )
+
+    return ret

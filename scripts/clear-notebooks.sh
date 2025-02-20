@@ -7,6 +7,9 @@ set -euo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
 
+# Remove notebook checkpoints
+for checkpoint in $(find $ROOT_DIR/notebooks -type d -name ".ipynb_checkpoints"); do rm -rf "$checkpoint"; done
+
 for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
     (
         set -x
