@@ -418,13 +418,13 @@ def init_demo(owner_id=None, cadip_station=ECadipStation.CADIP):
     os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
     os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
 
+    # In local mode, create the s3 buckets, if they do not already exists
     if local_mode:
-
-        # Create the s3 buckets, if they do not already exists
         create_s3_buckets()
 
-        # Init the prefect blocks
-        init_prefect_blocks(_sync=True)
+    # Init the prefect blocks.
+    # In local mode: create them. In cluster mode: read them.
+    init_prefect_blocks(_sync=True)
 
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
