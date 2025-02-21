@@ -1,0 +1,55 @@
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Docker for dask-gateway-server + eopf/dpr
+
+# Run workflow only on manual trigger
+on:
+  workflow_dispatch:
+    inputs:
+      DASK_GATEWAY_TAG:
+        description: dask-gateway-server tag (version)
+        default: 2024.1.0
+      PREFECT_TAG:
+        description: prefect tag (vesion)
+        default: 3.1.4
+
+env:
+  PYTHON_VERSION: 3.11.7
+  DOCKER_REGISTRY: ghcr.io
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    outputs:
+      docker_image: ${{ steps.publish-docker.outputs.docker_image}}
+    steps:
+      - uses: actions/checkout@v4
+      - id: publish-docker
+        uses: ./.github/actions/publish-docker
+        with:
+          dockerfile: ./local-mode/docker/Dockerfile.dask-eopf-local
+          build_context_path: ./local-mode/docker
+          image_basename: "${{ github.repository_owner }}/dask-gateway-server"
+          image_suffix: /eopf/local
+          version_name: latest
+          dockerhub_username: ${{ vars.DOCKERHUB_USERNAME }}
+          dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_args: |
+            DASK_GATEWAY_TAG=${{ inputs.DASK_GATEWAY_TAG }}
+            PREFECT_TAG=${{ inputs.PREFECT_TAG }}
+          secrets: |
+            EOPF_TOKEN=${{ secrets.GITLAB_EOPF_TOKEN }}
