@@ -1,5 +1,5 @@
 prefect-version: 3
-name: sprint20-dpr-example
+name: sprint21-first-l0-processor
 
 pull:
 - prefect.deployments.steps.run_shell_script:
@@ -10,14 +10,13 @@ pull:
         python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('$S3_CODE_FOLDER', '.')"
 
 deployments:
-- name: sprint20-dpr-example
+- name: sprint21-first-l0-processor
   tags: ["demo"]
-  entrypoint: ./dpr_processor_example.py:dpr_flow
+  entrypoint: ./first_l0_processor.py:first_l0_processor
   work_pool:
     name: "{{ PREFECT_WORK_POOL_EOPF }}"
     job_variables:
         env:
-            HELLO_FROM: "prefect"
             # Copy env vars from client environment
             S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
             PREFECT_BLOCK_AUTH: "{{ PREFECT_BLOCK_AUTH }}"

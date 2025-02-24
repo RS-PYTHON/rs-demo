@@ -22,8 +22,8 @@ import os
 import secrets
 import socket
 import tempfile
-import typing
 from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Union
 
 from fastapi.concurrency import run_in_threadpool
 from prefect.blocks.system import Secret
@@ -158,7 +158,7 @@ async def blocks_to_env_vars():
     )
 
 
-def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:
+def hack_for_jupyter(func: Callable, *args, **kwargs) -> asyncio.Task:
     """From Jupyter we need this hack to deploy prefect flows"""
     coroutine = run_in_threadpool(func, *args, **kwargs)
     return asyncio.create_task(coroutine)
@@ -222,9 +222,9 @@ def get_s3_bucket(s3_path: str) -> tuple[S3Bucket, str]:
 
 @sync_compatible
 async def s3_upload_file(
-    from_path: typing.Union[str, Path],
+    from_path: Union[str, Path],
     s3_path: str,
-    **upload_kwargs: typing.Dict[str, typing.Any],
+    **upload_kwargs: Dict[str, Any],
 ) -> str:
     """See: S3Bucket.upload_from_path"""
     s3_bucket, to_path = get_s3_bucket(s3_path)
@@ -234,7 +234,7 @@ async def s3_upload_file(
 @sync_compatible
 async def s3_upload_empty_file(
     s3_path: str,
-    **upload_kwargs: typing.Dict[str, typing.Any],
+    **upload_kwargs: Dict[str, Any],
 ) -> str:
     """Upload an empty temp file to the S3 bucket."""
 
@@ -250,9 +250,35 @@ async def s3_upload_empty_file(
 
 
 @sync_compatible
-async def s3_download_directory(
+async def s3_upload_dir(
+    from_folder: Union[str, Path],
     s3_path: str,
-    local_path: typing.Optional[str] = None,
+    **upload_kwargs: Dict[str, Any],
+) -> Union[str, None]:
+    """
+    See: S3Bucket.upload_from_folder
+
+    Uploads files *within* a folder (excluding the folder itself) to the object storage service folder.
+    """
+    s3_bucket, to_path = get_s3_bucket(s3_path)
+    return await s3_bucket.upload_from_folder(from_folder, to_path, **upload_kwargs)
+
+
+@sync_compatible
+async def s3_download_file(
+    s3_path: str,
+    to_path: Optional[Union[str, Path]],
+    **download_kwargs: Dict[str, Any],
+) -> Path:
+    """See: S3Bucket.download_object_to_path"""
+    s3_bucket, from_path = get_s3_bucket(s3_path)
+    await s3_bucket.download_object_to_path(from_path, to_path, **download_kwargs)
+
+
+@sync_compatible
+async def s3_download_dir(
+    s3_path: str,
+    local_path: Optional[str] = None,
 ) -> None:
     """See: S3Bucket.get_directory"""
     s3_bucket, from_path = get_s3_bucket(s3_path)
