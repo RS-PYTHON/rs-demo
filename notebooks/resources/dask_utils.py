@@ -67,7 +67,7 @@ def get_dask_gateway(
             )
         except KeyError as error:
             raise KeyError(
-                "In local mode, call init_prefect_blocks() or blocks_to_env_vars() before this function.",
+                "You must call init_prefect_blocks() before this function.",
             ) from error
 
     return Gateway(address=address, auth=auth)

@@ -21,10 +21,11 @@ import asyncio
 import os
 import secrets
 import socket
+import tempfile
 import typing
+from pathlib import Path
 
 from fastapi.concurrency import run_in_threadpool
-from prefect.blocks.core import Block
 from prefect.blocks.system import Secret
 from prefect.client.orchestration import get_client
 from prefect.exceptions import ObjectNotFound
@@ -39,6 +40,9 @@ cluster_mode: bool = not local_mode
 
 # Prefect blocks
 PREFECT_BLOCK_S3: S3Bucket = None
+
+# Prefect S3 objects for each bucket.
+S3_BUCKETS: dict[str, S3Bucket] = {}
 
 
 def get_ip_address() -> str:
@@ -113,38 +117,45 @@ async def init_prefect_blocks():
 @sync_compatible
 async def blocks_to_env_vars():
     """
-    Convert the prefect blocks into environment variables for the systems
-    that don't have prefect installed.
+    Convert the prefect blocks into environment variables.
     """
     global PREFECT_BLOCK_S3
 
-    if block_auth := os.environ.get("PREFECT_BLOCK_AUTH"):
+    # Prefect block names
+    block_auth = os.environ.get("PREFECT_BLOCK_AUTH")
+    block_s3 = os.environ["PREFECT_BLOCK_S3"]
 
-        # Read the prefect block for authentication
-        auth: dict = (await read_block(Secret, block_auth)).get()
+    #
+    # Auth block
 
-        # In cluster mode, make sure it has the right keys.
-        # Don't do it in local mode, the keys are set internally by init_prefect_blocks()
-        if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in auth):
-            raise KeyError(
-                f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {block_auth!r}",
-            )
+    # Read the prefect block for authentication
+    auth: dict = (await read_block(Secret, block_auth)).get()
 
-        # Save auth keys/values into env vars
-        os.environ.update(auth)
-
-    if block_s3 := os.environ["PREFECT_BLOCK_S3"]:
-
-        # Read the prefect S3 block
-        PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
-        os.environ.update(
-            {
-                "S3_ACCESSKEY": PREFECT_BLOCK_S3.credentials.aws_access_key_id,
-                "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
-                "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
-                "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
-            },
+    # In cluster mode, make sure it has the right keys.
+    # Don't do it in local mode, the keys are set internally by init_prefect_blocks()
+    if cluster_mode and ("JUPYTERHUB_API_TOKEN" not in auth):
+        raise KeyError(
+            f"'JUPYTERHUB_API_TOKEN' dict key is missing from the Prefect secret block: {block_auth!r}",
         )
+
+    # Save auth keys/values into env vars
+    os.environ.update(auth)
+
+    #
+    # S3 block
+
+    # Update the S3 bucket env vars from the block info.
+    # NOTE: in fact in local mode, the prefect block was already initialized from these env vars.
+    # But it's still useful to do this from a prefect flow so we pass only the block to the flow, not the env vars.
+    PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
+    os.environ.update(
+        {
+            "S3_ACCESSKEY": PREFECT_BLOCK_S3.credentials.aws_access_key_id,
+            "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
+            "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
+            "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
+        },
+    )
 
 
 def hack_for_jupyter(func: typing.Callable, *args, **kwargs) -> asyncio.Task:
@@ -169,3 +180,86 @@ async def wait_for_deployment(name: str, wait=1, max_retry=30):
                     raise
                 print(f"Wait for deployment of prefect flow: {name!r} ...")
                 await asyncio.sleep(wait)
+
+
+#
+# Utility functions for s3 bucket operations.
+
+
+def get_s3_bucket(s3_path: str) -> tuple[S3Bucket, str]:
+    """
+    Return a prefect S3 bucket object and S3 "object name" (= S3 path without s3://bucket-name) from the
+    given S3 path.
+    We will use the prefect higher-level functions instead of those from boto3.
+    Maybe this is not optimized and we should use boto3 instead... but it's only for the demos.
+    """
+
+    # Remove the s3:// prefix and split by /
+    split = s3_path.removeprefix("s3").removeprefix("S3").strip(":/").split("/")
+
+    # Filter empty elements (if we had double //)
+    split = list(filter(None, split))
+
+    if not split:
+        raise Exception(f"Invalid S3 path: {s3_path!r}")
+
+    bucket_name = split[0]
+    object_name = "/".join(split[1:])
+
+    # Init a new prefect object for this bucket, or create a new one
+    # with the same credentials as the configured one, with no prefixed folder.
+    try:
+        return S3_BUCKETS[bucket_name], object_name
+    except KeyError:
+        s3_bucket = S3Bucket(
+            bucket_name=bucket_name,
+            credentials=PREFECT_BLOCK_S3.credentials,
+            bucket_folder="",
+        )
+        S3_BUCKETS[bucket_name] = s3_bucket
+        return s3_bucket, object_name
+
+
+@sync_compatible
+async def s3_upload_file(
+    from_path: typing.Union[str, Path],
+    s3_path: str,
+    **upload_kwargs: typing.Dict[str, typing.Any],
+) -> str:
+    """See: S3Bucket.upload_from_path"""
+    s3_bucket, to_path = get_s3_bucket(s3_path)
+    return await s3_bucket.upload_from_path(from_path, to_path, **upload_kwargs)
+
+
+@sync_compatible
+async def s3_upload_empty_file(
+    s3_path: str,
+    **upload_kwargs: typing.Dict[str, typing.Any],
+) -> str:
+    """Upload an empty temp file to the S3 bucket."""
+
+    # Create a tmp file
+    with tempfile.NamedTemporaryFile() as tmp:
+
+        # Add contents to the file or boto3 has a strange behavior after uploading an empty file
+        tmp.write(b"empty")
+        tmp.flush()
+
+        # Upload the file
+        return await s3_upload_file(tmp.name, s3_path, **upload_kwargs)
+
+
+@sync_compatible
+async def s3_download_directory(
+    s3_path: str,
+    local_path: typing.Optional[str] = None,
+) -> None:
+    """See: S3Bucket.get_directory"""
+    s3_bucket, from_path = get_s3_bucket(s3_path)
+    await s3_bucket.get_directory(from_path, local_path)
+
+
+def s3_delete(s3_prefix: str):
+    """Remove all files from S3 bucket with the given prefix"""
+    s3_bucket, prefix = get_s3_bucket(s3_prefix)
+    return s3_bucket._get_bucket_resource().objects.filter(Prefix=prefix).delete()
