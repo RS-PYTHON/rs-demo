@@ -41,10 +41,16 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
+      storage_options_local_mode: # in local mode, use the cluster s3 bucket
+        key: ${S3_ACCESSKEY_K8S}
+        secret: ${S3_SECRETKEY_K8S}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT_K8S}
+          region_name: ${S3_REGION_K8S}
 
   output_products:
   - id: DORDOP
-    path: s3://rs-cluster-temp/stations/dpr-test/l0/outputs/S3B_20240411142312031054
+    path: ${OUTPUT_DIR}/S3B_20240411142312031054
     type: folder
     store_type: zarr
     opening_mode: "CREATE_OVERWRITE"
@@ -65,10 +71,10 @@ dask_context:
     auth:
       type: jupyterhub
       api_token: ${JUPYTERHUB_API_TOKEN}
-    # auth: # for local mode
-    #   type: basic
-    #   username: ${LOCAL_DASK_USERNAME}
-    #   password: ${LOCAL_DASK_PASSWORD}
+    auth_local_mode: # auth for local mode
+      type: basic
+      username: ${LOCAL_DASK_USERNAME}
+      password: ${LOCAL_DASK_PASSWORD}
 
   # Activate the report file writing in this file
   performance_report_file: report.html

@@ -20,6 +20,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 DASK_GATEWAY_TAG="2024.1.0"
 PREFECT_TAG="3.1.4"
+PREFECT_DASK_TAG=0.3.3
 
 set +x
 if [[ -z "${GITLAB_EOPF_TOKEN:-}" ]]; then
@@ -33,6 +34,7 @@ registry="ghcr.io/rs-python/dask-gateway-server/eopf/local"
 docker build \
     --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
     --build-arg "PREFECT_TAG=${PREFECT_TAG}" \
+    --build-arg "PREFECT_DASK_TAG=${PREFECT_DASK_TAG}" \
     --secret id=GITLAB_EOPF_TOKEN \
     -f "${SCRIPT_DIR}/Dockerfile.dask-eopf-local" \
     -t "${registry}:latest" \

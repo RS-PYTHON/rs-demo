@@ -36,3 +36,6 @@ root:
   handlers:
     - file
     - console
+
+# logging:
+#   distributed: debug

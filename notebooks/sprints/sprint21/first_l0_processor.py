@@ -14,11 +14,9 @@
 
 """First L0 processor"""
 
-import logging
 import os
 import os.path as osp
 import sys
-from pathlib import Path
 
 from distributed import worker_client
 from prefect import flow, get_run_logger, task
@@ -40,34 +38,23 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_CLUSTER_NAME"],
 )
 
-# Now I need to upload my local utility module to the dask workers
-dask_client.upload_file("./resources/dask_utils.py")
+# Now I need to upload my local utility module that will be used by the dask tasks
+dask_client.upload_file("./resources/prefect_utils.py")
 
+# Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
+# These lines of code is not called by the dask workers.
+caller_env = os.environ
+local_mode = prefect_utils.local_mode
 
-# Pass the environment variables to the dask client
-def set_dask_env(prefect_env: dict):
-    for key in [
-        "S3_ACCESSKEY",
-        "S3_SECRETKEY",
-        "S3_ENDPOINT",
-        "S3_REGION",
-        "DASK_GATEWAY_ADDRESS",
-        "DASK_CLUSTER_NAME",
-        "JUPYTERHUB_API_TOKEN",
-        "LOCAL_DASK_USERNAME",
-        "LOCAL_DASK_PASSWORD",
-    ]:
-        os.environ[key] = prefect_env.get(key)
-
-
-dask_client.run(set_dask_env, os.environ)
+# TEMP: EOPF changes the number of dask workers but we want to keep the current number
+# See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
+worker_count = len(dask_client.scheduler_info()["workers"])
 
 # NOTE: the tasks are called only by the dask workers, not by the client or prefect.
 
 
 @task
 def all_my_eopf_code(
-    logger,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -75,26 +62,109 @@ def all_my_eopf_code(
     """
     EOPF is installed only in the dask workers, so put all the "import eopf ..." lines in the task, not outside.
     """
-    from eopf.cli import eopf_cli
+    import subprocess
 
-    # NOTE: we need to create the S3 folder with a dummy file before running DPR
-    prefect_utils.s3_upload_empty_file(f"{output_data_dir}/.empty")
+    logger = get_run_logger()
+
+    # Use env vars from the caller
+    for key in [
+        "S3_ACCESSKEY",
+        "S3_SECRETKEY",
+        "S3_ENDPOINT",
+        "S3_REGION",
+        "DASK_GATEWAY_ADDRESS",
+        "DASK_CLUSTER_NAME",
+    ] + (
+        ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
+        if local_mode
+        else ["JUPYTERHUB_API_TOKEN"]
+    ):
+        os.environ[key] = caller_env[key]
+
+    # Also save the given output dir as an env var
+    os.environ["OUTPUT_DIR"] = output_data_dir
+
+    # Payload parent dir and filename
+    payload_dir = osp.dirname(payload_file)
+    payload_name = osp.basename(payload_file)
 
     # Download the input config dir locally
+    # NOTE: maybe we should only download the payload file + only necessary config files
+    # rather than the whole directory.
     local_config_dir = "config"
     prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
 
     # Change working directory
-    os.chdir(osp.join(local_config_dir, osp.dirname(payload_file)))
+    os.chdir(osp.join(local_config_dir, payload_dir))
 
-    # Trigger EOPF processing
-    sys.argv = [
-        os.path.basename(__file__),
-        "trigger",
-        "local",
-        osp.basename(payload_file),
-    ]
-    return eopf_cli()
+    # Hack the payload file
+    hack_payload(payload_name)
+
+    # Trigger EOPF processing, redirect output to our logger.
+    p = subprocess.Popen(
+        ["eopf", "trigger", "local", payload_name],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    while (line := p.stdout.readline()) != "":
+        line = line.rstrip()
+        if line:
+            logger.info(line)
+
+    if p.wait():
+        raise Exception("EOPF error, please see the log.")
+
+
+@task
+def hack_payload(filename: str):
+    """Hack the payload file"""
+    import yaml
+    from dotenv import dotenv_values  # used in local mode only
+
+    # Open the input yaml file
+    with open(filename, "r", encoding="utf-8") as opened:
+        payload = yaml.safe_load(opened)
+    cluster_config = payload["dask_context"]["cluster_config"]
+
+    # Set the number of workers
+    cluster_config["workers"] = worker_count
+
+    # We need to create the output S3 folder with a dummy file before running DPR
+    for output_product in payload["I/O"]["output_products"]:
+        output_dir = os.path.expandvars(output_product["path"])  # expand env vars
+        prefect_utils.s3_upload_empty_file(f"{output_dir}/.empty")
+
+    # Change the dask authentication for local mode
+    if local_mode:
+        cluster_config["auth"] = cluster_config["auth_local_mode"]
+    del cluster_config["auth_local_mode"]
+
+    # In local mode, open the user's s3cmd config file to use the cluster s3 bucket access.
+    # It is mounted by the docker-compose.yml
+    if local_mode:
+        if not (k8s_access := dotenv_values("/.s3cfg")):
+            raise Exception(
+                "You must have a s3cmd config file under '~/.s3cfg' to use this flow",
+            )
+        os.environ.update(
+            {
+                "S3_ACCESSKEY_K8S": k8s_access["access_key"],
+                "S3_SECRETKEY_K8S": k8s_access["secret_key"],
+                "S3_ENDPOINT_K8S": k8s_access["host_bucket"],
+                "S3_REGION_K8S": k8s_access["bucket_location"],
+            },
+        )
+    # Change the bucket accees
+    for input_product in payload["I/O"]["input_products"]:
+        store_params = input_product["store_params"]
+        if local_mode:
+            store_params["storage_options"] = store_params["storage_options_local_mode"]
+        del store_params["storage_options_local_mode"]
+
+    # Write back the payload contents
+    with open(filename, "w", encoding="utf-8") as opened:
+        yaml.dump(payload, opened, default_flow_style=False, sort_keys=False)
 
 
 @task
@@ -129,9 +199,7 @@ def first_l0_processor(
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
-    logger = get_run_logger()
     return single_dpr_task.submit(
-        logger,
         input_config_dir,
         payload_file,
         output_data_dir,

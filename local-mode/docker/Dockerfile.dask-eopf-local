@@ -18,6 +18,7 @@ FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 ARG DASK_GATEWAY_TAG=xxx
 
 ARG PREFECT_TAG=xxx
+ARG PREFECT_DASK_TAG=xxx
 
 # Default user from parent image
 ARG USER=dask:dask
@@ -31,7 +32,13 @@ RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
 # Install complete dask subsets + prefect
 RUN pip install \
     dask[complete] \
-    prefect[dask,aws]=="${PREFECT_TAG}"
+    prefect[aws]=="${PREFECT_TAG}" \
+    prefect-dask=="${PREFECT_DASK_TAG}"
+
+# Other installations
+USER root
+RUN apt update && apt install -y python3-pydot graphviz
+USER $USER
 
 # Clean everything
 USER root

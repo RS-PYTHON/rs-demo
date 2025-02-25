@@ -188,9 +188,9 @@ async def wait_for_deployment(name: str, wait=1, max_retry=30):
 
 def get_s3_bucket(s3_path: str) -> tuple[S3Bucket, str]:
     """
-    Return a prefect S3 bucket object and S3 "object name" (= S3 path without s3://bucket-name) from the
-    given S3 path.
-    We will use the prefect higher-level functions instead of those from boto3.
+    Return a prefect S3 bucket object and S3 "object name" (= S3 path without s3://bucket-name)
+    from the given S3 path.
+    We use the prefect higher-level functions instead of those from boto3.
     Maybe this is not optimized and we should use boto3 instead... but it's only for the demos.
     """
 
@@ -211,9 +211,15 @@ def get_s3_bucket(s3_path: str) -> tuple[S3Bucket, str]:
     try:
         return S3_BUCKETS[bucket_name], object_name
     except KeyError:
+        aws_credentials = AwsCredentials(
+            aws_access_key_id=os.environ["S3_ACCESSKEY"],
+            aws_secret_access_key=os.environ["S3_SECRETKEY"],
+            region_name=os.environ["S3_REGION"],
+            aws_client_parameters={"endpoint_url": os.environ["S3_ENDPOINT"]},
+        )
         s3_bucket = S3Bucket(
             bucket_name=bucket_name,
-            credentials=PREFECT_BLOCK_S3.credentials,
+            credentials=aws_credentials,
             bucket_folder="",
         )
         S3_BUCKETS[bucket_name] = s3_bucket

@@ -40,7 +40,7 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_CLUSTER_NAME"],
 )
 
-# Now I need to upload my local utility module to the dask workers
+# Now I need to upload my local utility module that will be used by the dask tasks
 dask_client.upload_file("./resources/dask_utils.py")
 
 # NOTE: the main code outside the functions is run by both the client and prefect workers,
@@ -288,11 +288,12 @@ def all_my_eopf_code(s3_folder: str, s3_filename: str):
 
 
 @task
-def single_dpr_task(logger, s3_folder: str, s3_filename: str):
+def single_dpr_task(s3_folder: str, s3_filename: str):
     """
     Call the EOPF code.
     """
     with worker_client(separate_thread=False):  # as client:
+        logger = get_run_logger()
 
         # Say hello from the dask task
         logger.warning(
@@ -330,7 +331,6 @@ def dpr_flow(s3_folder: str, s3_filenames: list[str]):
     # Call the task for each output filename
     futures = [
         single_dpr_task.submit(
-            logger,
             s3_folder,
             filename,
         )
