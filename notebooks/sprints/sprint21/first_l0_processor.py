@@ -66,6 +66,9 @@ def all_my_eopf_code(
 
     logger = get_run_logger()
 
+    # Output report dir
+    report_dirname = "reports"
+
     # Use env vars from the caller
     for key in [
         "S3_ACCESSKEY",
@@ -97,6 +100,9 @@ def all_my_eopf_code(
     # Change working directory
     os.chdir(osp.join(local_config_dir, payload_dir))
 
+    # Create the reports dir
+    os.makedirs(report_dirname, exist_ok=True)
+
     # Hack the payload file
     hack_payload(payload_name)
 
@@ -112,7 +118,20 @@ def all_my_eopf_code(
         if line:
             logger.info(line)
 
-    if p.wait():
+    # Wait for the execution to finish
+    status_code = p.wait()
+
+    # Upload the reports dir to the s3 bucket. NOTE: maybe we should configure the ./reports dir.
+    try:
+        prefect_utils.s3_upload_dir(
+            report_dirname,
+            osp.join(output_data_dir, report_dirname),
+        )
+    except Exception as exception:
+        logger.error(exception)
+
+    # Raise exception if the status code is != 0
+    if status_code:
         raise Exception("EOPF error, please see the log.")
 
 
