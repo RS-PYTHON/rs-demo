@@ -16,9 +16,9 @@
 
 import os
 import os.path as osp
+import subprocess
 import sys
 
-from distributed import worker_client
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
 
@@ -59,10 +59,8 @@ def all_my_eopf_code(
     payload_file: str,
     output_data_dir: str,
 ):
-    """
-    EOPF is installed only in the dask workers, so put all the "import eopf ..." lines in the task, not outside.
-    """
-    import subprocess
+    # NOTE: not sure this is useful so I'm removing it
+    # with worker_client(separate_thread=False)
 
     logger = get_run_logger()
 
@@ -186,15 +184,6 @@ def hack_payload(filename: str):
         yaml.dump(payload, opened, default_flow_style=False, sort_keys=False)
 
 
-@task
-def single_dpr_task(*args, **kwargs):
-    """
-    Call the EOPF code.
-    """
-    with worker_client(separate_thread=False):  # as client:
-        return all_my_eopf_code(*args, **kwargs)
-
-
 @flow(
     task_runner=DaskTaskRunner(
         address=dask_cluster.scheduler_address,
@@ -218,7 +207,7 @@ def first_l0_processor(
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
-    return single_dpr_task.submit(
+    return all_my_eopf_code.submit(
         input_config_dir,
         payload_file,
         output_data_dir,
