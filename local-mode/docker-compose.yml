@@ -183,15 +183,12 @@ services:
       - adgs-station
       - cadip-station
       - rs-server-catalog
-    volumes:
-      - ./config/staging.yaml:/etc/staging.yaml
-      - ./config/openapi.json:/etc/openapi.json
-      #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
     # variables are set in the .env file
     environment:
       RSPY_LOCAL_MODE: 1
       RSPY_HOST_CATALOG: http://rs-server-catalog:8000
+      RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
+      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -204,6 +201,11 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       #S3_ENDPOINT: http://127.0.0.1:9100
       S3_REGION: ${S3_REGION}
+    volumes:
+      - ./config/staging.yaml:/etc/staging.yaml
+      - ./config/openapi.json:/etc/openapi.json
+      #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
 
   ############
   # STATIONS #
@@ -340,7 +342,7 @@ services:
 
   catalog-db:
     container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.8.6
+    image: ghcr.io/stac-utils/pgstac:v0.9.3
     environment:
       POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
@@ -360,7 +362,7 @@ services:
 
   pgstac-post-actions: # post actions for catalog-db
     container_name: pgstac-post-actions
-    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.8.6
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.3
     depends_on:
       - catalog-db
     environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac

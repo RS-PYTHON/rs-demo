@@ -339,10 +339,12 @@ def init_demo(owner_id=None, cadip_station="CADIP"):
     os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
     os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
 
-    # In local mode only: create the s3 buckets, if they do not already exists
-    create_s3_buckets()
+    # In local mode, create the s3 buckets, if they do not already exists
+    if local_mode:
+        create_s3_buckets()
 
-    # In local mode only: init the prefect blocks
+    # Init the prefect blocks.
+    # In local mode: create them. In cluster mode: read them.
     init_prefect_blocks(_sync=True)
 
     # Set OAuth2 authentication in the http request session
@@ -354,4 +356,16 @@ def init_demo(owner_id=None, cadip_station="CADIP"):
         owner_id = OWNER_ID
 
     # Init RsClient instances
-    return init_rsclient(owner_id, cadip_station)
+    ret = init_rsclient(owner_id, cadip_station)
+
+    # Save the local mode dask authentication in the staging
+    if local_mode:
+        http_session.post(
+            f"{staging_client.href_staging}/staging/dask/auth",
+            params={
+                "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
+                "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
+            },
+        )
+
+    return ret

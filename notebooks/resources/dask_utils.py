@@ -83,26 +83,46 @@ def init_dask_cluster(
     worker_memory: float = 2.0,
     namespace="dask-gateway",
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
-    """Return existing dask cluster or create one"""
+    """
+    Return existing dask cluster or create one.
+
+    Args:
+        address: dask gateway url (internal to the cluster or docker network)
+        public_domain: dask gateway public url domain
+        scale: number of dask workers to create
+        image: docker image name to use for the workers
+        cluster_tag: cluster name: "dask-staging" or "dask-eopf"
+        worker_cores: number of worker cores
+        worker_memory: worker memory
+        namespace: dask gateway namespace
+    """
 
     print(f"Connecting to dask gateway for {cluster_tag!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
+    # Sort the clusters by newest first
+    clusters = sorted(
+        gateway.list_clusters(),
+        key=lambda cluster: cluster.start_time,
+        reverse=True,
+    )
+
     # Get existing dask cluster name, if any.
     existing = None
-    if clusters := gateway.list_clusters():
+    if clusters:
 
         # In local mode, just get the first existing cluster.
         if local_mode:
             existing = clusters[0].name
 
-        # In cluster mode, also check the docker image name
+        # In cluster mode, also check the docker image name and cluster name
         else:
             existing = next(
                 (
                     report.name
                     for report in clusters
-                    if report.options.get("image") == image
+                    if (report.options.get("image") == image)
+                    and (report.options.get("cluster_name") == cluster_tag)
                 ),
                 None,
             )
@@ -159,7 +179,7 @@ def init_dask_cluster(
 
 def init_dask_cluster_staging(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infrastructure-dask-staging:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-staging:latest",
     *args,
     **kwargs,
 ):
@@ -186,7 +206,7 @@ def init_dask_cluster_staging(
 
 def init_dask_cluster_eopf(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infrastructure-dask-eopf:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
     *args,
     **kwargs,
 ):
@@ -235,6 +255,30 @@ def get_existing_cluster(
         raise ConnectionError(
             f"Error connecting to dask gateway: {address!r} and cluster name: {name!r}",
         ) from exception
+
+
+def close_dask_clusters():
+    """Close dask gateway, cluster and client python objects."""
+    global dask_client_staging, dask_client_eopf, dask_cluster_staging, dask_cluster_eopf, dask_gateway_staging, dask_gateway_eopf
+
+    # First client, then cluster, then gateway
+    for obj in (
+        dask_client_staging,
+        dask_client_eopf,
+        dask_cluster_staging,
+        dask_cluster_eopf,
+        dask_gateway_staging,
+        dask_gateway_eopf,
+    ):
+        if obj:
+            obj.close()
+
+    dask_client_staging = None
+    dask_client_eopf = None
+    dask_cluster_staging = None
+    dask_cluster_eopf = None
+    dask_gateway_staging = None
+    dask_gateway_eopf = None
 
 
 def shutdown_dask_clusters(gateway: Gateway, name: str | None):
