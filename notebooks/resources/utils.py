@@ -297,8 +297,10 @@ def stage_test_objects(
         print("\n")
         if "successful" in job_info["status"]:
             print(" ----- Job COMPLETED \n")
-            time.sleep(0.5) 
-            return ItemCollection(list(catalog_client.get_items(catalog_collection_name, items_id)))
+            time.sleep(0.5)
+            return ItemCollection(
+                list(catalog_client.get_items(catalog_collection_name, items_id)),
+            )
         if "failed" in job_info["status"]:
             print("-----Job FAILED \n")
             break
