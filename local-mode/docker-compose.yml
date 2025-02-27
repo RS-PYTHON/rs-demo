@@ -426,10 +426,12 @@ services:
 
   dask-eopf:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G docker compose up # ...
+    entrypoint: tini -g -- dask-gateway-server --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
     ports:
       - 8702:8000
     volumes:
-      - ~/.s3cfg:/.s3cfg # hack in local mode to use the s3cmd config file to use data from the cluster s3 bucket
+      - ~/.s3cfg:/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
 
   #################
   # OPENTELEMETRY #

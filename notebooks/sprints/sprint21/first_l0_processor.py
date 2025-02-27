@@ -16,8 +16,10 @@
 
 import os
 import os.path as osp
+import re
 import subprocess
 import sys
+from pathlib import Path
 
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
@@ -104,33 +106,57 @@ def all_my_eopf_code(
     # Hack the payload file
     hack_payload(payload_name)
 
-    # Trigger EOPF processing, redirect output to our logger.
+    # Trigger EOPF processing, catch output
     p = subprocess.Popen(
         ["eopf", "trigger", "local", payload_name],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
     )
-    while (line := p.stdout.readline()) != "":
-        line = line.rstrip()
-        if line:
-            logger.info(line)
 
-    # Wait for the execution to finish
-    status_code = p.wait()
+    # Write output to a log file + redirect to the prefect logger
+    with open(
+        osp.join(report_dirname, Path(payload_file).with_suffix(".log").name),
+        "w+",
+    ) as opened:
+        while (line := p.stdout.readline()) != "":
 
-    # Upload the reports dir to the s3 bucket. NOTE: maybe we should configure the ./reports dir.
+            # The log prints password in clear e.g 'key': '<my-secret>'... hide them with a regex
+            for key in (
+                "key",
+                "secret",
+                "endpoint_url",
+                "region_name",
+                "api_token",
+                "password",
+            ):
+                line = re.sub(rf"(\W{key}\W)[^,}}]*", r"\1: ***", line)
+
+            # Write to log file
+            opened.write(line)
+
+            # Write to prefect logger if not empty
+            line = line.rstrip()
+            if line:
+                logger.info(line)
+
     try:
-        prefect_utils.s3_upload_dir(
-            report_dirname,
-            osp.join(output_data_dir, report_dirname),
-        )
-    except Exception as exception:
-        logger.error(exception)
+        # Wait for the execution to finish
+        status_code = p.wait()
 
-    # Raise exception if the status code is != 0
-    if status_code:
-        raise Exception("EOPF error, please see the log.")
+        # Raise exception if the status code is != 0
+        if status_code:
+            raise Exception("EOPF error, please see the log.")
+
+    # In all cases, upload the reports dir to the s3 bucket.
+    finally:
+        try:
+            prefect_utils.s3_upload_dir(
+                report_dirname,
+                osp.join(output_data_dir, report_dirname),
+            )
+        except Exception as exception:
+            logger.error(exception)
 
 
 @task

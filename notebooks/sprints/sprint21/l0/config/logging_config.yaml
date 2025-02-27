@@ -24,7 +24,7 @@ handlers:
     class: logging.FileHandler
     level: DEBUG
     formatter: file
-    filename: ./reports/output.log
+    filename: ./reports/logging_config.log
 
   console:
     class: logging.StreamHandler

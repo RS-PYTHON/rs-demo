@@ -23,10 +23,12 @@ ARG PREFECT_DASK_TAG=xxx
 # Default user from parent image
 ARG USER=dask:dask
 
-# Install EOP
+# Install EOPF
 COPY ./requirements.dask-eopf-local.txt /opt/
+# NOTE, with older docker versions, use:
+# RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
+# GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
-    echo "GITLAB_EOPF_TOKEN: $GITLAB_EOPF_TOKEN" && \
     pip install -U -r /opt/requirements.dask-eopf-local.txt
 
 # Install complete dask subsets + prefect
