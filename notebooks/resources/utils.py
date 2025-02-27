@@ -361,7 +361,7 @@ def init_demo(owner_id=None, cadip_station="CADIP"):
     # Save the local mode dask authentication in the staging
     if local_mode:
         http_session.post(
-            f"{staging_client.href_staging}/staging/dask/auth",
+            f"{staging_client.href_service}/staging/dask/auth",
             params={
                 "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
                 "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
