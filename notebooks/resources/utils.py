@@ -267,6 +267,8 @@ def stage_test_objects(
 ):
     """Stage several files from cadip or auxip into the STAC catalog and return it."""
 
+    catalog_collection_name = collection_id if collection_id else TEST_COLLECTION
+
     # The search method is based on a time interval
     item_collection = client.search(
         timestamp=timestamp if timestamp else [start_date, stop_date],
@@ -277,11 +279,12 @@ def stage_test_objects(
     if objects_are_files:
         # truncate by number of files. In cadip case, the items are sessions which have more than one file
         item_collection = truncate_features_by_limit(item_collection, nb_of_objects)
+    items_id = [item.id for item in item_collection]
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
     job_id = staging_client.run_staging(
         item_collection.to_dict(),
-        collection_id if collection_id else TEST_COLLECTION,
+        catalog_collection_name,
     )
     timeout = 120
     while timeout > 0:
@@ -294,7 +297,8 @@ def stage_test_objects(
         print("\n")
         if "successful" in job_info["status"]:
             print(" ----- Job COMPLETED \n")
-            return item_collection
+            time.sleep(0.5) 
+            return ItemCollection(list(catalog_client.get_items(catalog_collection_name, items_id)))
         if "failed" in job_info["status"]:
             print("-----Job FAILED \n")
             break
