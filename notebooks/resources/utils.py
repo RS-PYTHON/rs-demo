@@ -46,6 +46,7 @@ from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
 from rs_client.rs_client import RsClient
 from rs_client.staging_client import StagingClient
+from rs_common.config import EAuxipStation, ECadipStation
 
 # Variables
 # Set logger level to info
@@ -160,7 +161,11 @@ def create_s3_buckets():
             pass  # do nothing if already exists
 
 
-def init_rsclient(owner_id=None, cadip_station="CADIP", adgs_station="ADGS"):
+def init_rsclient(
+    owner_id=None,
+    cadip_station: str | ECadipStation = "CADIP",
+    adgs_station: str | EAuxipStation = "ADGS",
+):
     """Init RsClient instances"""
     global apikey, auxip_client, cadip_client, catalog_client, staging_client
 
@@ -330,7 +335,7 @@ def temporary_fix_adgs_feature(items_collection):
 ########
 
 
-def init_demo(owner_id=None, cadip_station="CADIP"):
+def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
     """Init environment before running a demo notebook."""
 
     # Some kind of workaround for boto3 to avoid checksum being added inside
