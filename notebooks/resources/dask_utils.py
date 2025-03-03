@@ -257,6 +257,30 @@ def get_existing_cluster(
         ) from exception
 
 
+def close_dask_clusters():
+    """Close dask gateway, cluster and client python objects."""
+    global dask_client_staging, dask_client_eopf, dask_cluster_staging, dask_cluster_eopf, dask_gateway_staging, dask_gateway_eopf
+
+    # First client, then cluster, then gateway
+    for obj in (
+        dask_client_staging,
+        dask_client_eopf,
+        dask_cluster_staging,
+        dask_cluster_eopf,
+        dask_gateway_staging,
+        dask_gateway_eopf,
+    ):
+        if obj:
+            obj.close()
+
+    dask_client_staging = None
+    dask_client_eopf = None
+    dask_cluster_staging = None
+    dask_cluster_eopf = None
+    dask_gateway_staging = None
+    dask_gateway_eopf = None
+
+
 def shutdown_dask_clusters(gateway: Gateway, name: str | None):
     """
     Shutdown the given gateway cluster, or all clusters if the name is None.
