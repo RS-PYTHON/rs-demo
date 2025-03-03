@@ -19,6 +19,7 @@ import os
 import sys
 from pathlib import Path
 
+from distributed import worker_client
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
 
@@ -76,7 +77,6 @@ def all_my_eopf_code(s3_folder: str, s3_filename: str):
     Dummy DPR processor, taken from:
     https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/developer-guide/simple_processor_module/simple_processor_example.py
     """
-
     from typing import Any, Dict, Optional, cast
 
     import dask.array as da
@@ -292,12 +292,19 @@ def single_dpr_task(logger, s3_folder: str, s3_filename: str):
     """
     Call the EOPF code.
     """
-    # Say hello from the dask task
-    logger.warning(
-        f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task)",
-    )
+    with worker_client(separate_thread=False):  # as client:
 
-    return all_my_eopf_code(s3_folder, s3_filename)
+        # Say hello from the dask task
+        logger.warning(
+            f"Hello from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task {s3_filename!r})",
+        )
+
+        ret = all_my_eopf_code(s3_folder, s3_filename)
+
+        logger.warning(
+            f"Goodbye from {os.environ['HELLO_FROM']!r} {get_ip_address()!r} (task {s3_filename!r})",
+        )
+        return ret
 
 
 @flow(
@@ -322,32 +329,30 @@ def dpr_flow(s3_folder: str, s3_filenames: list[str]):
 
     # Call the task for each output filename
     futures = [
-        dask_client.submit(
-            single_dpr_task,
+        single_dpr_task.submit(
             logger,
             s3_folder,
             filename,
-            pure=False,
-        )  # use pure=False to disable cache
+        )
         for filename in s3_filenames
     ]
 
     # We should do this
-    # return dask_client.gather(futures)
+    return [future.result(timeout=10) for future in futures]
 
-    # Workaround to try several times... to be removed
-    results = []
-    for future in futures:
-        tries = 0
-        while True:
-            try:
-                tries += 1
-                logger.info(f"Try #{tries}")
-                results.append(future.result(timeout=10))
-                break
-            except Exception as exception:
-                if tries >= 5:
-                    raise
-                logger.error(exception)
+    # # Workaround to try several times... to be removed
+    # results = []
+    # for future in futures:
+    #     tries = 0
+    #     while True:
+    #         try:
+    #             tries += 1
+    #             logger.info(f"Try #{tries}")
+    #             results.append(future.result(timeout=10))
+    #             break
+    #         except Exception as exception:
+    #             if tries >= 5:
+    #                 raise
+    #             logger.error(exception)
 
     return results
