@@ -93,7 +93,7 @@ def init_dask_cluster(
         image: docker image name to use for the workers
         cluster_tag: cluster name: "dask-staging" or "dask-eopf"
         worker_cores: number of worker cores
-        worker_memory: worker memory
+        worker_memory: worker memory in GB
         namespace: dask gateway namespace
     """
 
@@ -142,6 +142,9 @@ def init_dask_cluster(
         cluster = gateway.new_cluster(
             worker_cores=worker_cores,
             worker_memory=worker_memory,
+            cluster_max_workers=scale + 1,
+            cluster_max_cores=(scale + 1) * worker_cores,
+            cluster_max_memory=(scale + 1) * worker_memory * (2**30),
             namespace=namespace,
             image=image,
             cluster_name=cluster_tag,
