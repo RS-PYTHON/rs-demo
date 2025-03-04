@@ -426,8 +426,11 @@ services:
 
   dask-eopf:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G docker compose up # ...
-    entrypoint: tini -g -- dask-gateway-server --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_threads="${DASK_THREADS_EOPF}"
     ports:
       - 8702:8000
     volumes:
