@@ -31,7 +31,7 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
 
     # For testing. Keep this line commented in git.
-    if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
+    # if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
 
     # Ignore these notebooks
     if grep -q "$_relative" "${SCRIPT_DIR}/ignored-notebooks.txt"; then
