@@ -38,7 +38,6 @@ jobs:
       - name: Init environment and run all demos in local mode
         run: |
           set -x
-          export RSPY_FROM_CICD=1
 
           # We want to use docker images with tag=this_branch_name.
           branch_name=${{ github.ref_name }}
