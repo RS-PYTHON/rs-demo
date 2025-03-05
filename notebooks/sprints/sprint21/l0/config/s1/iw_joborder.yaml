@@ -5,7 +5,7 @@ general_configuration:
   triggering__use_basic_logging: true
   triggering__use_default_filename: false
   # Wait before stopping the dask cluster, usefull for localCluster to access the dashboard
-  triggering__wait_before_exit: 90
+  triggering__wait_before_exit: 0
   # Export the dask graph for variables at writing time
   dask__export_graphs: ./reports/graphs
 
