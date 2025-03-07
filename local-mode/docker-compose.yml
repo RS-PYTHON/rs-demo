@@ -401,7 +401,7 @@ services:
       prefect-server:
         condition: service_healthy
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
+      PREFECT_API_URL: http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
     deploy:
       mode: replicated
@@ -413,7 +413,12 @@ services:
       prefect-server:
         condition: service_healthy
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
+      PREFECT_API_URL: http://prefect-server:4200/api
+      # rs-server urls
+      RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
+      RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
+      RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
+      RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated

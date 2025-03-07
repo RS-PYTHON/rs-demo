@@ -14,15 +14,21 @@
 
 """First L0 processor"""
 
+import json
 import os
 import os.path as osp
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
+from rs_client.auxip_client import AuxipClient
+from rs_client.cadip_client import CadipClient
+from rs_client.catalog_client import CatalogClient
+from rs_client.staging_client import StagingClient
 
 # My local "./resources" folder contains my utility modules.
 # I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
@@ -35,9 +41,10 @@ import prefect_utils
 prefect_utils.blocks_to_env_vars(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
+dask_cluster_name = os.environ["DASK_CLUSTER_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_GATEWAY_ADDRESS"],
-    os.environ["DASK_CLUSTER_NAME"],
+    dask_cluster_name,
 )
 
 # Now I need to upload my local utility module that will be used by the dask tasks
@@ -48,11 +55,19 @@ dask_client.upload_file("./resources/prefect_utils.py")
 caller_env = os.environ
 local_mode = prefect_utils.local_mode
 
+# In local mode, the service URLs are hardcoded in the docker-compose file
+if local_mode:
+    rs_server_href = None  # not used
+# In cluster mode, they are set in an environment variables
+else:
+    rs_server_href = os.environ["RSPY_WEBSITE"]
+
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client.scheduler_info()["workers"])
 
-# NOTE: the tasks are called only by the dask workers, not by the client or prefect.
+# NOTE: the tasks called with .submit() are called only by the dask workers, not by the client or prefect.
+# Others tasks are called by the client or prefect.
 
 
 @flow(
@@ -78,15 +93,105 @@ def first_l0_processor(
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
-    return all_my_eopf_code.submit(
-        input_config_dir,
-        payload_file,
-        output_data_dir,
-    ).result()
+
+    # Call some dummy auxip/cadip/staging tasks.
+    # NOTE 1: call them without .submit so they are run by prefect nodes, not dask nodes
+    # NOTE 2: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
+    # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
+    staging_has_finished = dummy_staging(
+        "",
+        dummy_auxip_search("", "ADGS"),
+        dummy_cadip_search("", "CADIP"),
+    )
+
+    # Setup adaptive scaling
+    dask_gateway.adapt_cluster(dask_cluster_name, minimum=1, maximum=worker_count)
+
+    # Run the EOPF task with .submit in a dask node
+    eopf_has_finished = {}  # all_my_eopf_code.submit(
+    #     staging_has_finished,
+    #     input_config_dir,
+    #     payload_file,
+    #     output_data_dir,
+    # ).result()
+
+    # Call dummy catalog task
+    return dummy_catalog_save(eopf_has_finished, "", "")
+
+
+@task
+def dummy_auxip_search(
+    rs_server_api_key: str,
+    station: str,
+):
+    """
+    Dummy cadip search.
+
+    NOTES:
+      - station and rs_server_api_key should be given by the user as flow run parameters
+    """
+    logger = get_run_logger()
+    logger.info("Start auxip search")
+    time.sleep(1)  # this task should run in parallel with cadip
+    AuxipClient(rs_server_href, rs_server_api_key, None, station)
+    logger.info(f"End (dummy) auxip search")
+    return {}
+
+
+@task
+def dummy_cadip_search(
+    rs_server_api_key: str,
+    station: str,
+):
+    """
+    Dummy cadip search.
+
+    NOTES:
+      - station and rs_server_api_key should be given by the user as flow run parameters
+    """
+    logger = get_run_logger()
+    logger.info("Start cadip search")
+    time.sleep(1)  # this task should run in parallel with auxip
+    CadipClient(rs_server_href, rs_server_api_key, None, station)
+    logger.info(f"End (dummy) cadip search")
+    return {}
+
+
+@task
+def dummy_staging(rs_server_api_key: str, *_):
+    """
+    Dummy cadip search.
+
+    NOTES:
+      - rs_server_api_key should be given by the user as flow run parameters
+    """
+    logger = get_run_logger()
+    logger.info("Start staging")
+    time.sleep(1)
+    StagingClient(rs_server_href, rs_server_api_key, None)
+    logger.info(f"End (dummy) staging search")
+    return {}
+
+
+@task
+def dummy_catalog_save(_, rs_server_api_key: str, owner_id: str):
+    """
+    Dummy cadip search.
+
+    NOTES:
+      - owner_id and rs_server_api_key should be given by the user as flow run parameters
+    """
+    logger = get_run_logger()
+    logger.info("Start catalog saving")
+    time.sleep(1)
+    CatalogClient(rs_server_href, rs_server_api_key, owner_id)
+    logger.info(f"End (dummy) catalog saving:")
+    return {}
 
 
 @task
 def all_my_eopf_code(
+    _,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -187,6 +292,9 @@ def all_my_eopf_code(
             )
         except Exception as exception:
             logger.error(exception)
+
+    # Dummy output for prefect
+    return {}
 
 
 @task
