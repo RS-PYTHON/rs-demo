@@ -55,6 +55,36 @@ worker_count = len(dask_client.scheduler_info()["workers"])
 # NOTE: the tasks are called only by the dask workers, not by the client or prefect.
 
 
+@flow(
+    task_runner=DaskTaskRunner(
+        address=dask_cluster.scheduler_address,
+        client_kwargs={"security": dask_cluster.security},
+    ),
+)
+def first_l0_processor(
+    input_config_dir: str,
+    payload_file: str,
+    output_data_dir: str,
+):
+    """
+    Trigger an EOPF L0 processing.
+
+    This is a pure prefect flow. The EOPF triggering is run in command-line,
+    it is responsible of distributing its work in the dask workers.
+
+    Args:
+        input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
+        It will be downloaded locally.
+        payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
+        output_data_dir: s3 bucket directory that will contain the generated data.
+    """
+    return all_my_eopf_code.submit(
+        input_config_dir,
+        payload_file,
+        output_data_dir,
+    ).result()
+
+
 @task
 def all_my_eopf_code(
     input_config_dir: str,
@@ -208,33 +238,3 @@ def hack_payload(filename: str):
     # Write back the payload contents
     with open(filename, "w", encoding="utf-8") as opened:
         yaml.dump(payload, opened, default_flow_style=False, sort_keys=False)
-
-
-@flow(
-    task_runner=DaskTaskRunner(
-        address=dask_cluster.scheduler_address,
-        client_kwargs={"security": dask_cluster.security},
-    ),
-)
-def first_l0_processor(
-    input_config_dir: str,
-    payload_file: str,
-    output_data_dir: str,
-):
-    """
-    Trigger an EOPF L0 processing.
-
-    This is a pure prefect flow. The EOPF triggering is run in command-line,
-    it is responsible of distributing its work in the dask workers.
-
-    Args:
-        input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
-        It will be downloaded locally.
-        payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
-        output_data_dir: s3 bucket directory that will contain the generated data.
-    """
-    return all_my_eopf_code.submit(
-        input_config_dir,
-        payload_file,
-        output_data_dir,
-    ).result()

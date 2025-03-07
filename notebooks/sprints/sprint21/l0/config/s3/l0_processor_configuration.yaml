@@ -2,7 +2,7 @@
 # This the configuration file for the l0 processor.
 # ==========================================================
 
-dask_utils__compute__step: 5
+dask_utils__compute__step: 1
 
 # the sentinel-1 l0 processor.
 S1:

@@ -144,7 +144,7 @@ def init_dask_cluster(
             worker_memory=worker_memory,
             cluster_max_workers=scale + 1,
             cluster_max_cores=(scale + 1) * worker_cores,
-            cluster_max_memory=(scale + 1) * worker_memory * (2**30),
+            cluster_max_memory=(scale + 1) * worker_memory * (2**30),  # from GB to B
             namespace=namespace,
             image=image,
             cluster_name=cluster_tag,
@@ -175,7 +175,7 @@ def init_dask_cluster(
 
     # Forward logging from dask workers to the caller.
     # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
-    client.forward_logging()
+    # client.forward_logging()
 
     return gateway, cluster, client
 
@@ -250,7 +250,7 @@ def get_existing_cluster(
 
         # Forward logging from dask workers to the caller.
         # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
-        client.forward_logging()
+        # client.forward_logging()
 
         return gateway, cluster, client
 
