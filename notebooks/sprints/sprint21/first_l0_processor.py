@@ -14,7 +14,6 @@
 
 """First L0 processor"""
 
-import json
 import os
 import os.path as osp
 import re
@@ -66,16 +65,12 @@ else:
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client.scheduler_info()["workers"])
 
-# NOTE: the tasks called with .submit() are called only by the dask workers, not by the client or prefect.
-# Others tasks are called by the client or prefect.
+##########################
+# Prefect tasks and flow #
+##########################
 
 
-@flow(
-    task_runner=DaskTaskRunner(
-        address=dask_cluster.scheduler_address,
-        client_kwargs={"security": dask_cluster.security},
-    ),
-)
+@flow
 def first_l0_processor(
     input_config_dir: str,
     payload_file: str,
@@ -83,9 +78,6 @@ def first_l0_processor(
 ):
     """
     Trigger an EOPF L0 processing.
-
-    This is a pure prefect flow. The EOPF triggering is run in command-line,
-    it is responsible of distributing its work in the dask workers.
 
     Args:
         input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
@@ -95,28 +87,25 @@ def first_l0_processor(
     """
 
     # Call some dummy auxip/cadip/staging tasks.
-    # NOTE 1: call them without .submit so they are run by prefect nodes, not dask nodes
-    # NOTE 2: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
+    # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
     # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
-    staging_has_finished = dummy_staging(
+    staging_result = dummy_staging.submit(
         "",
-        dummy_auxip_search("", "ADGS"),
-        dummy_cadip_search("", "CADIP"),
+        dummy_auxip_search.submit("", "ADGS"),
+        dummy_cadip_search.submit("", "CADIP"),
     )
 
-    # Setup adaptive scaling
-    dask_gateway.adapt_cluster(dask_cluster_name, minimum=1, maximum=worker_count)
-
     # Run the EOPF task with .submit in a dask node
-    eopf_has_finished = {}  # all_my_eopf_code.submit(
-    #     staging_has_finished,
-    #     input_config_dir,
-    #     payload_file,
-    #     output_data_dir,
-    # ).result()
+    eopf_result = dask_flow(
+        staging_result,
+        input_config_dir,
+        payload_file,
+        output_data_dir,
+    )
 
     # Call dummy catalog task
-    return dummy_catalog_save(eopf_has_finished, "", "")
+    catalog_result = dummy_catalog_save.submit(eopf_result, "", "")
+    return catalog_result.result()
 
 
 @task
@@ -174,7 +163,7 @@ def dummy_staging(rs_server_api_key: str, *_):
 
 
 @task
-def dummy_catalog_save(_, rs_server_api_key: str, owner_id: str):
+def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
     """
     Dummy cadip search.
 
@@ -189,9 +178,36 @@ def dummy_catalog_save(_, rs_server_api_key: str, owner_id: str):
     return {}
 
 
+#######################
+# Dask tasks and flow #
+#######################
+
+
+@flow(
+    task_runner=DaskTaskRunner(
+        address=dask_cluster.scheduler_address,
+        client_kwargs={"security": dask_cluster.security},
+    ),
+)
+def dask_flow(
+    staging_result,
+    input_config_dir: str,
+    payload_file: str,
+    output_data_dir: str,
+):
+    """
+    Dask flow used to call tasks in dask workers.
+    """
+    # Call the main dask task
+    return dask_main_task.submit(
+        input_config_dir,
+        payload_file,
+        output_data_dir,
+    ).result()
+
+
 @task
-def all_my_eopf_code(
-    _,
+def dask_main_task(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
