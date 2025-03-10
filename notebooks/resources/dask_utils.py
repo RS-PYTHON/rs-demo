@@ -172,11 +172,6 @@ def init_dask_cluster(
                 f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
             )
         time.sleep(5)
-
-    # Forward logging from dask workers to the caller.
-    # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
-    # client.forward_logging()
-
     return gateway, cluster, client
 
 
@@ -247,11 +242,6 @@ def get_existing_cluster(
         gateway = get_dask_gateway(address)
         cluster = gateway.connect(name)
         client = cluster.get_client()
-
-        # Forward logging from dask workers to the caller.
-        # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
-        # client.forward_logging()
-
         return gateway, cluster, client
 
     except Exception as exception:
