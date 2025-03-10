@@ -23,6 +23,7 @@ import time
 from pathlib import Path
 
 from prefect import flow, get_run_logger, task
+from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
@@ -86,25 +87,41 @@ def first_l0_processor(
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
 
+    # TODO: should be passed as user-given parameter
+    rs_server_api_key = ""
+    adgs_station = "ADGS"
+    cadip_station = "CADIP"
+    owner_id = ""
+
+    auxip_search_result = dummy_auxip_search.submit(rs_server_api_key, adgs_station)
+    cadip_search_result = dummy_cadip_search.submit(rs_server_api_key, cadip_station)
+
     # Call some dummy auxip/cadip/staging tasks.
     # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
     # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
     staging_result = dummy_staging.submit(
-        "",
-        dummy_auxip_search.submit("", "ADGS"),
-        dummy_cadip_search.submit("", "CADIP"),
+        rs_server_api_key,
+        auxip_search_result,
+        cadip_search_result,
+    )
+
+    config_file_result = dummy_config_file.submit(
+        rs_server_api_key,
+        auxip_search_result,
+        cadip_search_result,
     )
 
     # Run the EOPF task with .submit in a dask node
-    eopf_result = dask_flow(
+    eopf_result = first_l0_processor_dask(
         staging_result,
+        config_file_result,
         input_config_dir,
         payload_file,
         output_data_dir,
     )
 
     # Call dummy catalog task
-    catalog_result = dummy_catalog_save.submit(eopf_result, "", "")
+    catalog_result = dummy_catalog_save.submit(eopf_result, rs_server_api_key, owner_id)
     return catalog_result.result()
 
 
@@ -113,14 +130,9 @@ def dummy_auxip_search(
     rs_server_api_key: str,
     station: str,
 ):
-    """
-    Dummy cadip search.
-
-    NOTES:
-      - station and rs_server_api_key should be given by the user as flow run parameters
-    """
+    """Dummy auxip search."""
     logger = get_run_logger()
-    logger.info("Start auxip search")
+    logger.info("Start (dummy) auxip search")
     time.sleep(1)  # this task should run in parallel with cadip
     AuxipClient(rs_server_href, rs_server_api_key, None, station)
     logger.info(f"End (dummy) auxip search")
@@ -132,14 +144,9 @@ def dummy_cadip_search(
     rs_server_api_key: str,
     station: str,
 ):
-    """
-    Dummy cadip search.
-
-    NOTES:
-      - station and rs_server_api_key should be given by the user as flow run parameters
-    """
+    """Dummy cadip search."""
     logger = get_run_logger()
-    logger.info("Start cadip search")
+    logger.info("Start (dummy) cadip search")
     time.sleep(1)  # this task should run in parallel with auxip
     CadipClient(rs_server_href, rs_server_api_key, None, station)
     logger.info(f"End (dummy) cadip search")
@@ -148,14 +155,9 @@ def dummy_cadip_search(
 
 @task
 def dummy_staging(rs_server_api_key: str, *_):
-    """
-    Dummy cadip search.
-
-    NOTES:
-      - rs_server_api_key should be given by the user as flow run parameters
-    """
+    """Dummy staging"""
     logger = get_run_logger()
-    logger.info("Start staging")
+    logger.info("Start (dummy) staging")
     time.sleep(1)
     StagingClient(rs_server_href, rs_server_api_key, None)
     logger.info(f"End (dummy) staging search")
@@ -163,13 +165,18 @@ def dummy_staging(rs_server_api_key: str, *_):
 
 
 @task
-def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
-    """
-    Dummy cadip search.
+def dummy_config_file(rs_server_api_key: str, *_):
+    """Dummy config file writing for the processor"""
+    logger = get_run_logger()
+    logger.info("Start (dummy) config file")
+    time.sleep(1)
+    logger.info(f"End (dummy) config file")
+    return {}
 
-    NOTES:
-      - owner_id and rs_server_api_key should be given by the user as flow run parameters
-    """
+
+@task
+def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
+    """Dummy catalog call to save results"""
     logger = get_run_logger()
     logger.info("Start catalog saving")
     time.sleep(1)
@@ -189,8 +196,9 @@ def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
         client_kwargs={"security": dask_cluster.security},
     ),
 )
-def dask_flow(
+def first_l0_processor_dask(
     staging_result,
+    config_file_result,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -198,16 +206,15 @@ def dask_flow(
     """
     Dask flow used to call tasks in dask workers.
     """
-    # Call the main dask task
-    return dask_main_task.submit(
+    return main_dask_task.submit(
         input_config_dir,
         payload_file,
         output_data_dir,
-    ).result()
+    )
 
 
 @task
-def dask_main_task(
+def main_dask_task(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -265,11 +272,14 @@ def dask_main_task(
         text=True,
     )
 
-    # Write output to a log file + redirect to the prefect logger
+    # Log contents
+    log_str = ""
+
+    # Write output to a log file and string + redirect to the prefect logger
     with open(
         osp.join(report_dirname, Path(payload_file).with_suffix(".log").name),
         "w+",
-    ) as opened:
+    ) as log_file:
         while (line := p.stdout.readline()) != "":
 
             # The log prints password in clear e.g 'key': '<my-secret>'... hide them with a regex
@@ -283,8 +293,9 @@ def dask_main_task(
             ):
                 line = re.sub(rf"(\W{key}\W)[^,}}]*", r"\1: ***", line)
 
-            # Write to log file
-            opened.write(line)
+            # Write to log file and string
+            log_file.write(line)
+            log_str += line
 
             # Write to prefect logger if not empty
             line = line.rstrip()
@@ -308,6 +319,13 @@ def dask_main_task(
             )
         except Exception as exception:
             logger.error(exception)
+
+        # Save log str into a markdown artifact
+        create_markdown_artifact(
+            key="logging",
+            markdown=f"```\n{log_str}\n```",
+            description="L0 processing logging",
+        )
 
     # Dummy output for prefect
     return {}

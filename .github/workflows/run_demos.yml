@@ -39,6 +39,9 @@ jobs:
         run: |
           set -x
 
+          # Copy the s3cmd config file to be able to access the "real" s3 bucket
+          echo "${{ secrets.S3CFG_ORANGE_BUCKET }}" > ~/.s3cfg
+
           # We want to use docker images with tag=this_branch_name.
           branch_name=${{ github.ref_name }}
 
@@ -54,9 +57,6 @@ jobs:
           # Run the rs-demo local mode using these docker images, if they exist
           cd ${GITHUB_WORKSPACE}/local-mode
           ./test-docker-tag.sh "$docker_tag"
-
-          # Copy the s3cmd config file to be able to access the "real" s3 bucket
-          echo "${{ secrets.S3CFG_ORANGE_BUCKET }}" > ~/.s3cfg
 
           # Run all services
           docker compose -f docker-compose-test-tag.yml up -d
