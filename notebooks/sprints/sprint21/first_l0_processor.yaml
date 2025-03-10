@@ -26,3 +26,4 @@ deployments:
             RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
             # TODO: should rather be set in the deployment helm charts
             RSPY_WEBSITE: "{{ RSPY_WEBSITE }}"
+            RSPY_UAC_CHECK_URL: "{{ RSPY_UAC_CHECK_URL }}"
