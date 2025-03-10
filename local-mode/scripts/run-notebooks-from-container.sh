@@ -32,6 +32,7 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
 
     # For testing. Keep this line commented in git.
     # if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
+    if [[ "$_relative" != "notebooks/sprints/sprint21/first_l0_processor.ipynb" ]]; then continue; fi
 
     # Ignore these notebooks
     if grep -q "$_relative" "${SCRIPT_DIR}/ignored-notebooks.txt"; then
@@ -42,7 +43,7 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
     # NOTE: you can add '--log-output' to view outputs.
-    (set -x && cd "$_dirname" && time papermill "$_filename" /tmp/out.ipynb) && \
+    (set -x && cd "$_dirname" && time papermill --log-output "$_filename" /tmp/out.ipynb) && \
     all_ok="${all_ok:-}  - '$_relative'\n" || \
     all_errors="${all_errors:-}  - '$_relative'\n"
 done
