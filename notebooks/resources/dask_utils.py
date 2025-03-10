@@ -81,6 +81,7 @@ def init_dask_cluster(
     cluster_tag: str = "",
     worker_cores: int = 1,
     worker_memory: float = 2.0,
+    scheduler_memory_limit: int = 2,
     namespace="dask-gateway",
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
     """
@@ -145,6 +146,7 @@ def init_dask_cluster(
             cluster_max_workers=scale + 1,
             cluster_max_cores=(scale + 1) * worker_cores,
             cluster_max_memory=(scale + 1) * worker_memory * (2**30),  # from GB to B
+            scheduler_memory_limit=scheduler_memory_limit,
             namespace=namespace,
             image=image,
             cluster_name=cluster_tag,
