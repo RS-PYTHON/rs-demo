@@ -326,7 +326,7 @@ def temporary_fix_adgs_feature(items_collection):
             feature["assets"][asset]["title"] = asset
             feature["assets"][asset][
                 "href"
-            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
+            ] = f"http://mockup-station-adgs.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
     return items_collection
 
 
