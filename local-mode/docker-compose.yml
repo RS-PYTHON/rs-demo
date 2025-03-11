@@ -393,7 +393,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import requests; assert requests.get('http://127.0.0.1:4200/api/health').ok\""]
       interval: 2s
-      retries: 10
+      retries: 30
 
   prefect-worker-staging:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
