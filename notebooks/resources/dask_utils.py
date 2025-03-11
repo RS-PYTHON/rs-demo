@@ -67,7 +67,7 @@ def get_dask_gateway(
             )
         except KeyError as error:
             raise KeyError(
-                "In local mode, call init_prefect_blocks() or blocks_to_env_vars() before this function.",
+                "You must call init_prefect_blocks() before this function.",
             ) from error
 
     return Gateway(address=address, auth=auth)
@@ -81,6 +81,7 @@ def init_dask_cluster(
     cluster_tag: str = "",
     worker_cores: int = 1,
     worker_memory: float = 2.0,
+    scheduler_memory_limit: int = 2,
     namespace="dask-gateway",
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
     """
@@ -93,7 +94,7 @@ def init_dask_cluster(
         image: docker image name to use for the workers
         cluster_tag: cluster name: "dask-staging" or "dask-eopf"
         worker_cores: number of worker cores
-        worker_memory: worker memory
+        worker_memory: worker memory in GB
         namespace: dask gateway namespace
     """
 
@@ -142,6 +143,10 @@ def init_dask_cluster(
         cluster = gateway.new_cluster(
             worker_cores=worker_cores,
             worker_memory=worker_memory,
+            cluster_max_workers=scale + 1,
+            cluster_max_cores=(scale + 1) * worker_cores,
+            cluster_max_memory=(scale + 1) * worker_memory * (2**30),  # from GB to B
+            scheduler_memory_limit=scheduler_memory_limit,
             namespace=namespace,
             image=image,
             cluster_name=cluster_tag,
@@ -169,11 +174,6 @@ def init_dask_cluster(
                 f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
             )
         time.sleep(5)
-
-    # Forward logging from dask workers to the caller.
-    # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
-    client.forward_logging()
-
     return gateway, cluster, client
 
 
@@ -244,11 +244,6 @@ def get_existing_cluster(
         gateway = get_dask_gateway(address)
         cluster = gateway.connect(name)
         client = cluster.get_client()
-
-        # Forward logging from dask workers to the caller.
-        # NOTE: we need to use the logging in the workers, "print" won't be forwarded.
-        client.forward_logging()
-
         return gateway, cluster, client
 
     except Exception as exception:

@@ -17,24 +17,34 @@ ARG DASK_GATEWAY_TAG=xxx
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 ARG DASK_GATEWAY_TAG=xxx
 
-ARG EOPF_PIP_VERSION=xxx
 ARG PREFECT_TAG=xxx
+ARG PREFECT_DASK_TAG=xxx
 
 # Default user from parent image
 ARG USER=dask:dask
 
 # Install EOPF
-RUN pip install eopf=="${EOPF_PIP_VERSION}" \
-    --index-url https://gitlab.eopf.copernicus.eu/api/v4/projects/14/packages/pypi/simple
+COPY ./requirements.dask-eopf-local.txt /opt/
+# NOTE, with older docker versions, use:
+# RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
+# GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
+RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
+    pip install -U -r /opt/requirements.dask-eopf-local.txt
 
 # Install complete dask subsets + prefect
 RUN pip install \
     dask[complete] \
-    prefect[dask,aws]=="${PREFECT_TAG}"
+    prefect[aws]=="${PREFECT_TAG}" \
+    prefect-dask=="${PREFECT_DASK_TAG}"
+
+# Other installations
+USER root
+RUN apt update && apt install -y python3-pydot graphviz
+USER $USER
 
 # Clean everything
 USER root
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/*
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
@@ -43,6 +53,3 @@ USER $USER
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
-
-LABEL org.opencontainers.image.version="dask-gateway-server==${DASK_GATEWAY_TAG} eopf==${EOPF_PIP_VERSION}"
-LABEL org.opencontainers.image.description="dask-gateway-server image for local mode in which we installed the EOPF wheel package."

@@ -64,10 +64,11 @@ wait_for_service 8003 "_mgmt/ping" # catalog
 (
     set -x;
     docker run --rm \
+        --user=root \
         --network rspy-network \
-        -v $ROOT_DIR:$ROOT_DIR \
+        -v "$ROOT_DIR:$ROOT_DIR" \
         -v rspy-demo_rspy_working_dir:/rspy/working/dir \
-        -e RSPY_HOST_USER=$USER \
+        -e RSPY_HOST_USER="$USER" \
         "${docker_image_tag}" \
         "${SCRIPT_DIR}/scripts/run-notebooks-from-container.sh"
 )
