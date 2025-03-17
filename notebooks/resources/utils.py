@@ -58,6 +58,9 @@ rs_common.logging.Logging.level = logging.INFO
 local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
+# Is this code run from the ci/cd or manually ? By default: manually.
+from_cicd: bool = os.getenv("RSPY_FROM_CICD") == "1"
+
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str | None = None
 
@@ -326,7 +329,7 @@ def temporary_fix_adgs_feature(items_collection):
             feature["assets"][asset]["title"] = asset
             feature["assets"][asset][
                 "href"
-            ] = f"http://mockup-station-adgs-svc.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
+            ] = f"http://mockup-station-adgs.processing.svc.cluster.local:8080/Products({feature['properties']['auxip:id']})/$value"
     return items_collection
 
 

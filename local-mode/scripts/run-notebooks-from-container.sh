@@ -9,6 +9,11 @@ ROOT_DIR="$(realpath $SCRIPT_DIR/../..)"
 
 # We are always on local mode
 export RSPY_LOCAL_MODE=1
+
+# This script is run from the ci/cd
+export RSPY_FROM_CICD=1
+
+# TEMP
 export RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION=0
 
 # Read environment variables from the .env file
@@ -24,6 +29,9 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
     _dirname="$(dirname $notebook)"
     _filename="$(basename $notebook)"
     _relative="$(realpath $notebook --relative-to $ROOT_DIR)"
+
+    # For testing. Keep this line commented in git.
+    # if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
 
     # Ignore these notebooks
     if grep -q "$_relative" "${SCRIPT_DIR}/ignored-notebooks.txt"; then

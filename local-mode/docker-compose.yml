@@ -396,7 +396,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import requests; assert requests.get('http://127.0.0.1:4200/api/health').ok\""]
       interval: 2s
-      retries: 10
+      retries: 30
 
   prefect-worker-staging:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
@@ -404,7 +404,7 @@ services:
       prefect-server:
         condition: service_healthy
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
+      PREFECT_API_URL: http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
     deploy:
       mode: replicated
@@ -416,7 +416,12 @@ services:
       prefect-server:
         condition: service_healthy
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
+      PREFECT_API_URL: http://prefect-server:4200/api
+      # rs-server urls
+      RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
+      RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
+      RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
+      RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
@@ -429,8 +434,15 @@ services:
 
   dask-eopf:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_threads="${DASK_THREADS_EOPF}"
     ports:
       - 8702:8000
+    volumes:
+      - ~/.s3cfg:/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
 
   #################
   # OPENTELEMETRY #
