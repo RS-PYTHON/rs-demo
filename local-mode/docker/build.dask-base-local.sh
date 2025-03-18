@@ -42,6 +42,9 @@ docker build \
     --progress=plain \
     "$tmp"
 
-# Push the images
-docker login https://ghcr.io/v2/rs-python
-docker push "${registry}:${DASK_GATEWAY_TAG}"
+
+# Push the docker iamge to the registry, if the --push option is specified.
+if [[ " $@ " == *" --push "* ]]; then
+    docker login https://ghcr.io/v2/rs-python
+    docker push "${registry}:${DASK_GATEWAY_TAG}"
+fi
