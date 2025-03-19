@@ -18,8 +18,8 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-DASK_GATEWAY_TAG="2024.1.0"
-PREFECT_TAG="3.1.4"
+DASK_GATEWAY_TAG=2024.1.0
+PREFECT_TAG=3.2.13
 PREFECT_DASK_TAG=0.3.3
 
 set +x

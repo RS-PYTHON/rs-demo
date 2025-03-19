@@ -18,7 +18,7 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-DASK_GATEWAY_TAG="2024.1.0"
+DASK_GATEWAY_TAG=2024.1.0
 
 # Use the same requirements as for the dask-gateway-server docker image.
 # Download them from https://github.com/dask/dask-gateway/blob/<tag>/dask-gateway-server/Dockerfile.requirements.txt
