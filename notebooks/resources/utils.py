@@ -353,7 +353,7 @@ def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
 
     # Init the prefect blocks.
     # In local mode: create them. In cluster mode: read them.
-    init_prefect_blocks()
+    init_prefect_blocks(_sync=True)
 
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
