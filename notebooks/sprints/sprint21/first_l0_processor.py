@@ -214,7 +214,7 @@ def first_l0_processor_dask(
 
 
 @task
-def main_dask_task(
+async def main_dask_task(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -253,7 +253,7 @@ def main_dask_task(
     # NOTE: maybe we should only download the payload file + only necessary config files
     # rather than the whole directory.
     local_config_dir = "config"
-    prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
+    await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
 
     # Change working directory
     os.chdir(osp.join(local_config_dir, payload_dir))
@@ -262,7 +262,7 @@ def main_dask_task(
     os.makedirs(report_dirname, exist_ok=True)
 
     # Hack the payload file
-    hack_payload(payload_name)
+    await hack_payload(payload_name)
 
     # Trigger EOPF processing, catch output
     p = subprocess.Popen(
@@ -313,7 +313,7 @@ def main_dask_task(
     # In all cases, upload the reports dir to the s3 bucket.
     finally:
         try:
-            prefect_utils.s3_upload_dir(
+            await prefect_utils.s3_upload_dir(
                 report_dirname,
                 osp.join(output_data_dir, report_dirname),
             )
@@ -332,7 +332,7 @@ def main_dask_task(
 
 
 @task
-def hack_payload(filename: str):
+async def hack_payload(filename: str):
     """Hack the payload file"""
     import yaml
     from dotenv import dotenv_values  # used in local mode only
@@ -348,7 +348,7 @@ def hack_payload(filename: str):
     # We need to create the output S3 folder with a dummy file before running DPR
     for output_product in payload["I/O"]["output_products"]:
         output_dir = os.path.expandvars(output_product["path"])  # expand env vars
-        prefect_utils.s3_upload_empty_file(f"{output_dir}/.empty")
+        await prefect_utils.s3_upload_empty_file(f"{output_dir}/.empty")
 
     # Change the dask authentication for local mode
     if local_mode:
