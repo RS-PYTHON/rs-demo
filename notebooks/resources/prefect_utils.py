@@ -50,11 +50,10 @@ def get_ip_address() -> str:
     return socket.gethostbyname(socket.gethostname())
 
 
-@sync_compatible
-async def read_block(cls, name: str):
+def read_block(cls, name: str):
     """Read a prefect block, add an error message around."""
     try:
-        return await cls.load(name)
+        return cls.load(name)
     except ValueError as error:
         if local_mode:
             raise ValueError(
@@ -66,8 +65,7 @@ async def read_block(cls, name: str):
             ) from error
 
 
-@sync_compatible
-async def init_prefect_blocks():
+def init_prefect_blocks():
     global PREFECT_BLOCK_S3
     block_auth = os.environ["PREFECT_BLOCK_AUTH"]
     block_s3 = os.environ["PREFECT_BLOCK_S3"]
@@ -88,7 +86,7 @@ async def init_prefect_blocks():
                     "LOCAL_DASK_PASSWORD": secrets.token_urlsafe(32),
                 },
             )
-            await secret.save(block_auth, overwrite=True)
+            secret.save(block_auth, overwrite=True)
         except ValueError:  # do nothing if the block was already saved
             pass
 
@@ -104,18 +102,17 @@ async def init_prefect_blocks():
             credentials=aws_credentials,
             bucket_folder="sub/dir",
         )
-        await PREFECT_BLOCK_S3.save(block_s3, overwrite=True)
+        PREFECT_BLOCK_S3.save(block_s3, overwrite=True)
 
     # In cluster mode, read the S3 block
     else:
-        PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
+        PREFECT_BLOCK_S3 = read_block(S3Bucket, block_s3)
 
     # Save the dask authentication from prefect blocks as env vars
-    await blocks_to_env_vars()
+    blocks_to_env_vars()
 
 
-@sync_compatible
-async def blocks_to_env_vars():
+def blocks_to_env_vars():
     """
     Convert the prefect blocks into environment variables.
     """
@@ -129,7 +126,7 @@ async def blocks_to_env_vars():
     # Auth block
 
     # Read the prefect block for authentication
-    auth: dict = (await read_block(Secret, block_auth)).get()
+    auth: dict = (read_block(Secret, block_auth)).get()
 
     # In cluster mode, make sure it has the right keys.
     # Don't do it in local mode, the keys are set internally by init_prefect_blocks()
@@ -147,7 +144,7 @@ async def blocks_to_env_vars():
     # Update the S3 bucket env vars from the block info.
     # NOTE: in fact in local mode, the prefect block was already initialized from these env vars.
     # But it's still useful to do this from a prefect flow so we pass only the block to the flow, not the env vars.
-    PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
+    PREFECT_BLOCK_S3 = read_block(S3Bucket, block_s3)
     os.environ.update(
         {
             "S3_ACCESSKEY": PREFECT_BLOCK_S3.credentials.aws_access_key_id,
@@ -226,19 +223,23 @@ def get_s3_bucket(s3_path: str) -> tuple[S3Bucket, str]:
         return s3_bucket, object_name
 
 
-@sync_compatible
-async def s3_upload_file(
+def mytest():
+    s3_bucket, to_path = get_s3_bucket("s3://prefect-share/toto/")
+    # return s3_bucket.upload_from_path("./test.py", to_path)
+    return s3_bucket.upload_from_path
+
+
+def s3_upload_file(
     from_path: Union[str, Path],
     s3_path: str,
     **upload_kwargs: Dict[str, Any],
 ) -> str:
     """See: S3Bucket.upload_from_path"""
     s3_bucket, to_path = get_s3_bucket(s3_path)
-    return await s3_bucket.upload_from_path(from_path, to_path, **upload_kwargs)
+    return s3_bucket.upload_from_path(from_path, to_path, **upload_kwargs)
 
 
-@sync_compatible
-async def s3_upload_empty_file(
+def s3_upload_empty_file(
     s3_path: str,
     **upload_kwargs: Dict[str, Any],
 ) -> str:
@@ -252,11 +253,10 @@ async def s3_upload_empty_file(
         tmp.flush()
 
         # Upload the file
-        return await s3_upload_file(tmp.name, s3_path, **upload_kwargs)
+        return s3_upload_file(tmp.name, s3_path, **upload_kwargs)
 
 
-@sync_compatible
-async def s3_upload_dir(
+def s3_upload_dir(
     from_folder: Union[str, Path],
     s3_path: str,
     **upload_kwargs: Dict[str, Any],
@@ -267,28 +267,26 @@ async def s3_upload_dir(
     Uploads files *within* a folder (excluding the folder itself) to the object storage service folder.
     """
     s3_bucket, to_path = get_s3_bucket(s3_path)
-    return await s3_bucket.upload_from_folder(from_folder, to_path, **upload_kwargs)
+    return s3_bucket.upload_from_folder(from_folder, to_path, **upload_kwargs)
 
 
-@sync_compatible
-async def s3_download_file(
+def s3_download_file(
     s3_path: str,
     to_path: Optional[Union[str, Path]],
     **download_kwargs: Dict[str, Any],
 ) -> Path:
     """See: S3Bucket.download_object_to_path"""
     s3_bucket, from_path = get_s3_bucket(s3_path)
-    await s3_bucket.download_object_to_path(from_path, to_path, **download_kwargs)
+    s3_bucket.download_object_to_path(from_path, to_path, **download_kwargs)
 
 
-@sync_compatible
-async def s3_download_dir(
+def s3_download_dir(
     s3_path: str,
     local_path: Optional[str] = None,
 ) -> None:
     """See: S3Bucket.get_directory"""
     s3_bucket, from_path = get_s3_bucket(s3_path)
-    await s3_bucket.get_directory(from_path, local_path)
+    s3_bucket.get_directory(from_path, local_path)
 
 
 def s3_delete(s3_prefix: str):
