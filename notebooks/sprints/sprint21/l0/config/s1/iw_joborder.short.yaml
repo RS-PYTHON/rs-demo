@@ -27,7 +27,7 @@ I/O:
   input_products:
 
   - id: S1ACADU
-    path: s3://rs-cluster-temp/stations/CADIP/S1A_20240410083700053369.short
+    path: s3://rs-dev-cluster-temp/stations/CADIP/S1A_20240410083700053369.short
     store_type: cadu
     store_params:
       storage_options:

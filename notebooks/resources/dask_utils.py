@@ -81,6 +81,7 @@ def init_dask_cluster(
     cluster_tag: str = "",
     worker_cores: int = 1,
     worker_memory: float = 2.0,
+    worker_extra_pod_config: dict = {},
     scheduler_memory_limit: int = 2,
     namespace="dask-gateway",
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
@@ -95,6 +96,7 @@ def init_dask_cluster(
         cluster_tag: cluster name: "dask-staging" or "dask-eopf"
         worker_cores: number of worker cores
         worker_memory: worker memory in GB
+        worker_extra_pod_config: Node affinities and tolerations
         namespace: dask gateway namespace
     """
 
@@ -149,6 +151,7 @@ def init_dask_cluster(
             scheduler_memory_limit=scheduler_memory_limit,
             namespace=namespace,
             image=image,
+            worker_extra_pod_config=worker_extra_pod_config,
             cluster_name=cluster_tag,
             scheduler_extra_pod_labels={"cluster_name": cluster_tag},
         )
@@ -179,7 +182,8 @@ def init_dask_cluster(
 
 def init_dask_cluster_staging(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infra-core-dask-staging:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-staging:feat-rspy625-update-jupyter",
+    worker_extra_pod_config: dict = {'affinity': {'nodeAffinity': {'requiredDuringSchedulingIgnoredDuringExecution': {'nodeSelectorTerms': [{'matchExpressions': [{'key': 'node-role.kubernetes.io/access_csc', 'operator': 'Exists'}]}]}}}, 'tolerations': [{'key': 'role', 'operator': 'Equal', 'value': 'access_csc', 'effect': 'NoSchedule'}]},
     *args,
     **kwargs,
 ):
@@ -198,6 +202,7 @@ def init_dask_cluster_staging(
         ),
         scale,
         image=image,
+        worker_extra_pod_config=worker_extra_pod_config,
         cluster_tag="dask-staging",
         *args,
         **kwargs,
@@ -206,7 +211,8 @@ def init_dask_cluster_staging(
 
 def init_dask_cluster_eopf(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:feat-rspy625-update-jupyter",
+    worker_extra_pod_config: dict = {'affinity': {'nodeAffinity': {'requiredDuringSchedulingIgnoredDuringExecution': {'nodeSelectorTerms': [{'matchExpressions': [{'key': 'node-role.kubernetes.io/processing', 'operator': 'Exists'}]}]}}}},
     *args,
     **kwargs,
 ):
@@ -225,6 +231,7 @@ def init_dask_cluster_eopf(
         ),
         scale,
         image=image,
+        worker_extra_pod_config=worker_extra_pod_config,
         cluster_tag="dask-eopf",
         *args,
         **kwargs,
