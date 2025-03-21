@@ -290,17 +290,15 @@ def stage_test_objects(
     items_id = [item.id for item in item_collection]
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
-    job_id = staging_client.run_staging(
+    started_job = staging_client.run_staging(
         item_collection.to_dict(),
         catalog_collection_name,
     )
     timeout = 120
     while timeout > 0:
-        if "running" not in job_id["status"]:
+        if "running" not in started_job["status"]:
             break
-        # TODO: to replace with the following commented line after the rs-server-staging update
-        ###job_info = staging_client.get_job_info(resp["jobID"])
-        job_info = staging_client.get_job_info(job_id["status"]["running"])
+        job_info = staging_client.get_job_info(started_job["jobID"])
         pprint.PrettyPrinter(indent=4).pprint(job_info)
         print("\n")
         if "successful" in job_info["status"]:
