@@ -99,7 +99,7 @@ TEST_COLLECTION: str = "my_test_collection"
 
 # Define a search interval
 start_date = datetime(2000, 1, 1)
-stop_date = datetime(2030, 1, 1)
+stop_date = datetime(2024, 1, 1)
 
 #
 # Functions
@@ -283,6 +283,10 @@ def stage_test_objects(
         max_items=nb_of_objects,
     )
 
+    # for item in item_collection:
+    #     if item.properties.get('datetime') > "2025":
+    #     # Remove newly added S3 session
+    #         item_collection.items.remove(item)
     assert isinstance(item_collection, ItemCollection)
     if objects_are_files:
         # truncate by number of files. In cadip case, the items are sessions which have more than one file
