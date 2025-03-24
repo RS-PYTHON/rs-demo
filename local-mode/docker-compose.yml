@@ -213,23 +213,27 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/ADGS/Dockerfile
   adgs-station:
-    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:feat-s3-data
+    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
     container_name: adgs-station
     ports:
       - 5001:5000
+    env_file:
+      - ./config/s3.env
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
-    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:feat-s3-data
+    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
     container_name: cadip-station
     environment:
       HTTP_REDIRECTION_HREF: http://cadip-station:5000
     ports:
       - 5002:5000
       - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
+    env_file:
+      - ./config/s3.env
 
   lta-station:
-    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:feat-s3-data
+    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
     container_name: lta-station
     ports:
       - 5003:5000
