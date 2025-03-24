@@ -18,8 +18,8 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-DASK_GATEWAY_TAG="2024.1.0"
-PREFECT_TAG="3.1.4"
+DASK_GATEWAY_TAG=2024.1.0
+PREFECT_TAG=3.2.13
 PREFECT_DASK_TAG=0.3.3
 
 set +x
@@ -41,6 +41,9 @@ docker build \
     --progress=plain \
     "$SCRIPT_DIR" \
 
-# Push the images
-docker login https://ghcr.io/v2/rs-python
-docker push "${registry}:latest"
+
+# Push the docker iamge to the registry, if the --push option is specified.
+if [[ " $@ " == *" --push "* ]]; then
+    docker login https://ghcr.io/v2/rs-python
+    docker push "${registry}:latest"
+fi
