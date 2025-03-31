@@ -30,6 +30,13 @@ from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
 from rs_client.staging_client import StagingClient
 
+import requests
+from opentelemetry import trace
+from opentelemetry.trace import SpanContext, NonRecordingSpan, TraceFlags
+
+import rs_common
+import rs_common.opentelemetry as rsotel
+
 # My local "./resources" folder contains my utility modules.
 # I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
 # For this, I'm updating my PYTHONPATH.
@@ -49,7 +56,7 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
 
 # Now I need to upload my local utility module that will be used by the dask tasks
 dask_client.upload_file("./resources/prefect_utils.py")
-dask_client.upload_file("./opentelemetry_init.py")
+dask_client.upload_file(f"{rs_common.__path__[0]}/opentelemetry.py")
 
 # Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
 # These lines of code is not called by the dask workers.
@@ -72,12 +79,8 @@ worker_count = len(dask_client.scheduler_info()["workers"])
 # Opentelemetry configuration #
 ###############################
 
-import requests
-from opentelemetry import trace
-from opentelemetry.trace import SpanContext, NonRecordingSpan, TraceFlags
-
 tracer = trace.get_tracer(__name__)
-
+TEMPO_ENDPOINT = os.getenv("TEMPO_ENDPOINT")
 
 
 ##########################
@@ -101,9 +104,7 @@ def first_l0_processor_with_optl(
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
 
-    os.environ["TEMPO_ENDPOINT"] = "http://tempo:4317"
-    import opentelemetry_init
-    opentelemetry_init.init_traces("rs.client.prefect")
+    rsotel.init_traces("rs.client.prefect")
 
     tracer = trace.get_tracer(__name__)
 
@@ -259,9 +260,9 @@ async def main_dask_task(
     # NOTE: not sure this is useful so I'm removing it
     # with worker_client(separate_thread=False)
 
-    os.environ["TEMPO_ENDPOINT"] = "http://tempo:4317"
-    import opentelemetry_init
-    opentelemetry_init.init_traces("rs.client.dask")
+    os.environ["TEMPO_ENDPOINT"] = TEMPO_ENDPOINT
+    import opentelemetry as rsotel
+    rsotel.init_traces("rs.client.dask")
 
     tracer = trace.get_tracer(__name__)
 
