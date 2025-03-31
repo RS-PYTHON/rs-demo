@@ -29,6 +29,7 @@ from typing import Optional
 import boto3
 import requests
 import rs_common
+import rs_common.logging
 from pystac import (
     Asset,
     Collection,
@@ -47,7 +48,6 @@ from rs_client.catalog_client import CatalogClient
 from rs_client.rs_client import RsClient
 from rs_client.staging_client import StagingClient
 from rs_common.config import EAuxipStation, ECadipStation
-import rs_common.logging
 
 # Variables
 # Set logger level to info
