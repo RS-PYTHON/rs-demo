@@ -232,7 +232,7 @@ services:
     environment:
       HTTP_REDIRECTION_HREF: http://cadip-station:5000
       # Token expiration settings
-      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN} 
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
     ports:
       - 5002:5000
