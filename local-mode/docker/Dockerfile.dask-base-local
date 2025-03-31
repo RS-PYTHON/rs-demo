@@ -19,8 +19,8 @@
 # We cannot use the original ghcr.io/dask/dask-gateway-server image because it is made for k8s
 # and uses a proxy file (that seems to be built with golang) that we don't have in local.
 
-# We need debian 12
-FROM python:3.11.7-slim-bookworm
+ARG PYTHON_VERSION=xxx
+FROM python:${PYTHON_VERSION}-slim-bookworm
 
 ARG DASK_GATEWAY_TAG=xxx
 
