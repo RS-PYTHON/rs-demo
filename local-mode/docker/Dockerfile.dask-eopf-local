@@ -23,7 +23,30 @@ ARG PREFECT_DASK_TAG=0.3.3
 # Default user from parent image
 ARG USER=dask:dask
 
-# Install EOPF
+# TEMP: ugly hack for python>3.11: install eopf from local repository
+# after removing the version constraints and some componenets.
+ARG EOPF_TAG=2.5.6
+ADD "https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/archive/${EOPF_TAG}/eopf-cpm-${EOPF_TAG}.tar" /tmp
+USER root
+RUN chown $USER "/tmp/eopf-cpm-${EOPF_TAG}.tar"
+USER $USER
+RUN \
+    cd /tmp && \
+    chmod u+x "eopf-cpm-${EOPF_TAG}.tar" && \
+    tar -xf "eopf-cpm-${EOPF_TAG}.tar" && \
+    cd "/tmp/eopf-cpm-${EOPF_TAG}" && \
+    sed -i "s|\s*>=[^\"]*||g" pyproject.toml && \
+    sed -i "s|\s*==[^\"]*||g" pyproject.toml && \
+    sed -i "/\"sentineltoolbox\"/d" pyproject.toml && \
+    sed -i "/\"ecmwflibs\"/d" pyproject.toml && \
+    cat pyproject.toml && \
+    pip install "/tmp/eopf-cpm-${EOPF_TAG}" && \
+    rm -rf /tmp/eopf-cpm-* && \
+    layer-cleanup.sh
+# END TEMP
+# After removing this TEMP block restore the eopf installation in the requirements.dask-eopf-local.txt file below.
+
+# Install EOPF and processors
 COPY ./requirements.dask-eopf-local.txt /opt/
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
