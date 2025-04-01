@@ -222,6 +222,8 @@ services:
     container_name: adgs-station
     ports:
       - 5001:5000
+    volumes:
+      - ~/.s3cfg:/.s3cfg
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
@@ -232,6 +234,8 @@ services:
     ports:
       - 5002:5000
       - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
+    volumes:
+      - ~/.s3cfg:/.s3cfg
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
