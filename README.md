@@ -140,7 +140,7 @@ prefect block inspect secret/auth
 
 #### Option 1: update the JupyterHub image (affects everyone)
 
-1. Vérify in the CI/CD that the last `rs-client-libraries` modifications were merged into the `develop` branch: <https://github.com/RS-PYTHON/rs-client-libraries/actions/workflows/publish-binaries.yml>
+1. Verify in the CI/CD that the last `rs-client-libraries` modifications were merged into the `develop` branch: <https://github.com/RS-PYTHON/rs-client-libraries/actions/workflows/publish-binaries.yml>
 
 1. Ask the `rs-infrastructure` administrator to run a new CI/CD workflow to publish this `rs-client-libraries` version into a new JupyterHub image.
 
@@ -155,7 +155,8 @@ prefect block inspect secret/auth
     ```shell
     # Uninstall the old version. Note: this fails if we do it for the first time because
     # we try to uninstall the root installation of the library, but this this OK.
-    pip uninstall -y rs-client-libraries 2>/dev/null
+    pip install pip-autoremove
+    pip pip-autoremove -y rs-client-libraries 2>/dev/null
 
     # You may have conflicts between dependencies installed for the root user
     # and the current user. You can uninstall all current user dependencies with:

@@ -190,8 +190,6 @@ services:
       RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # Token expiration settings
-      RSPY_EXPIRES_IN: 1200
-      RSPY_REFRESH_EXPIRES_IN: 3600
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
       # postgres
@@ -220,8 +218,14 @@ services:
   adgs-station:
     image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
     container_name: adgs-station
+    environment:
+      # Token expiration settings
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
+      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
     ports:
       - 5001:5000
+    volumes:
+      - ~/.s3cfg:/.s3cfg
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
@@ -229,9 +233,14 @@ services:
     container_name: cadip-station
     environment:
       HTTP_REDIRECTION_HREF: http://cadip-station:5000
+      # Token expiration settings
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
+      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
     ports:
       - 5002:5000
       - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
+    volumes:
+      - ~/.s3cfg:/.s3cfg
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
