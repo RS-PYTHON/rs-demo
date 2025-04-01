@@ -18,10 +18,6 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-DASK_GATEWAY_TAG=2024.1.0
-PREFECT_TAG=3.2.13
-PREFECT_DASK_TAG=0.3.3
-
 set +x
 if [[ -z "${GITLAB_EOPF_TOKEN:-}" ]]; then
     >&2 echo -e "usage: GITLAB_EOPF_TOKEN=*** $0\n(see: https://gitlab.eopf.copernicus.eu/help/user/profile/personal_access_tokens)"
@@ -32,15 +28,11 @@ set -x
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/eopf/local"
 docker build \
-    --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
-    --build-arg "PREFECT_TAG=${PREFECT_TAG}" \
-    --build-arg "PREFECT_DASK_TAG=${PREFECT_DASK_TAG}" \
     --secret id=GITLAB_EOPF_TOKEN \
     -f "${SCRIPT_DIR}/Dockerfile.dask-eopf-local" \
     -t "${registry}:latest" \
     --progress=plain \
-    "$SCRIPT_DIR" \
-
+    "$SCRIPT_DIR"
 
 # Push the docker iamge to the registry, if the --push option is specified.
 if [[ " $@ " == *" --push "* ]]; then

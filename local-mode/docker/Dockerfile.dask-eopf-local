@@ -13,12 +13,12 @@
 # limitations under the License.
 
 # We will add eopf to the dask-gateway-server image for local mode
-ARG DASK_GATEWAY_TAG=xxx
+ARG DASK_GATEWAY_TAG=2024.1.0
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
-ARG DASK_GATEWAY_TAG=xxx
+ARG DASK_GATEWAY_TAG=2024.1.0
 
-ARG PREFECT_TAG=xxx
-ARG PREFECT_DASK_TAG=xxx
+ARG PREFECT_TAG=3.2.13
+ARG PREFECT_DASK_TAG=0.3.3
 
 # Default user from parent image
 ARG USER=dask:dask
@@ -29,22 +29,28 @@ COPY ./requirements.dask-eopf-local.txt /opt/
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
-    pip install -U -r /opt/requirements.dask-eopf-local.txt
+    pip install -U -r /opt/requirements.dask-eopf-local.txt && layer-cleanup.sh
 
-# Install complete dask subsets + prefect
-RUN pip install \
-    dask[complete] \
-    prefect[aws]=="${PREFECT_TAG}" \
-    prefect-dask=="${PREFECT_DASK_TAG}"
+# Install prefect
+RUN \
+    pip install \
+        prefect[aws]=="${PREFECT_TAG}" \
+        prefect-dask=="${PREFECT_DASK_TAG}" && \
+    layer-cleanup.sh
+
+# Install and auto configure opentelemetry
+RUN \
+    pip install \
+        opentelemetry-distro \
+        opentelemetry-instrumentation-aws-lambda \
+        opentelemetry-test-utils \
+        opentelemetry-exporter-otlp && \
+    opentelemetry-bootstrap -a install && \
+    layer-cleanup.sh
 
 # Other installations
 USER root
-RUN apt update && apt install -y python3-pydot graphviz
-USER $USER
-
-# Clean everything
-USER root
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
+RUN apt update && apt install -y python3-pydot graphviz && layer-cleanup.sh
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
