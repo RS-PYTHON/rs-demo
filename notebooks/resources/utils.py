@@ -29,6 +29,7 @@ from typing import Optional
 import boto3
 import requests
 import rs_common
+import rs_common.logging
 from pystac import (
     Asset,
     Collection,
