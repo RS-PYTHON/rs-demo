@@ -27,3 +27,4 @@ deployments:
             # TODO: should rather be set in the deployment helm charts
             RSPY_WEBSITE: "{{ RSPY_WEBSITE }}"
             RSPY_UAC_CHECK_URL: "{{ RSPY_UAC_CHECK_URL }}"
+            TEMPO_ENDPOINT: "{{ TEMPO_ENDPOINT }}"
