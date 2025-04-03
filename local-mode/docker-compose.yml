@@ -66,6 +66,7 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
@@ -113,6 +114,7 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
@@ -619,6 +621,6 @@ volumes:
   prefect_storage: {}
 
   # Used to:
-  #   - store the config files (stations url and port ...)
+  #   - write a file lock
   #   - for the demo, download files locally in laptop mode (downloaded by rs-server, read by jupyter)
   rspy_working_dir: {}
