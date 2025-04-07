@@ -166,7 +166,8 @@ def dummy_auxip_search(
     logger = get_run_logger()
     logger.info("Start (dummy) auxip search")
     time.sleep(1)  # this task should run in parallel with cadip
-    AuxipClient(rs_server_href, rs_server_api_key, None, station)
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Val_Kilmer")
+    # AuxipClient(rs_server_href, rs_server_api_key, None, station)
     logger.info(f"End (dummy) auxip search")
     return {}
 
@@ -180,7 +181,8 @@ def dummy_cadip_search(
     logger = get_run_logger()
     logger.info("Start (dummy) cadip search")
     time.sleep(1)  # this task should run in parallel with auxip
-    CadipClient(rs_server_href, rs_server_api_key, None, station)
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Copernicus_(programme)")
+    # CadipClient(rs_server_href, rs_server_api_key, None, station)
     logger.info(f"End (dummy) cadip search")
     return {}
 
@@ -191,7 +193,8 @@ def dummy_staging(rs_server_api_key: str, *_):
     logger = get_run_logger()
     logger.info("Start (dummy) staging")
     time.sleep(1)
-    StagingClient(rs_server_href, rs_server_api_key, None)
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne")
+    # StagingClient(rs_server_href, rs_server_api_key, None)
     logger.info(f"End (dummy) staging search")
     return {}
 
@@ -212,7 +215,8 @@ def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
     logger = get_run_logger()
     logger.info("Start catalog saving")
     time.sleep(1)
-    CatalogClient(rs_server_href, rs_server_api_key, owner_id)
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Sid_(L%27%C3%82ge_de_glace)")
+    # CatalogClient(rs_server_href, rs_server_api_key, owner_id)
     logger.info(f"End (dummy) catalog saving:")
     return {}
 
