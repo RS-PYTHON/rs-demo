@@ -187,6 +187,8 @@ services:
     environment:
       RSPY_LOCAL_MODE: 1
       RSPY_HOST_CATALOG: http://rs-server-catalog:8000
+      RSPY_HOST_CADIP: http://rs-server-cadip:8000
+      RSPY_HOST_ADGS: http://rs-server-adgs:8000
       RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # Token expiration settings
