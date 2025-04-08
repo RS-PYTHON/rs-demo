@@ -28,3 +28,4 @@ deployments:
             RSPY_APIKEY : "{{ RSPY_APIKEY }}"
             RSPY_WEBSITE: "{{ RSPY_WEBSITE }}"
             RSPY_UAC_CHECK_URL: "{{ RSPY_UAC_CHECK_URL }}"
+            TEMPO_ENDPOINT: "{{ TEMPO_ENDPOINT }}"
