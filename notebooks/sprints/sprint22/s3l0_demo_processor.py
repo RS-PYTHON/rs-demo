@@ -14,23 +14,22 @@
 
 """First L0 processor"""
 
+import ast
+import copy
 import os
 import os.path as osp
 import re
-import ast
 import subprocess
 import sys
 import time
-import copy
-import yaml
+from datetime import datetime
 from pathlib import Path
 
+import yaml
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
-from pystac import ItemCollection, Item, Asset
-from datetime import datetime
-
+from pystac import Asset, Item, ItemCollection
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
@@ -86,7 +85,7 @@ worker_count = len(dask_client_eopf.scheduler_info()["workers"])
 
 @flow
 def s3l0_demo_processor(
-input_config_dir: str,
+    input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
     owner_id: str,
@@ -111,7 +110,7 @@ input_config_dir: str,
     module, processing_unit = extract_module_and_processing_unit(payload_file)
     if not module or not processing_unit:
         return
-    
+
     generic_client = RsClient(
         rs_server_href,
         rs_server_api_key,
@@ -134,35 +133,35 @@ input_config_dir: str,
     catalog_item_ids = []
     for item in cadip_data:
         catalog_item_ids.append(item.id)
-    
-     # build dataset for auxip search from cadip_res
+
+    # build dataset for auxip search from cadip_res
     # ????
-    #auxip_built_from_cadip_res = build_auxip_search_param(cadip_data.item_collection())
+    # auxip_built_from_cadip_res = build_auxip_search_param(cadip_data.item_collection())
     # Retrieve cql2 from processor
     auxip_cql2 = start_processor_dask_for_aux_search(
         module,
-        processing_unit,        
-    )   
-    
-    logger.info(f" ### CQL2 : {auxip_cql2_filter}")    
+        processing_unit,
+    )
+
+    logger.info(f" ### CQL2 : {auxip_cql2_filter}")
 
     auxip_search_future = auxip_search.submit(
         auxip_client,
         auxip_cql2_filter,
-    )    
+    )
     # wait for results
     auxip_data = auxip_search_future.result()
     # protection against a searching failure
     if not auxip_data:
         logger.error("No auxip data found")
         return
-    
+
     for item in auxip_data:
         catalog_item_ids.append(item.id)
     logger.info(f"CATALOG items: {catalog_item_ids}")
-    
+
     # call the staging
-    
+
     # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
     # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
     cadip_staging_job = staging_client.run_staging(
@@ -170,29 +169,35 @@ input_config_dir: str,
         collection_name,
     )
     logger.info(f"cadip_staging_job = {cadip_staging_job}")
-    cadip_job_staging_monitor_task = job_staging_monitor.submit(rs_server_api_key,
-                                                                owner_id, 
-                                                                cadip_staging_job,
-                                                                staging_timeout)
-    
+    cadip_job_staging_monitor_task = job_staging_monitor.submit(
+        rs_server_api_key,
+        owner_id,
+        cadip_staging_job,
+        staging_timeout,
+    )
+
     auxip_staging_job = staging_client.run_staging(
         auxip_data.to_dict(),
         collection_name,
-    )    
-    auxip_job_staging_monitor_task = job_staging_monitor.submit(rs_server_api_key, 
-                                                                owner_id, 
-                                                                auxip_staging_job,
-                                                                staging_timeout)
-    
-    #wait for results
+    )
+    auxip_job_staging_monitor_task = job_staging_monitor.submit(
+        rs_server_api_key,
+        owner_id,
+        auxip_staging_job,
+        staging_timeout,
+    )
+
+    # wait for results
     staging_cadip_res = cadip_job_staging_monitor_task.result()
     staging_auxip_res = auxip_job_staging_monitor_task.result()
-    
+
     if not staging_cadip_res or not staging_auxip_res:
         logger.error("Failed to stage all the needed files. Exiting")
         return {}
     # get the staged files from the catalog
-    catalog_res = ItemCollection(list(catalog_client.get_items(collection_name, catalog_item_ids)))    
+    catalog_res = ItemCollection(
+        list(catalog_client.get_items(collection_name, catalog_item_ids)),
+    )
     logger.info(f"catalog_res = {catalog_res.to_dict()}")
 
     config_file_task = config_file.submit(
@@ -204,19 +209,27 @@ input_config_dir: str,
 
     payload_file = config_file_task.result()
     if not payload_file:
-        logger.error("Failed to create the configuration file nedeed by the eopf processor")
+        logger.error(
+            "Failed to create the configuration file nedeed by the eopf processor",
+        )
         return None
 
     # Run the EOPF task with .submit in a dask node
-    eopf_result = S3L0_demo_processor_dask(                
+    eopf_result = S3L0_demo_processor_dask(
         input_config_dir,
         payload_file,
         output_data_dir,
     )
 
     # Call dummy catalog task
-    catalog_result = publish_to_catalog.submit(catalog_client, collection_name, eopf_result, output_data_dir)
+    catalog_result = publish_to_catalog.submit(
+        catalog_client,
+        collection_name,
+        eopf_result,
+        output_data_dir,
+    )
     return catalog_result.result()
+
 
 def extract_module_and_processing_unit(payload_file: str):
     """Extract module and processing unit from the payload file."""
@@ -253,11 +266,13 @@ def extract_module_and_processing_unit(payload_file: str):
 
 
 @task()
-def job_staging_monitor(rs_server_api_key, 
-                        owner_id, 
-                        job_status, 
-                        timeout=120, 
-                        poll_interval=2):
+def job_staging_monitor(
+    rs_server_api_key,
+    owner_id,
+    job_status,
+    timeout=120,
+    poll_interval=2,
+):
     logger = get_run_logger()
     generic_client = RsClient(
         rs_server_href,
@@ -265,30 +280,32 @@ def job_staging_monitor(rs_server_api_key,
         owner_id,
         None,
     )
-    
-    staging_client = generic_client.get_staging_client()    
-    
+
+    staging_client = generic_client.get_staging_client()
+
     try:
-        status_info = job_status.get("status", {})        
+        status_info = job_status.get("status", {})
         if not status_info:
             logger.error("Job status information is missing.")
-            return False        
-        status_type, job_identifier = next(iter(status_info.items()), (None, None))        
+            return False
+        status_type, job_identifier = next(iter(status_info.items()), (None, None))
         if not job_identifier:
             logger.error("Job identifier is missing.")
-            return False                
-                
-        while timeout > 0 and status_type not in {"successful", 'failed', 'dismissed'}:
+            return False
+
+        while timeout > 0 and status_type not in {"successful", "failed", "dismissed"}:
             job_info = staging_client.get_job_info(job_identifier)
-            status_type = job_info.get("status")            
-            logger.info(f"----- Staging job for {job_identifier}: {status_type.upper()} \n")
+            status_type = job_info.get("status")
+            logger.info(
+                f"----- Staging job for {job_identifier}: {status_type.upper()} \n",
+            )
             time.sleep(poll_interval)
-            timeout -= poll_interval                    
+            timeout -= poll_interval
 
     except Exception as e:
         logger.exception(f"Exception while monitoring job: {e}")
         return False
-    
+
     if status_type == "successful":
         logger.info(f"----- Staging job for {job_identifier}: COMPLETED \n")
         return True
@@ -313,7 +330,7 @@ def auxip_search(
             max_items=cql2.get("limit"),
             sortby=cql2.get("sortby"),
         )
-        logger.info(f"Auxip Client search found: {len(found)} results")   
+        logger.info(f"Auxip Client search found: {len(found)} results")
     except Exception as e:
         logger.error("An error occurred in auxip_search: %s", e)
         return {}
@@ -334,7 +351,7 @@ def cadip_search(
     try:
         found = cadip_client.search(method="GET", stac_filter=cadip_filter)
         logger.info(f"Cadip Client search found: {len(found)} results")
- 
+
     except Exception as e:
         logger.error("An error occurred in cadip_search: %s", e)
         return {}
@@ -509,26 +526,27 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     logger.info("Start catalog saving")
     time.sleep(1)
     logger.info(f"eopf_result = {eopf_result}")
-    #eopf_features = []
+    # eopf_features = []
     for feature_dict in eopf_result:
         item = Item(
             id=feature_dict["stac_discovery"]["id"],
             geometry=feature_dict["stac_discovery"]["geometry"],
             bbox=feature_dict["stac_discovery"]["bbox"],
-            datetime=datetime.fromisoformat(feature_dict["stac_discovery"]["properties"]["datetime"]),
-            properties=feature_dict["stac_discovery"]["properties"],            
+            datetime=datetime.fromisoformat(
+                feature_dict["stac_discovery"]["properties"]["datetime"],
+            ),
+            properties=feature_dict["stac_discovery"]["properties"],
         )
         asset = Asset(href=f"{output_data_dir}/{item.id}.zarr.zip")
         item.assets = {f"{item.id}.zarr.zip": asset}
         catalog_client.add_item(collection_name, item)
-    #items = [Item(**eopf_feature) for eopf_feature in eopf_features]    
-    #for item in items:
-        #for asset in item.assets:
-        #    logger.info(f" asset  : {asset}")
-        #    item.assets[asset].href = f"{output_data_dir}/{item.id}.zarr"
-        #    logger.info(f" Updated Item  : {item.to_dict()}")
-        #catalog_client.add_item(collection_name, item)
-    
+    # items = [Item(**eopf_feature) for eopf_feature in eopf_features]
+    # for item in items:
+    # for asset in item.assets:
+    #    logger.info(f" asset  : {asset}")
+    #    item.assets[asset].href = f"{output_data_dir}/{item.id}.zarr"
+    #    logger.info(f" Updated Item  : {item.to_dict()}")
+    # catalog_client.add_item(collection_name, item)
 
     collections = catalog_client.get_collections()
     logger.info(f"\nCollections response:")
@@ -537,8 +555,6 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
 
     logger.info(f"End catalog saving:")
     return {}
-
-
 
 
 #######################
@@ -558,7 +574,7 @@ def start_processor_dask_for_aux_search(
     Dask flow used to call tasks in dask workers.
     Used only to retrieve CQL2 filter from processor.
     """
-    logger = get_run_logger()    
+    logger = get_run_logger()
 
     result = eopf_aux_data_search.submit(module, processing_unit).result()
     logger.info(f" CQL2 filter retrieved from processor : {result} ")
@@ -581,7 +597,7 @@ async def eopf_aux_data_search(
     )
 
     command = ["eopf", "trigger", "tasktable", module, processing_unit]
-    result = {}    
+    result = {}
     try:
         result = subprocess.run(command, check=True, text=True, capture_output=True)
         logger.info(result.stdout)
@@ -649,7 +665,7 @@ async def main_dask_task(
     # Payload parent dir and filename
     payload_dir = osp.dirname(payload_file)
     payload_name = osp.basename(payload_file)
-    
+
     logger.info(f"payload_file = {payload_file}")
     logger.info(f"payload_dir = {payload_dir}")
     logger.info(f"payload_name = {payload_name}")
@@ -662,8 +678,7 @@ async def main_dask_task(
     logger.info(f"payload_abs_path = {payload_abs_path}")
     await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
     try:
-        result = subprocess.run(
-            ["pwd"], check=True, text=True, capture_output=True)
+        result = subprocess.run(["pwd"], check=True, text=True, capture_output=True)
         logger.info(result.stdout)
     except subprocess.CalledProcessError as e:
         logger.error(f"Error: {e.stderr}")
@@ -671,11 +686,11 @@ async def main_dask_task(
     # Change working directory
     os.chdir(osp.join(local_config_dir, payload_dir))
 
-    # Create the reports dir    
+    # Create the reports dir
     os.makedirs(report_dirname, exist_ok=True)
-    
-    # Trigger EOPF processing, catch output    
-    p = subprocess.Popen(        
+
+    # Trigger EOPF processing, catch output
+    p = subprocess.Popen(
         ["python3.11", "DPR_processor_mock.py", "-p", payload_abs_path],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -712,12 +727,12 @@ async def main_dask_task(
             line = line.rstrip()
             if line:
                 logger.info(line)
-        
+
         logger.info(f"log_str = {log_str}")
         match = re.search(r"(\[\s*\{.*\}\s*\])", log_str, re.DOTALL)
         if not match:
             raise ValueError("No valid data structure found in the output.")
-        
+
         payload_str = match.group(1)
 
         # Use `ast.literal_eval` to safely evaluate the structure
