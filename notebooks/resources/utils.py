@@ -298,8 +298,8 @@ def stage_test_objects(
     job_id = staging_client.run_staging(
         item_collection.to_dict(),
         catalog_collection_name,
-    )    
-    if "Missing" in job_id.get('message', ""):
+    )
+    if "Missing" in job_id.get("message", ""):
         return job_id
     timeout = 120
     while timeout > 0:
