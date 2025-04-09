@@ -40,6 +40,10 @@ USER root
 RUN apt update && apt install -y python3-pydot graphviz
 USER $USER
 
+# Install and auto configure opentelemetry
+RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
+    opentelemetry-bootstrap -a install
+
 # Copy the src folder from the dpr_mock image
 COPY --from=dpr_mock /src /src
 WORKDIR /src/DPR
@@ -55,10 +59,6 @@ RUN pip install crcmod
 USER root
 # Give USERNAME rights to write in /src
 RUN chown -R $USER_NAME /src
-
-# Install and auto configure opentelemetry
-RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
-    opentelemetry-bootstrap -a install
 
 # Clean everything
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
