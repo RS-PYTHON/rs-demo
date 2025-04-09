@@ -1,5 +1,5 @@
 prefect-version: 3
-name: sprint22-S3L0-demo-processor
+name: sprint22-s3l0-demo-processor
 
 pull:
 - prefect.deployments.steps.run_shell_script:
@@ -10,7 +10,7 @@ pull:
         python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('$S3_CODE_FOLDER', '.')"
 
 deployments:
-- name: sprint22-S3L0-demo-processor
+- name: sprint22-s3l0-demo-processor
   tags: ["demo"]
   entrypoint: ./s3l0_demo_processor.py:s3l0_demo_processor
   work_pool:

@@ -130,6 +130,15 @@ def s3l0_demo_processor(
     if not cadip_data:
         logger.error("No cadip data found")
         return
+    # TO BE REMOVED, this leaves nine assets to be downloaded in case of real cadip chunks
+    dct_fin = {}
+    iterable = iter(cadip_data.items[0].assets)
+    for i in range(0, 3):
+        dct = next(iterable)
+        dct_fin[dct] = cadip_data.items[0].assets[dct]
+    cadip_data.items[0].assets = dct_fin
+    logger.info(f"cadip_data = {cadip_data.to_dict()}")
+    # end of TO BE REMOVED
     catalog_item_ids = []
     for item in cadip_data:
         catalog_item_ids.append(item.id)
@@ -138,16 +147,19 @@ def s3l0_demo_processor(
     # ????
     # auxip_built_from_cadip_res = build_auxip_search_param(cadip_data.item_collection())
     # Retrieve cql2 from processor
-    auxip_cql2 = start_processor_dask_for_aux_search(
+    auxip_cql2_future = start_processor_dask_for_aux_search(
         module,
         processing_unit,
     )
 
     logger.info(f" ### CQL2 : {auxip_cql2_filter}")
-
+    # for now, we now that that eopf search is not working, so hard-code it
+    auxip_cql2 = auxip_cql2_future.result()
     auxip_search_future = auxip_search.submit(
         auxip_client,
+        auxip_cql2,
         auxip_cql2_filter,
+        wait_for=[auxip_cql2_future],
     )
     # wait for results
     auxip_data = auxip_search_future.result()
@@ -164,27 +176,23 @@ def s3l0_demo_processor(
 
     # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
     # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
-    cadip_staging_job = staging_client.run_staging(
-        cadip_data.to_dict(),
-        collection_name,
-    )
-    logger.info(f"cadip_staging_job = {cadip_staging_job}")
+
     cadip_job_staging_monitor_task = job_staging_monitor.submit(
         rs_server_api_key,
         owner_id,
-        cadip_staging_job,
+        cadip_data,
+        collection_name,
         staging_timeout,
+        wait_for=[cadip_search_future],
     )
 
-    auxip_staging_job = staging_client.run_staging(
-        auxip_data.to_dict(),
-        collection_name,
-    )
     auxip_job_staging_monitor_task = job_staging_monitor.submit(
         rs_server_api_key,
         owner_id,
-        auxip_staging_job,
+        auxip_data,
+        collection_name,
         staging_timeout,
+        wait_for=[auxip_search_future],
     )
 
     # wait for results
@@ -205,6 +213,7 @@ def s3l0_demo_processor(
         input_config_dir,
         payload_file,
         output_data_dir,
+        wait_for=[cadip_job_staging_monitor_task, auxip_job_staging_monitor_task],
     )
 
     payload_file = config_file_task.result()
@@ -215,7 +224,7 @@ def s3l0_demo_processor(
         return None
 
     # Run the EOPF task with .submit in a dask node
-    eopf_result = S3L0_demo_processor_dask(
+    eopf_result = s3l0_demo_processor_dask(
         input_config_dir,
         payload_file,
         output_data_dir,
@@ -227,6 +236,7 @@ def s3l0_demo_processor(
         collection_name,
         eopf_result,
         output_data_dir,
+        wait_for=[eopf_result],
     )
     return catalog_result.result()
 
@@ -265,11 +275,12 @@ def extract_module_and_processing_unit(payload_file: str):
     return None, None
 
 
-@task()
+@task(name="job-staging-monitor")
 def job_staging_monitor(
     rs_server_api_key,
     owner_id,
-    job_status,
+    data_to_be_staged,
+    collection_name,
     timeout=120,
     poll_interval=2,
 ):
@@ -282,7 +293,10 @@ def job_staging_monitor(
     )
 
     staging_client = generic_client.get_staging_client()
-
+    job_status = staging_client.run_staging(
+        data_to_be_staged.to_dict(),
+        collection_name,
+    )
     try:
         status_info = job_status.get("status", {})
         if not status_info:
@@ -314,14 +328,12 @@ def job_staging_monitor(
         return False
 
 
-@task
-def auxip_search(
-    auxip_client,
-    cql2: str,
-):
+@task(name="auxip-search")
+def auxip_search(auxip_client, cql2: str, cql2_hardcoded):
     """Auxip search."""
     logger = get_run_logger()
     logger.info("Start auxip search.")
+    cql2 = cql2_hardcoded
 
     try:
         found = auxip_client.search(
@@ -339,7 +351,7 @@ def auxip_search(
     return found
 
 
-@task
+@task(name="cadip-search")
 def cadip_search(
     cadip_client,
     cadip_filter: str,
@@ -360,7 +372,7 @@ def cadip_search(
     return found
 
 
-@task
+@task(name="config-file")
 async def config_file(
     items_list,
     input_config_dir,
@@ -519,7 +531,7 @@ async def config_file(
     return new_payload_file
 
 
-@task
+@task(name="publish-to-catalog")
 def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data_dir):
     """Dummy catalog call to save results"""
     logger = get_run_logger()
@@ -574,14 +586,11 @@ def start_processor_dask_for_aux_search(
     Dask flow used to call tasks in dask workers.
     Used only to retrieve CQL2 filter from processor.
     """
-    logger = get_run_logger()
-
-    result = eopf_aux_data_search.submit(module, processing_unit).result()
-    logger.info(f" CQL2 filter retrieved from processor : {result} ")
+    result = eopf_aux_data_search.submit(module, processing_unit)
     return result
 
 
-@task
+@task(name="eopf-aux-data-search")
 async def eopf_aux_data_search(
     module: str,
     processing_unit: str,
@@ -615,7 +624,7 @@ async def eopf_aux_data_search(
         client_kwargs={"security": dask_cluster_eopf.security},
     ),
 )
-def S3L0_demo_processor_dask(
+def s3l0_demo_processor_dask(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -630,7 +639,7 @@ def S3L0_demo_processor_dask(
     )
 
 
-@task
+@task(name="eopf-dask-task")
 async def main_dask_task(
     input_config_dir: str,
     payload_file: str,
@@ -768,54 +777,3 @@ async def main_dask_task(
 
     # Dummy output for prefect
     return return_response
-
-
-@task
-async def hack_payload(filename: str):
-    """Hack the payload file"""
-    import yaml
-    from dotenv import dotenv_values  # used in local mode only
-
-    # Open the input yaml file
-    with open(filename, "r", encoding="utf-8") as opened:
-        payload = yaml.safe_load(opened)
-    cluster_config = payload["dask_context"]["cluster_config"]
-
-    # Set the number of workers
-    cluster_config["workers"] = worker_count
-
-    # We need to create the output S3 folder with a dummy file before running DPR
-    for output_product in payload["I/O"]["output_products"]:
-        output_dir = os.path.expandvars(output_product["path"])  # expand env vars
-        await prefect_utils.s3_upload_empty_file(f"{output_dir}/.empty")
-
-    # Change the dask authentication for local mode
-    if local_mode:
-        cluster_config["auth"] = cluster_config["auth_local_mode"]
-    del cluster_config["auth_local_mode"]
-
-    # In local mode, open the user's s3cmd config file to use the cluster s3 bucket access.
-    # It is mounted by the docker-compose.yml
-    if local_mode:
-        if not (k8s_access := dotenv_values("/.s3cfg")):
-            raise Exception(
-                "You must have a s3cmd config file under '~/.s3cfg' to use this flow",
-            )
-        os.environ.update(
-            {
-                "S3_ACCESSKEY_K8S": k8s_access["access_key"],
-                "S3_SECRETKEY_K8S": k8s_access["secret_key"],
-                "S3_ENDPOINT_K8S": k8s_access["host_bucket"],
-                "S3_REGION_K8S": k8s_access["bucket_location"],
-            },
-        )
-    # Change the bucket accees
-    for input_product in payload["I/O"]["input_products"]:
-        store_params = input_product["store_params"]
-        if local_mode:
-            store_params["storage_options"] = store_params["storage_options_local_mode"]
-        del store_params["storage_options_local_mode"]
-
-    # Write back the payload contents
-    with open(filename, "w", encoding="utf-8") as opened:
-        yaml.dump(payload, opened, default_flow_style=False, sort_keys=False)
