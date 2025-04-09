@@ -19,7 +19,7 @@ workflow:
   active : true
   # python module to import from
   module: l0.s3.s3_l0_processor
-  processing_unit: s3l0Processor
+  processing_unit: S3L0Processor
   # input products IDs
   inputs:
     CADUS: S3ACADUS
