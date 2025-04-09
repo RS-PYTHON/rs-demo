@@ -130,10 +130,10 @@ def s3l0_demo_processor(
     if not cadip_data:
         logger.error("No cadip data found")
         return
-    # TO BE REMOVED, this leaves nine assets to be downloaded in case of real cadip chunks
+    # TO BE REMOVED, this leaves 6 assets to be downloaded in case of real cadip chunks
     dct_fin = {}
     iterable = iter(cadip_data.items[0].assets)
-    for i in range(0, 3):
+    for i in range(0, 6):
         dct = next(iterable)
         dct_fin[dct] = cadip_data.items[0].assets[dct]
     cadip_data.items[0].assets = dct_fin
