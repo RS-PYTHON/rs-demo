@@ -47,7 +47,6 @@ from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
 from rs_client.rs_client import RsClient
 from rs_client.staging_client import StagingClient
-from rs_common.config import EAuxipStation, ECadipStation
 
 # Variables
 # Set logger level to info
@@ -165,11 +164,7 @@ def create_s3_buckets():
             pass  # do nothing if already exists
 
 
-def init_rsclient(
-    owner_id=None,
-    cadip_station: str | ECadipStation = "CADIP",
-    adgs_station: str | EAuxipStation = "ADGS",
-):
+def init_rsclient(owner_id=None):
     """Init RsClient instances"""
     global apikey, auxip_client, cadip_client, catalog_client, staging_client
 
@@ -195,10 +190,10 @@ def init_rsclient(
     )
 
     # From this generic instance, get an Auxip client instance
-    auxip_client = generic_client.get_auxip_client(adgs_station)
+    auxip_client = generic_client.get_auxip_client()
 
-    # Or get a Cadip client instance. Pass the cadip station.
-    cadip_client = generic_client.get_cadip_client(cadip_station)
+    # Or get a Cadip client instance
+    cadip_client = generic_client.get_cadip_client()
 
     # Or get a Stac client to access the catalog
     catalog_client = generic_client.get_catalog_client()
@@ -343,7 +338,7 @@ def temporary_fix_adgs_feature(items_collection):
 ########
 
 
-def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
+def init_demo(owner_id=None):
     """Init environment before running a demo notebook."""
 
     # Some kind of workaround for boto3 to avoid checksum being added inside
@@ -369,7 +364,7 @@ def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
         owner_id = OWNER_ID
 
     # Init RsClient instances
-    ret = init_rsclient(owner_id, cadip_station)
+    ret = init_rsclient(owner_id)
 
     # Save the local mode dask authentication in the staging
     if local_mode:
