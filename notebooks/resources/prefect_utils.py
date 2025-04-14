@@ -155,6 +155,8 @@ async def blocks_to_env_vars():
             "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
             "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
             "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
+            "S3_BUCKET_NAME": PREFECT_BLOCK_S3.bucket_name,
+            "S3_BUCKET_FOLDER": PREFECT_BLOCK_S3.bucket_folder,
         },
     )
 

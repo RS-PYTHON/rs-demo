@@ -299,6 +299,8 @@ async def main_dask_task(
                 "S3_SECRETKEY",
                 "S3_ENDPOINT",
                 "S3_REGION",
+                "S3_BUCKET_NAME",
+                "S3_BUCKET_FOLDER",
                 "DASK_GATEWAY_ADDRESS",
                 "DASK_CLUSTER_NAME",
             ] + (
