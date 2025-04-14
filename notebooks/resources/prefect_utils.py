@@ -101,7 +101,7 @@ async def init_prefect_blocks():
             aws_client_parameters={"endpoint_url": os.environ["S3_ENDPOINT"]},
         )
         PREFECT_BLOCK_S3 = S3Bucket(
-            bucket_name=os.environ["PREFECT_SHARE_BUCKET"],
+            bucket_name=os.environ["RSPY_TEMP_BUCKET"],
             credentials=aws_credentials,
             bucket_folder="sub/dir",
         )

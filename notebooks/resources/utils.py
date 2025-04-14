@@ -90,9 +90,6 @@ if local_mode:
     # Username
     RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
 
-    # Share data between the user, the client (jupyter or terminal) and prefect
-    PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
-
 OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
 # STAC catalog sample collection name
@@ -155,7 +152,7 @@ def create_s3_buckets():
     if not local_mode:
         return
     s3_client = get_s3_client()
-    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET, PREFECT_SHARE_BUCKET:
+    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
