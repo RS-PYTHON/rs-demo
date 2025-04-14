@@ -297,6 +297,8 @@ async def s3_download_dir(
 def s3_delete(s3_prefix: str):
     """Remove all files from S3 bucket with the given prefix, using low-level client and Content-MD5 header."""
     s3_bucket, prefix = get_s3_bucket(s3_prefix)
+    if not prefix.endswith("/"):
+        prefix += "/"
     objects_to_delete = [
         {"Key": obj.key}
         for obj in s3_bucket._get_bucket_resource().objects.filter(Prefix=prefix)
