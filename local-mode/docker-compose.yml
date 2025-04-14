@@ -187,6 +187,9 @@ services:
     environment:
       RSPY_LOCAL_MODE: 1
       RSPY_HOST_CATALOG: http://rs-server-catalog:8000
+      RSPY_HOST_CADIP: http://rs-server-cadip:8000
+      RSPY_HOST_ADGS: http://rs-server-adgs:8000
+
       RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # Token expiration settings
@@ -356,7 +359,7 @@ services:
 
   catalog-db:
     container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.9.5
+    image: ghcr.io/stac-utils/pgstac:v0.9.6
     environment:
       POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
@@ -376,7 +379,7 @@ services:
 
   pgstac-post-actions: # post actions for catalog-db
     container_name: pgstac-post-actions
-    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.5
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.6
     depends_on:
       - catalog-db
     environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
@@ -543,7 +546,6 @@ services:
     environment:
       RSPY_HOST_USER: ${USER}
       RSPY_LOCAL_MODE: 1
-      RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION: 0
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional

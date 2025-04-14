@@ -30,6 +30,3 @@ deployments:
             RS_SERVER_STAGING_ADDRESS: "{{ RS_SERVER_STAGING_ADDRESS }}"
             RS_API_KEY: "{{ RS_API_KEY }}"
             RS_OWNER: "{{ RS_OWNER }}"
-
-            # TODO: temporary change to deactivate OGC staging endpoint validation on client side
-            RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION: "0"

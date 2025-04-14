@@ -13,13 +13,13 @@
 # limitations under the License.
 
 default_language_version:
-    python: python3.11
-default_stages: [commit]
+    python: python3
+default_stages: [pre-commit]
 repos:
 
 # Basic verifications
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
     -   id: check-merge-conflict
     -   id: end-of-file-fixer
@@ -34,7 +34,7 @@ repos:
 
 # Format (isort)
 -   repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
     -   id: isort
         args: ["--profile", "black"]
