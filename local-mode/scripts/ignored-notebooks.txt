@@ -11,3 +11,6 @@ notebooks/sprints/sprint21/first_l0_processor.ipynb
 notebooks/tutorials/prefect+dask/dask.ipynb
 notebooks/tutorials/prefect+dask/prefect.ipynb
 notebooks/tutorials/prefect+dask/prefect_and_dask.ipynb
+
+# Ignore public demos that deal with HUGE real data
+notebooks/demos/stac2025/stac_2025.ipynb
