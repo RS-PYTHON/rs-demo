@@ -101,7 +101,7 @@ async def init_prefect_blocks():
             aws_client_parameters={"endpoint_url": os.environ["S3_ENDPOINT"]},
         )
         PREFECT_BLOCK_S3 = S3Bucket(
-            bucket_name=os.environ["PREFECT_SHARE_BUCKET"],
+            bucket_name=os.environ["RSPY_TEMP_BUCKET"],
             credentials=aws_credentials,
             bucket_folder="sub/dir",
         )
@@ -155,6 +155,8 @@ async def blocks_to_env_vars():
             "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
             "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
             "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
+            "S3_BUCKET_NAME": PREFECT_BLOCK_S3.bucket_name,
+            "S3_BUCKET_FOLDER": PREFECT_BLOCK_S3.bucket_folder,
         },
     )
 
