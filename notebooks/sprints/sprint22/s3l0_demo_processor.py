@@ -129,7 +129,7 @@ def s3l0_demo_processor(
     cadip_data = cadip_search_future.result()
     if not cadip_data:
         logger.error("No cadip data found")
-        return
+        raise RuntimeError("No cadip data found")
     # TO BE REMOVED, this leaves 6 assets to be downloaded in case of real cadip chunks
     # dct_fin = {}
     # iterable = iter(cadip_data.items[0].assets)
@@ -166,7 +166,7 @@ def s3l0_demo_processor(
     # protection against a searching failure
     if not auxip_data:
         logger.error("No auxip data found")
-        return
+        raise RuntimeError("No auxip data found")
 
     for item in auxip_data:
         catalog_item_ids.append(item.id)
@@ -201,7 +201,7 @@ def s3l0_demo_processor(
 
     if not staging_cadip_res or not staging_auxip_res:
         logger.error("Failed to stage all the needed files. Exiting")
-        return {}
+        raise RuntimeError("Failed to stage all the needed files. Exiting")
     # get the staged files from the catalog
     catalog_res = ItemCollection(
         list(catalog_client.get_items(collection_name, catalog_item_ids)),
@@ -221,7 +221,9 @@ def s3l0_demo_processor(
         logger.error(
             "Failed to create the configuration file nedeed by the eopf processor",
         )
-        return None
+        raise RuntimeError(
+            "Failed to create the configuration file nedeed by the eopf processor",
+        )
 
     # Run the EOPF task with .submit in a dask node
     eopf_result = s3l0_demo_processor_dask(
@@ -238,7 +240,8 @@ def s3l0_demo_processor(
         output_data_dir,
         wait_for=[eopf_result],
     )
-    return catalog_result.result()
+    if not catalog_result.result():
+        raise RuntimeError("Failed to publish to catalog")
 
 
 def extract_module_and_processing_unit(payload_file: str):
@@ -534,22 +537,25 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     """Dummy catalog call to save results"""
     logger = get_run_logger()
     logger.info("Start catalog saving")
-    time.sleep(1)
     logger.info(f"eopf_result = {eopf_result}")
     # eopf_features = []
-    for feature_dict in eopf_result:
-        item = Item(
-            id=feature_dict["stac_discovery"]["id"],
-            geometry=feature_dict["stac_discovery"]["geometry"],
-            bbox=feature_dict["stac_discovery"]["bbox"],
-            datetime=datetime.fromisoformat(
-                feature_dict["stac_discovery"]["properties"]["datetime"],
-            ),
-            properties=feature_dict["stac_discovery"]["properties"],
-        )
-        asset = Asset(href=f"{output_data_dir}/{item.id}.zarr.zip")
-        item.assets = {f"{item.id}.zarr.zip": asset}
-        catalog_client.add_item(collection_name, item)
+    try:
+        for feature_dict in eopf_result:
+            item = Item(
+                id=feature_dict["stac_discovery"]["id"],
+                geometry=feature_dict["stac_discovery"]["geometry"],
+                bbox=feature_dict["stac_discovery"]["bbox"],
+                datetime=datetime.fromisoformat(
+                    feature_dict["stac_discovery"]["properties"]["datetime"],
+                ),
+                properties=feature_dict["stac_discovery"]["properties"],
+            )
+            asset = Asset(href=f"{output_data_dir}/{item.id}.zarr.zip")
+            item.assets = {f"{item.id}.zarr.zip": asset}
+            catalog_client.add_item(collection_name, item)
+    except Exception as e:
+        logger.error(f"Exception in publishing to catalog: {e}")
+        return False
     # items = [Item(**eopf_feature) for eopf_feature in eopf_features]
     # for item in items:
     # for asset in item.assets:
@@ -564,7 +570,7 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
         logger.info(f"ID: {collection.id}, Title: {collection.title}")
 
     logger.info(f"End catalog saving:")
-    return {}
+    return True
 
 
 #######################
