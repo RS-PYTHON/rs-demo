@@ -297,19 +297,20 @@ def job_staging_monitor(
         data_to_be_staged.to_dict(),
         collection_name,
     )
+
     try:
         status_info = job_status.get("status", {})
         if not status_info:
             logger.error("Job status information is missing.")
             return False
-        status_type, job_identifier = next(iter(status_info.items()), (None, None))
+        status_type, job_identifier = job_status['status'], job_status['jobID']
         if not job_identifier:
             logger.error("Job identifier is missing.")
             return False
 
         while timeout > 0 and status_type not in {"successful", "failed", "dismissed"}:
             job_info = staging_client.get_job_info(job_identifier)
-            status_type = job_info.get("status")
+            status_type = job_status.get("status")
             logger.info(
                 f"----- Staging job for {job_identifier}: {status_type.upper()} \n",
             )
