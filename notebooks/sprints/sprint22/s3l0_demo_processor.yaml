@@ -1,5 +1,5 @@
 prefect-version: 3
-name: sprint21-first-l0-processor
+name: sprint22-s3l0-demo-processor
 
 pull:
 - prefect.deployments.steps.run_shell_script:
@@ -10,9 +10,9 @@ pull:
         python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('$S3_CODE_FOLDER', '.')"
 
 deployments:
-- name: sprint21-first-l0-processor
+- name: sprint22-s3l0-demo-processor
   tags: ["demo"]
-  entrypoint: ./first_l0_processor.py:first_l0_processor
+  entrypoint: ./s3l0_demo_processor.py:s3l0_demo_processor
   work_pool:
     name: "{{ PREFECT_WORK_POOL_EOPF }}"
     job_variables:
@@ -21,10 +21,10 @@ deployments:
             S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
             PREFECT_BLOCK_AUTH: "{{ PREFECT_BLOCK_AUTH }}"
             PREFECT_BLOCK_S3: "{{ PREFECT_BLOCK_S3 }}"
-            DASK_GATEWAY_ADDRESS: "{{ DASK_GATEWAY_ADDRESS }}"
-            DASK_CLUSTER_NAME: "{{ DASK_CLUSTER_NAME }}"
+            DASK_GATEWAY_EOPF_ADDRESS: "{{ DASK_GATEWAY_EOPF_ADDRESS }}"
+            DASK_CLUSTER_EOPF_NAME: "{{ DASK_CLUSTER_EOPF_NAME }}"
             RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
             # TODO: should rather be set in the deployment helm charts
+            RSPY_APIKEY : "{{ RSPY_APIKEY }}"
             RSPY_WEBSITE: "{{ RSPY_WEBSITE }}"
             RSPY_UAC_CHECK_URL: "{{ RSPY_UAC_CHECK_URL }}"
-            TEMPO_ENDPOINT: "{{ TEMPO_ENDPOINT }}"

@@ -25,6 +25,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Union
 
+from botocore.utils import calculate_md5
 from fastapi.concurrency import run_in_threadpool
 from prefect.blocks.system import Secret
 from prefect.client.orchestration import get_client
@@ -100,7 +101,7 @@ async def init_prefect_blocks():
             aws_client_parameters={"endpoint_url": os.environ["S3_ENDPOINT"]},
         )
         PREFECT_BLOCK_S3 = S3Bucket(
-            bucket_name=os.environ["PREFECT_SHARE_BUCKET"],
+            bucket_name=os.environ["RSPY_TEMP_BUCKET"],
             credentials=aws_credentials,
             bucket_folder="sub/dir",
         )
@@ -154,6 +155,8 @@ async def blocks_to_env_vars():
             "S3_SECRETKEY": PREFECT_BLOCK_S3.credentials.aws_secret_access_key.get_secret_value(),
             "S3_REGION": PREFECT_BLOCK_S3.credentials.region_name,
             "S3_ENDPOINT": PREFECT_BLOCK_S3.credentials.aws_client_parameters.endpoint_url,
+            "S3_BUCKET_NAME": PREFECT_BLOCK_S3.bucket_name,
+            "S3_BUCKET_FOLDER": PREFECT_BLOCK_S3.bucket_folder,
         },
     )
 
@@ -292,6 +295,29 @@ async def s3_download_dir(
 
 
 def s3_delete(s3_prefix: str):
-    """Remove all files from S3 bucket with the given prefix"""
+    """Remove all files from S3 bucket with the given prefix, using low-level client and Content-MD5 header."""
     s3_bucket, prefix = get_s3_bucket(s3_prefix)
-    return s3_bucket._get_bucket_resource().objects.filter(Prefix=prefix).delete()
+    if not prefix.endswith("/"):
+        prefix += "/"
+    objects_to_delete = [
+        {"Key": obj.key}
+        for obj in s3_bucket._get_bucket_resource().objects.filter(Prefix=prefix)
+    ]
+
+    if not objects_to_delete:
+        return
+
+    # Hook to compute Content-MD5 from actual serialized body
+    def inject_md5_on_real_payload(request, **kwargs):
+        request.headers["Content-MD5"] = calculate_md5(request.body)
+
+    s3_client = s3_bucket._get_s3_client()
+    s3_client.meta.events.register(
+        "before-sign.s3.DeleteObjects",
+        inject_md5_on_real_payload,
+    )
+
+    return s3_client.delete_objects(
+        Bucket=s3_bucket.bucket_name,
+        Delete={"Objects": objects_to_delete, "Quiet": True},
+    )

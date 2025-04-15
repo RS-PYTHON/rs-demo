@@ -13,9 +13,6 @@ export RSPY_LOCAL_MODE=1
 # This script is run from the ci/cd
 export RSPY_FROM_CICD=1
 
-# TEMP
-export RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION=0
-
 # Read environment variables from the .env file
 source ${ROOT_DIR}/local-mode/.env
 

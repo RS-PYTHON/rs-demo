@@ -27,7 +27,7 @@ I/O:
   input_products:
 
   - id: S1ACADU
-    path: s3://${S3_BUCKET_NAME}/stations/CADIP/S1A_20240410083700053369
+    path: s3://rs-cluster-temp/stations/CADIP/S1A_20240410083700053369.short
     store_type: cadu
     store_params:
       storage_options:
@@ -45,7 +45,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20240410083700053369
+    path: ${OUTPUT_DIR}/S1A_20240410083700053369.short
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     # The store type to use
@@ -66,8 +66,8 @@ breakpoints: []
 dask_context:
   cluster_type: gateway
   cluster_config:
-    address: ${DASK_GATEWAY_ADDRESS}
-    reuse_cluster: ${DASK_CLUSTER_NAME}
+    address: ${DASK_GATEWAY_EOPF_ADDRESS}
+    reuse_cluster: ${DASK_CLUSTER_EOPF_NAME}
     auth:
       type: jupyterhub
       api_token: ${JUPYTERHUB_API_TOKEN}
