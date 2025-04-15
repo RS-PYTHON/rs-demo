@@ -206,7 +206,7 @@ def s3l0_demo_processor(
     catalog_res = ItemCollection(
         list(catalog_client.get_items(collection_name, catalog_item_ids)),
     )
-    #logger.info(f"catalog_res = {catalog_res.to_dict()}")
+    # logger.info(f"catalog_res = {catalog_res.to_dict()}")
 
     config_file_task = config_file.submit(
         catalog_res,
@@ -537,7 +537,7 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     """Dummy catalog call to save results"""
     logger = get_run_logger()
     logger.info("Start catalog saving")
-    #logger.info(f"eopf_result = {eopf_result}")
+    # logger.info(f"eopf_result = {eopf_result}")
     # eopf_features = []
     try:
         for feature_dict in eopf_result:
