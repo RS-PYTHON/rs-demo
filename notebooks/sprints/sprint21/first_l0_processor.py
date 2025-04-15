@@ -24,7 +24,6 @@ from pathlib import Path
 
 import requests
 import rs_common
-import rs_common.opentelemetry as rsotel
 from opentelemetry import trace
 from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
 from prefect import flow, get_run_logger, task
@@ -34,6 +33,7 @@ from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
 from rs_client.staging_client import StagingClient
+from rs_common import init_opentelemetry
 
 # My local "./resources" folder contains my utility modules.
 # I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
@@ -54,7 +54,7 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
 
 # Now I need to upload my local utility module that will be used by the dask tasks
 dask_client.upload_file("./resources/prefect_utils.py")
-dask_client.upload_file(f"{rs_common.__path__[0]}/opentelemetry.py")
+dask_client.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
 # Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
 # These lines of code is not called by the dask workers.
@@ -98,7 +98,7 @@ def first_l0_processor(
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
 
-    rsotel.init_traces("rs.client.prefect")
+    init_opentelemetry.init_traces("rs.client.prefect")
 
     tracer = trace.get_tracer(__name__)
 
@@ -265,9 +265,9 @@ async def main_dask_task(
     # with worker_client(separate_thread=False)
 
     os.environ["TEMPO_ENDPOINT"] = TEMPO_ENDPOINT
-    import opentelemetry as rsotel
+    import init_opentelemetry
 
-    rsotel.init_traces("rs.client.dask")
+    init_opentelemetry.init_traces("rs.client.dask")
 
     tracer = trace.get_tracer(__name__)
 
