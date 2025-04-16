@@ -705,7 +705,7 @@ async def main_dask_task(
     payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
     logger.info(f"payload_abs_path = {payload_abs_path}")
     await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
-    
+
     # Change working directory
     os.chdir(osp.join(local_config_dir, payload_dir))
 
