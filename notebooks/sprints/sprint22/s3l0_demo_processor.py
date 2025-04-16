@@ -130,11 +130,11 @@ def s3l0_demo_processor(
     if not cadip_data:
         logger.error("No cadip data found")
         raise RuntimeError("No cadip data found")
-    
+
     catalog_item_ids = []
     for item in cadip_data:
-        catalog_item_ids.append(item.id)    
-    
+        catalog_item_ids.append(item.id)
+
     # Retrieve cql2 from processor (currently the dpr processor is not working)
     auxip_cql2_future = start_processor_dask_for_aux_search(
         module,
