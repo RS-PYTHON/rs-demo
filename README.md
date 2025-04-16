@@ -86,7 +86,7 @@ from prefect.blocks.system import Secret
 
 # S3 bucket name and subfolder that the Jupyter user,
 # Prefect and EOPF dask workers will have access to.
-BUCKET_NAME="rs-cluster-temp"
+BUCKET_NAME="rs-dev-cluster-temp"
 BUCKET_FOLDER="prefect-share"
 
 # See: https://docs.prefect.io/integrations/prefect-aws/index

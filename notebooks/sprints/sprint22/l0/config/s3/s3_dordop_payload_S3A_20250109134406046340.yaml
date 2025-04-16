@@ -33,7 +33,7 @@ I/O:
   input_products:
   - id: S3ACADUS
     # path: s3://test-data/chunk/S3/S3A_20250109134406046340
-    path: s3://${S3_BUCKET_NAME}stations/CADIP/S3A_20250109134406046340.short
+    path: s3://${S3_BUCKET_NAME}/stations/CADIP/S3A_20250109134406046340.short
     store_type: cadu
     store_params:
       storage_options:
