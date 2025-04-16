@@ -33,8 +33,6 @@ from pystac import Asset, Item, ItemCollection
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
-
-os.environ["RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION"] = "0"
 from rs_client.rs_client import RsClient
 from rs_client.staging_client import StagingClient
 
