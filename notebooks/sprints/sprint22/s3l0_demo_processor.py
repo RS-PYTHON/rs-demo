@@ -97,13 +97,37 @@ def s3l0_demo_processor(
     staging_timeout: int,
 ):
     """
-    Trigger an EOPF L0 processing.
+    Prefect flow to trigger an EOPF L0 processing pipeline for CADIP and AUXIP data.
+
+    This flow orchestrates multiple tasks to perform:
+        - Data discovery on CADIP and AUXIP stations
+        - Staging of the selected items into an accessible S3 location
+        - Configuration generation for the EOPF processor
+        - Execution of the processing logic via a Dask cluster
+        - Publishing results back to a STAC catalog
 
     Args:
-        input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
-        It will be downloaded locally.
-        payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
-        output_data_dir: s3 bucket directory that will contain the generated data.
+        input_config_dir (str): Directory containing base configuration templates.
+        payload_file (str): File path to the payload file specifying the processor module and unit.
+        output_data_dir (str): Directory where processed outputs will be written.
+        owner_id (str): Owner ID used for catalog and staging operations.
+        collection_name (str): Name of the target collection in the catalog.
+        cadip_stac_filter (str): STAC filter for querying CADIP data.
+        auxip_cql2_filter (dict): CQL2 filter used for AUXIP data querying.
+        adgs_station (str): AUXIP station name used in the search (e.g. ADGS station).
+        cadip_station (str): CADIP station name used in the search.
+        staging_timeout (int): Timeout in seconds for staging tasks to complete.
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: If any of the following occur:
+            - No CADIP data is found
+            - No AUXIP data is found
+            - Staging of CADIP or AUXIP data fails
+            - Configuration file creation fails
+            - Publishing to the catalog fails
     """
     logger = get_run_logger()
 
@@ -681,12 +705,7 @@ async def main_dask_task(
     payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
     logger.info(f"payload_abs_path = {payload_abs_path}")
     await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
-    try:
-        result = subprocess.run(["pwd"], check=True, text=True, capture_output=True)
-        logger.info(result.stdout)
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error: {e.stderr}")
-
+    
     # Change working directory
     os.chdir(osp.join(local_config_dir, payload_dir))
 
@@ -733,6 +752,7 @@ async def main_dask_task(
                 logger.info(line)
 
         logger.info(f"log_str = {log_str}")
+        # search for the JSON-like part, parse it, and ignore the rest.
         match = re.search(r"(\[\s*\{.*\}\s*\])", log_str, re.DOTALL)
         if not match:
             raise ValueError("No valid data structure found in the output.")
@@ -741,6 +761,8 @@ async def main_dask_task(
 
         # Use `ast.literal_eval` to safely evaluate the structure
         try:
+            # payload_str is a string that looks like a JSON, extracted from the dpr mockup's raw output.
+            # ast.literal_eval() parses that string and returns the actual Python object (not just the string).
             return_response = ast.literal_eval(payload_str)
         except Exception as e:
             raise ValueError(f"Failed to parse data structure: {e}")
