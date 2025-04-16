@@ -130,30 +130,19 @@ def s3l0_demo_processor(
     if not cadip_data:
         logger.error("No cadip data found")
         raise RuntimeError("No cadip data found")
-    # TO BE REMOVED, this leaves 6 assets to be downloaded in case of real cadip chunks
-    # dct_fin = {}
-    # iterable = iter(cadip_data.items[0].assets)
-    # for i in range(0, 6):
-    #     dct = next(iterable)
-    #     dct_fin[dct] = cadip_data.items[0].assets[dct]
-    # cadip_data.items[0].assets = dct_fin
-    # logger.info(f"cadip_data = {cadip_data.to_dict()}")
-    # end of TO BE REMOVED
+    
     catalog_item_ids = []
     for item in cadip_data:
-        catalog_item_ids.append(item.id)
-
-    # build dataset for auxip search from cadip_res
-    # ????
-    # auxip_built_from_cadip_res = build_auxip_search_param(cadip_data.item_collection())
-    # Retrieve cql2 from processor
+        catalog_item_ids.append(item.id)    
+    
+    # Retrieve cql2 from processor (currently the dpr processor is not working)
     auxip_cql2_future = start_processor_dask_for_aux_search(
         module,
         processing_unit,
     )
 
     logger.info(f" ### CQL2 : {auxip_cql2_filter}")
-    # for now, we now that that eopf search is not working, so hard-code it
+    # for now, the eopf search is not working, so hard-code it
     auxip_cql2 = auxip_cql2_future.result()
     auxip_search_future = auxip_search.submit(
         auxip_client,
