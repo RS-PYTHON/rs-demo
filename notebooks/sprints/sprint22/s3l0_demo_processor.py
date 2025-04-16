@@ -33,8 +33,6 @@ from pystac import Asset, Item, ItemCollection
 from rs_client.auxip_client import AuxipClient
 from rs_client.cadip_client import CadipClient
 from rs_client.catalog_client import CatalogClient
-
-os.environ["RSPY_APPLY_STAGING_ENDPOINTS_VALIDATION"] = "0"
 from rs_client.rs_client import RsClient
 from rs_client.staging_client import StagingClient
 
@@ -97,13 +95,37 @@ def s3l0_demo_processor(
     staging_timeout: int,
 ):
     """
-    Trigger an EOPF L0 processing.
+    Prefect flow to trigger an EOPF L0 processing pipeline for CADIP and AUXIP data.
+
+    This flow orchestrates multiple tasks to perform:
+        - Data discovery on CADIP and AUXIP stations
+        - Staging of the selected items into an accessible S3 location
+        - Configuration generation for the EOPF processor
+        - Execution of the processing logic via a Dask cluster
+        - Publishing results back to a STAC catalog
 
     Args:
-        input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
-        It will be downloaded locally.
-        payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
-        output_data_dir: s3 bucket directory that will contain the generated data.
+        input_config_dir (str): Directory containing base configuration templates.
+        payload_file (str): File path to the payload file specifying the processor module and unit.
+        output_data_dir (str): Directory where processed outputs will be written.
+        owner_id (str): Owner ID used for catalog and staging operations.
+        collection_name (str): Name of the target collection in the catalog.
+        cadip_stac_filter (str): STAC filter for querying CADIP data.
+        auxip_cql2_filter (dict): CQL2 filter used for AUXIP data querying.
+        adgs_station (str): AUXIP station name used in the search (e.g. ADGS station).
+        cadip_station (str): CADIP station name used in the search.
+        staging_timeout (int): Timeout in seconds for staging tasks to complete.
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: If any of the following occur:
+            - No CADIP data is found
+            - No AUXIP data is found
+            - Staging of CADIP or AUXIP data fails
+            - Configuration file creation fails
+            - Publishing to the catalog fails
     """
     logger = get_run_logger()
 
@@ -130,30 +152,19 @@ def s3l0_demo_processor(
     if not cadip_data:
         logger.error("No cadip data found")
         raise RuntimeError("No cadip data found")
-    # TO BE REMOVED, this leaves 6 assets to be downloaded in case of real cadip chunks
-    # dct_fin = {}
-    # iterable = iter(cadip_data.items[0].assets)
-    # for i in range(0, 6):
-    #     dct = next(iterable)
-    #     dct_fin[dct] = cadip_data.items[0].assets[dct]
-    # cadip_data.items[0].assets = dct_fin
-    # logger.info(f"cadip_data = {cadip_data.to_dict()}")
-    # end of TO BE REMOVED
+
     catalog_item_ids = []
     for item in cadip_data:
         catalog_item_ids.append(item.id)
 
-    # build dataset for auxip search from cadip_res
-    # ????
-    # auxip_built_from_cadip_res = build_auxip_search_param(cadip_data.item_collection())
-    # Retrieve cql2 from processor
+    # Retrieve cql2 from processor (currently the dpr processor is not working)
     auxip_cql2_future = start_processor_dask_for_aux_search(
         module,
         processing_unit,
     )
 
     logger.info(f" ### CQL2 : {auxip_cql2_filter}")
-    # for now, we now that that eopf search is not working, so hard-code it
+    # for now, the eopf search is not working, so hard-code it
     auxip_cql2 = auxip_cql2_future.result()
     auxip_search_future = auxip_search.submit(
         auxip_client,
@@ -692,11 +703,6 @@ async def main_dask_task(
     payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
     logger.info(f"payload_abs_path = {payload_abs_path}")
     await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
-    try:
-        result = subprocess.run(["pwd"], check=True, text=True, capture_output=True)
-        logger.info(result.stdout)
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error: {e.stderr}")
 
     # Change working directory
     os.chdir(osp.join(local_config_dir, payload_dir))
@@ -744,6 +750,7 @@ async def main_dask_task(
                 logger.info(line)
 
         logger.info(f"log_str = {log_str}")
+        # search for the JSON-like part, parse it, and ignore the rest.
         match = re.search(r"(\[\s*\{.*\}\s*\])", log_str, re.DOTALL)
         if not match:
             raise ValueError("No valid data structure found in the output.")
@@ -752,6 +759,8 @@ async def main_dask_task(
 
         # Use `ast.literal_eval` to safely evaluate the structure
         try:
+            # payload_str is a string that looks like a JSON, extracted from the dpr mockup's raw output.
+            # ast.literal_eval() parses that string and returns the actual Python object (not just the string).
             return_response = ast.literal_eval(payload_str)
         except Exception as e:
             raise ValueError(f"Failed to parse data structure: {e}")
