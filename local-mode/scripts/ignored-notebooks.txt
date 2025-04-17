@@ -4,6 +4,8 @@
 notebooks/sprints/sprint20/dpr_processor_example.ipynb
 # UAC notebook, works only on cluster mode
 notebooks/sprints/sprint21/350-staging-roles.ipynb
+# Replaced by sprint22/s3l0_demo_processor.ipynb
+notebooks/sprints/sprint21/first_l0_processor.ipynb
 
 # Ignore dask and prefect tutorials, they take time and their functionnalities should be covered by demos
 notebooks/tutorials/prefect+dask/dask.ipynb
