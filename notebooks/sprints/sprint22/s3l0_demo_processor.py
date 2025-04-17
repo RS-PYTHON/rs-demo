@@ -90,8 +90,6 @@ def s3l0_demo_processor(
     collection_name: str,
     cadip_stac_filter: str,
     auxip_cql2_filter: dict,
-    adgs_station: str,
-    cadip_station: str,
     staging_timeout: int,
 ):
     """
@@ -112,8 +110,6 @@ def s3l0_demo_processor(
         collection_name (str): Name of the target collection in the catalog.
         cadip_stac_filter (str): STAC filter for querying CADIP data.
         auxip_cql2_filter (dict): CQL2 filter used for AUXIP data querying.
-        adgs_station (str): AUXIP station name used in the search (e.g. ADGS station).
-        cadip_station (str): CADIP station name used in the search.
         staging_timeout (int): Timeout in seconds for staging tasks to complete.
 
     Returns:
@@ -139,8 +135,8 @@ def s3l0_demo_processor(
         owner_id,
         None,
     )
-    auxip_client = generic_client.get_auxip_client(adgs_station)
-    cadip_client = generic_client.get_cadip_client(cadip_station)
+    auxip_client = generic_client.get_auxip_client()
+    cadip_client = generic_client.get_cadip_client()
     catalog_client = generic_client.get_catalog_client()
     staging_client = generic_client.get_staging_client()
 
