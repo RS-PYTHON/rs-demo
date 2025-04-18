@@ -76,6 +76,19 @@ else:
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client_eopf.scheduler_info()["workers"])
 
+# Some kind of workaround for boto3 to avoid checksum being added inside
+# the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
+# See: https://github.com/boto/boto3/issues/4435
+os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
+os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
+
+
+def log_http_exception(logger, detail: str, status_code: int = 500) -> Exception:
+    """Log error and return an HTTP execption to be raised by the caller"""
+    logger.error(detail)
+    return Exception(status_code, detail)
+
+
 ##########################
 # Prefect tasks and flow #
 ##########################
@@ -532,8 +545,10 @@ async def config_file(
     try:
         await prefect_utils.s3_upload_file(local_payload_path, s3_payload_path)
     except Exception as e:
-        logger.error(f"Error uploading file to S3 ({s3_payload_path}): {e}")
-        return False
+        raise log_http_exception(
+            logger,
+            f"Error uploading file to S3 ({s3_payload_path})",
+        ) from e
 
     logger.info("End config file")
     return new_payload_file
@@ -674,6 +689,8 @@ async def main_dask_task(
         "S3_BUCKET_FOLDER",
         "DASK_GATEWAY_EOPF_ADDRESS",
         "DASK_CLUSTER_EOPF_NAME",
+        "AWS_REQUEST_CHECKSUM_CALCULATION",
+        "AWS_RESPONSE_CHECKSUM_VALIDATION",
     ] + (
         ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
         if local_mode
