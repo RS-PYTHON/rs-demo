@@ -251,7 +251,32 @@ def init_rsclient(owner_id=None):
     return auxip_client, cadip_client, catalog_client, staging_client
 
 
-def create_test_collection(collection_id=None) -> CollectionClient:
+def get_or_create_test_collection(
+    collection_id: str | None = None,
+    description: str | None = None,
+    temporal: TemporalExtent | None = None,
+    title: str | None = None,
+    stac_extensions: list[str] | None = None,
+) -> CollectionClient:
+    """Returns the given STAC collection or creates it if does not exist"""
+    if (collection := catalog_client.get_collection(collection_id)) is not None:
+        return collection
+    return create_test_collection(
+        collection_id,
+        description,
+        temporal,
+        title,
+        stac_extensions,
+    )
+
+
+def create_test_collection(
+    collection_id: str | None = None,
+    description: str | None = None,
+    temporal: TemporalExtent | None = None,
+    title: str | None = None,
+    stac_extensions: list[str] | None = None,
+) -> CollectionClient:
     """Create and return a test STAC collection"""
 
     if not collection_id:
@@ -263,11 +288,13 @@ def create_test_collection(collection_id=None) -> CollectionClient:
     response = catalog_client.add_collection(
         Collection(
             id=collection_id,
-            description=None,  # rs-client will provide a default description for us
+            description=description,  # if None, rs-client will provide a default description for us
+            title=title,  # if None, rs-client will provide a default title for us
             extent=Extent(
                 spatial=SpatialExtent(bboxes=[-180.0, -90.0, 180.0, 90.0]),
-                temporal=TemporalExtent([start_date, stop_date]),
+                temporal=temporal or TemporalExtent([start_date, stop_date]),
             ),
+            stac_extensions=stac_extensions,
         ),
     )
     response.raise_for_status()
@@ -330,13 +357,19 @@ def stage_test_objects(
         # truncate by number of files. In cadip case, the items are sessions which have more than one file
         item_collection = truncate_features_by_limit(item_collection, nb_of_objects)
     items_id = [item.id for item in item_collection]
+    return stage_data(item_collection.to_dict(), items_id, catalog_collection_name)
+
+
+def stage_data(
+    staging_input: dict | str,
+    items_id: list[str],
+    catalog_collection_name: str,
+    timeout: int = 120,
+) -> ItemCollection:
+    """Stage an item collection into the STAC catalog and return it."""
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
-    started_job = staging_client.run_staging(
-        item_collection.to_dict(),
-        catalog_collection_name,
-    )
-    timeout = 120
+    started_job = staging_client.run_staging(staging_input, catalog_collection_name)
     while timeout > 0:
         if "running" not in started_job["status"]:
             break
@@ -356,6 +389,22 @@ def stage_test_objects(
         timeout -= 2
 
     return None
+
+
+def stage_single_item(
+    item: Item,
+    catalog_collection: ItemCollection,
+    timeout: int = 120,
+) -> ItemCollection:
+    """Stage a single item by converting it to an URL returning ItemCollection through the /search endpoint"""
+    link = (
+        item.get_links("root")[0].get_href()
+        + "search?collections="
+        + item.collection_id
+        + "&limit=1&ids="
+        + item.id
+    )
+    return stage_data(link, [item.id], catalog_collection.id, timeout)
 
 
 def temporary_fix_adgs_feature(items_collection):
