@@ -1,45 +1,42 @@
-# ==========================================================
-# This the configuration file for the l0 processor.
-# ==========================================================
+# =============================================================
+# L0 Processor Configuration File for Sentinel-1
+# =============================================================
 
-dask_utils__compute__step: 1
-
-# the sentinel-1 l0 processor.
 S1:
-  # ==========================================================
-  # Window Time
-  # ==========================================================
-  # set the window start stop time base on instrument
+  # -------------------------------------------------------------
+  # 1. Window Time Configuration
+  # -------------------------------------------------------------
   window_time:
     sar:
-      start_slice: '2024-04-10T07:53:38.667824'
-      stop_slice: '2024-04-10T07:54:51.958489'
-      fine_precision: 16
-  # ==========================================================
-  # Reed Solomon configuration
-  # ==========================================================
-  # set it to true if the cadu raw data are configured in dual basis
-  use_dual_basis: true
-  # ==========================================================
-  # CADU configuration
-  # ==========================================================
-  # the cadu size
-  cadu_size: 2044
-  # size (bytes) of the attached synchronization marker
-  syn_marker_size: 4
-  # value of the attached synchronization marker
-  syn_marker_value: 449838109
-  # the annotation size if there is annotation
-  annotation_size: 0
-  # the CADU transfer frame header size
-  transfer_frame_header_size: 8
-  # size of the header of transfer frame data field in the CADU
-  mpdu_header_size: 2
-  # size of packet zone transfer frame data field in the CADU
-  mpdu_packet_zone_size: 1902
-  # size of the reed solomon check symbols in the CADU
-  rs_check_symbols_size: 128
-  # values of virtual id channels for each packet store type
+      enabled: false
+      start_slice: '2024-04-10T07:53:55.774338'
+      stop_slice: '2024-04-10T07:53:55.775513'
+    gps:
+      enabled: false
+      start_slice: '2024-04-10T07:53:55.774338'
+      stop_slice: '2024-04-10T07:53:55.775513'
+    ais:
+      enabled: false
+      start_slice: '2024-04-10T07:53:55.774338'
+      stop_slice: '2024-04-10T07:53:55.775513'
+
+  # -------------------------------------------------------------
+  # 2. Reed Solomon & CADU Configuration
+  # -------------------------------------------------------------
+  cadu_processing_configuration:
+    use_dual_basis: true
+    cadu_size: 2044                      # Size of the CADU in bytes
+    syn_marker_size: 4                   # Bytes allocated for the synchronization marker
+    syn_marker_value: 449838109          # Fixed synchronization marker value
+    annotation_size: 0                   # Annotation field size (if applicable)
+    transfer_frame_header_size: 8        # CADU transfer frame header size in bytes
+    mpdu_header_size: 2                  # MPDU header size in bytes
+    mpdu_packet_zone_size: 1902          # Packet zone data field size in bytes
+    rs_check_symbols_size: 128           # Reed Solomon check symbols size
+
+  # -------------------------------------------------------------
+  # 3. Packet Store Identifiers
+  # -------------------------------------------------------------
   packet_stores:
     sar:
     - 0
@@ -85,6 +82,7 @@ S1:
     - 40
     - 41
     - 42
+    ais:
     - 43
     - 44
     hktm:
@@ -92,54 +90,371 @@ S1:
     - 46
     - 47
     - 48
-    aux:
+    gps:
     - 49
     idle:
     - 63
-  # ==========================================================
-  # ISP headers info
-  # ==========================================================
-  # the isp primary header size
-  isp_primary_header_size: 6
-  # isp secondary header size
-  isp_secondary_header_size:
-    # for sar data type
-    sar: 62
-    # housekeeping telemetry
-    hktm: 11
-    aux: 11
-  # ==========================================================
-  # The output product types
-  # ==========================================================
-  output_product_type:
-    sar:
-      sm: S01SMRAW_
-      iw: S01IWRAW_
-      ew: S01EWRAW_
-      wv: S01WVRAW_
-      rf: S01RFRAW_
-      en: S01ENRAW_
-      an: S01ANRAW_
-      zs: S01ZSRAW_
-      ze: S01ZERAW_
-      zi: S01ZIRAW_
-      zw: S01ZWRAW_
-    hktm: S01HKML0_
-    aux: S01AUXRAW
 
-  # ==========================================================
-  # Additional configuration parameters
-  # ==========================================================
-  sar_instrument:
-    properties:
-      start_datetime: '2024-04-10T07:53:38.667824'
-      end_datetime: '2024-04-10T07:54:51.958489'
-      sat:anx_datetime: '2024-04-10T06:21:24.506288Z'
-      sat:absolute_orbit: 53368
-      instrument: Synthetic Aperture Radar
-      platform: A
-      sat:relative_orbit: 96
+  # -------------------------------------------------------------
+  # 4. CRC Check Configuration
+  # -------------------------------------------------------------
+  check_crc_configuration:
+    check_crc:
+      sar: false
+      ais: false
+      hktm: false
+      gps: true
+
+  # -------------------------------------------------------------
+  # 5. ISP Headers Information
+  # -------------------------------------------------------------
+  isp_primary_header_size: 6
+  isp_secondary_header_size:
+    sar: 62
+    ais: 62
+    gps: 20
+
+  # -------------------------------------------------------------
+  # 6. Output Product Types
+  # -------------------------------------------------------------
+  output_product_types:
+    cadu_sar: S01SARISP
+    cadu_hktm: S01HKMISP
+    cadu_ais: S01AISISP
+    cadu_gps: S01GPSISP
+    sar:
+      s1: S01S1RAW_
+      s1_anc: S01S1ANC_
+      s2: S01S2RAW_
+      s2_anc: S01S2ANC_
+      s3: S01S3RAW_
+      s3_anc: S01S3ANC_
+      s4: S01S4RAW_
+      s4_anc: S01S4ANC_
+      s5: S01S5RAW_
+      s5_anc: S01S5ANC_
+      s6: S01S6RAW_
+      s6_anc: S01S6ANC_
+      iw: S01IWRAW_
+      iw_anc: S01IWANC_
+      ew: S01EWRAW_
+      ew_anc: S01EWANC_
+      wv: S01WVRAW_
+      wv_anc: S01WVANC_
+      rf: S01RFRAW_
+      rf_anc: S01RFCANC
+      en: S01ENRAW_
+      en_anc: S01ENANC_
+      n1: S01N1RAW_
+      n1_anc: S01N1ANC_
+      n2: S01N2RAW_
+      n2_anc: S01N2ANC_
+      n3: S01N3RAW_
+      n3_anc: S01N3ANC_
+      n4: S01N4RAW_
+      n4_anc: S01N4ANC_
+      n5: S01N5RAW_
+      n5_anc: S01N5ANC_
+      n6: S01N6RAW_
+      n6_anc: S01N6ANC_
+    hktm_tf: S01HKMRAW
+    gps: S01GPSRAW
+    ais: S01AISRAW
+
+  # -------------------------------------------------------------
+  # 7. APID Mapping Configuration
+  # -------------------------------------------------------------
+  apid_mapping:
+    sar:
+    - 1052
+    gps:
+    - 774
+    - 779
+    - 781
+    - 790
+    - 795
+    - 797
+    ais:
+    - 100
+    hktm:
+    - 0
+    - 21
+    - 22
+    - 101
+    - 257
+    - 258
+    - 259
+    - 260
+    - 263
+    - 265
+    - 281
+    - 291
+    - 297
+    - 307
+    - 323
+    - 329
+    - 513
+    - 514
+    - 515
+    - 516
+    - 519
+    - 521
+    - 547
+    - 553
+    - 579
+    - 585
+    - 769
+    - 771
+    - 772
+    - 774
+    - 775
+    - 777
+    - 785
+    - 787
+    - 788
+    - 790
+    - 791
+    - 793
+    - 1025
+    - 1027
+    - 1033
+    - 1040
+    - 1041
+    - 1042
+    - 1043
+    - 1044
+    - 1047
+    - 1049
+    - 1297
+    - 1299
+    - 1300
+    - 1303
+    - 1305
+    - 1313
+    - 1315
+    - 1316
+    - 1319
+    - 1321
+    - 1329
+    - 1331
+    - 1332
+    - 1335
+    - 1337
+    - 1345
+    - 1347
+    - 1348
+    - 1351
+    - 1353
+    - 1361
+    - 1363
+    - 1364
+    - 1367
+    - 1369
+    - 1377
+    - 1379
+    - 1380
+    - 1383
+    - 1385
+    - 1393
+    - 1395
+    - 1396
+    - 1399
+    - 1401
+    - 1409
+    - 1411
+    - 1412
+    - 1415
+    - 1417
+    - 1425
+    - 1427
+    - 1428
+    - 1431
+    - 1433
+    - 1441
+    - 1443
+    - 1444
+    - 1447
+    - 1449
+    - 1457
+    - 1459
+    - 1460
+    - 1463
+    - 1465
+    - 1473
+    - 1475
+    - 1476
+    - 1479
+    - 1481
+    - 1489
+    - 1491
+    - 1492
+    - 1495
+    - 1497
+    - 1505
+    - 1507
+    - 1508
+    - 1511
+    - 1513
+    - 1537
+    - 1539
+    - 1545
+    - 1553
+    - 1555
+    - 1556
+    - 1559
+    - 1561
+    - 1761
+    - 1762
+    - 1763
+    - 1764
+    - 1767
+    - 1769
+    - 1920
+    - 1921
+    - 1922
+    - 1923
+    - 1924
+    - 1925
+    - 1926
+    - 1927
+    - 1929
+    - 1930
+    - 1936
+    - 1937
+    - 1939
+    - 1940
+    - 1943
+    - 1945
+    - 1946
+    - 1951
+    - 1953
+    - 1954
+    - 1955
+    - 1956
+    - 1957
+    - 1958
+    idle:
+    - 2047
+  # -------------------------------------------------------------
+  # 8. Additional General Properties
+  # -------------------------------------------------------------
+  properties:
+    sar:
+      processing:expression: systematic
+      processing:facility: Copernicus S1 Core Ground Segment-DPA
+      processing:version: level-0
       product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    hktm:
+      processing:expression: systematic
+      processing:facility: Copernicus S1 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    ais:
+      processing:expression: systematic
+      processing:facility: Copernicus S1 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    gps:
+      processing:expression: systematic
+      processing:facility: Copernicus S1 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+
+  # -------------------------------------------------------------
+  # 9. SAR Instrument Specific Configuration
+  # -------------------------------------------------------------
+  sar_instrument:
+    # 9.1 ISP Field Validation Settings
+    isp_field_allowed_range:
+      discard_packets: true
+      synchronisation_marker:
+        type: fixed
+        value: 0x352EF853
+      mission_datatake_id:
+        type: range
+        min: 1
+        max: 8388607   # (2^23 - 1)
+      circulation_flag:
+        type: range
+        min: 1
+        max: 15      # (2^4 - 1)
+      rfc_type:
+        type: range
+        min: 0
+        max: 1
+      ecc_number:
+        type: range
+        min: 0
+        max: 47
+      rx_channel_id:
+        type: range
+        min: 0
+        max: 1
+      polarisation:
+        type: range
+        min: 0
+        max: 7
+      instrument_configuration_id:
+        type: range
+        min: 1
+        max: 16777215  # (2^24 - 1)
+      baq_mode:
+        type: allowed
+        values: [0, 3, 4, 5, 12, 13, 14]
+      signal_type:
+        type: allowed
+        values: [0, 1, 8, 9, 10, 11, 12, 15]
+
+    # 9.2 Preamble length (t_pre) and Beam cycle time (t_beam)
+    # for BURST ID computation
+    t_pre:
+      iw:
+      - 2.299849
+      ew:
+      - 2.299970
+
+    t_beam:
+      iw:
+      - 2.758273
+      ew:
+      - 3.038376
+
     compression_type:
       undefined_compression_type:
       - -1
@@ -157,6 +472,8 @@ S1:
       - 13
       fdbaq_2:
       - 14
+
+    # 9.4 Signal Type Definitions
     signal_type:
       noise:
       - 1
@@ -169,8 +486,9 @@ S1:
       - 11
       - 12
       - 15
-    subswathid:
-      echo_signal_type:
+
+    # 9.5 Subswath ID Mapping for Echo Signal Types
+    echo_signal_type:
         s01:
         - 0
         s02:
@@ -205,94 +523,163 @@ S1:
         - 30
         wv2:
         - 31
-      cal_echo_signal_type:
-        s01:
-        - 50
-        s02:
-        - 51
-        s03:
-        - 52
-        s04:
-        - 53
-        s5n:
-        - 54
-        s5s:
-        - 55
-        s06:
-        - 56
-        iw1:
-        - 60
-        iw2:
-        - 61
-        iw3:
-        - 62
-        ew1:
-        - 70
-        ew2:
-        - 71
-        ew3:
-        - 72
-        ew4:
-        - 73
-        ew5:
-        - 74
-        wv1:
-        - 80
-        wv2:
-        - 81
-      calibration_signal_type:
-        s01:
-        - 36
-        - 86
-        s02:
-        - 37
-        - 87
-        s03:
-        - 38
-        - 88
-        s04:
-        - 39
-        - 89
-        s5n:
-        - 40
-        - 90
-        s5s:
-        - 41
-        - 91
-        s06:
-        - 42
-        - 92
-        iw1:
-        - 43
-        - 93
-        iw2:
-        - 44
-        - 94
-        iw3:
-        - 45
-        - 95
-        ew1:
-        - 25
-        - 75
-        ew2:
-        - 26
-        - 76
-        ew3:
-        - 27
-        - 77
-        ew4:
-        - 28
-        - 78
-        ew5:
-        - 29
-        - 79
-        wv1:
-        - 32
-        - 82
-        wv2:
-        - 33
-        - 83
+
+    # 9.6 Noise Preamble and Postamble Lengths (in bytes)
+    noise_preamble_length:
+      iw:
+      - 24
+      ew:
+      - 40
+      wv:
+      - 16
+      # SM
+      s1:
+      - 8
+      s2:
+      - 8
+      s3:
+      - 8
+      s4:
+      - 8
+      s5:
+      - 8
+      s6:
+      - 8
+      rf:
+      - 8
+      # AN
+      n1:
+      - 8
+      n2:
+      - 8
+      n3:
+      - 8
+      n4:
+      - 8
+      n5:
+      - 8
+      n6:
+      - 8
+      en:
+      - 8
+    noise_postamble_length:
+      iw:
+      - 24
+      ew:
+      - 40
+      wv:
+      - 16
+      # SM
+      s1:
+      - 8
+      s2:
+      - 8
+      s3:
+      - 8
+      s4:
+      - 8
+      s5:
+      - 8
+      s6:
+      - 8
+      # rf
+      rf:
+      - 8
+      # AN
+      n1:
+      - 10
+      n2:
+      - 10
+      n3:
+      - 10
+      n4:
+      - 10
+      n5:
+      - 10
+      n6:
+      - 10
+      en:
+      - 10
+
+    # 9.7 Slice Configuration for Burst Processing
+    slice:
+      iw:
+        enabled_slicing: true
+        number_of_bursts: 5
+        number_of_bursts_overlap: 0
+      ew:
+        enabled_slicing: true
+        number_of_bursts: 5
+        number_of_bursts_overlap: 0
+      s1:
+        enabled_slicing: true
+        slice_length: 25000    # Slice duration in milliseconds
+        slice_overlap: 7700    # Overlap duration in milliseconds
+      s2:
+        enabled_slicing: true
+        slice_length: 25000    # Slice duration in milliseconds
+        slice_overlap: 7700    # Overlap duration in milliseconds
+      s3:
+        enabled_slicing: true
+        slice_length: 25000    # Slice duration in milliseconds
+        slice_overlap: 7700    # Overlap duration in milliseconds
+      s4:
+        enabled_slicing: true
+        slice_length: 25000    # Slice duration in milliseconds
+        slice_overlap: 7700    # Overlap duration in milliseconds
+      s5:
+        enabled_slicing: true
+        slice_length: 25000    # Slice duration in milliseconds
+        slice_overlap: 7700    # Overlap duration in milliseconds
+      s6:
+        enabled_slicing: true
+        slice_length: 25000    # Slice duration in milliseconds
+        slice_overlap: 7700    # Overlap duration in milliseconds
+
+    # 9.8 Nominal Time Delta Configuration (in seconds)
+    delta_nominal_time:
+      ew_shh:
+      - 0.580
+      ew_shv:
+      - 0.580
+      ew_svh:
+      - 0.580
+      ew_svv:
+      - 0.580
+      ew_dhh:
+      - 0.580
+      ew_dhv:
+      - 0.580
+      ew_dvh:
+      - 0.580
+      ew_dvv:
+      - 0.580
+
+      iw_shh:
+      - 0.623
+      iw_shv:
+      - 0.623
+      iw_svh:
+      - 0.623
+      iw_svv:
+      - 0.623
+      iw_dhh:
+      - 0.623
+      iw_dhv:
+      - 0.623
+      iw_dvh:
+      - 0.623
+      iw_dvv:
+      - 0.623
+
+      wv_shh:
+      - 0.606
+      wv_svv:
+      - 0.606
+
+    # 9.9 Polarisation Mapping Configuration
     polarisation:
+
       s1_shh:
       - 1
       - 1
@@ -733,35 +1120,35 @@ S1:
       - 21
       - 7
       - 0
-      n5nshh:
+      n5s_hh:
       - 22
       - 1
       - 1
-      n5nshv:
+      n5n_shv:
       - 22
       - 2
       - 0
-      n5nsvh:
+      n5n_svh:
       - 22
       - 5
       - 1
-      n5nsvv:
+      n5n_svv:
       - 22
       - 6
       - 0
-      n5ndhh:
+      n5n_dhh:
       - 22
       - 3
       - 1
-      n5ndhv:
+      n5n_dhv:
       - 22
       - 3
       - 0
-      n5ndvh:
+      n5n_dvh:
       - 22
       - 7
       - 1
-      n5ndvv:
+      n5n_dvv:
       - 22
       - 7
       - 0
@@ -797,35 +1184,35 @@ S1:
       - 24
       - 7
       - 0
-      n5sshh:
+      n5s_shh:
       - 23
       - 1
       - 1
-      n5sshv:
+      n5s_shv:
       - 23
       - 2
       - 0
-      n5ssvh:
+      n5s_svh:
       - 23
       - 5
       - 1
-      n5ssvv:
+      n5s_svv:
       - 23
       - 6
       - 0
-      n5sdhh:
+      n5s_dhh:
       - 23
       - 3
       - 1
-      n5sdhv:
+      n5s_dhv:
       - 23
       - 3
       - 0
-      n5sdvh:
+      n5s_dvh:
       - 23
       - 7
       - 1
-      n5sdvv:
+      n5s_dvv:
       - 23
       - 7
       - 0
@@ -861,355 +1248,355 @@ S1:
       - 17
       - 7
       - 0
-      s11_shh:
-      - 11
-      - 1
-      - 1
-      s11_shv:
-      - 11
-      - 2
-      - 0
-      s11_svh:
-      - 11
-      - 5
-      - 1
-      s11_svv:
-      - 11
-      - 6
-      - 0
-      s11_dhh:
-      - 11
-      - 3
-      - 1
-      s11_dhv:
-      - 11
-      - 3
-      - 0
-      s11_dvh:
-      - 11
-      - 7
-      - 1
-      s11_dvv:
-      - 11
-      - 7
-      - 0
-      s12_shh:
-      - 12
-      - 1
-      - 1
-      s12_shv:
-      - 12
-      - 2
-      - 0
-      s12_svh:
-      - 12
-      - 5
-      - 1
-      s12_svv:
-      - 12
-      - 6
-      - 0
-      s12_dhh:
-      - 12
-      - 3
-      - 1
-      s12_dhv:
-      - 12
-      - 3
-      - 0
-      s12_dvh:
-      - 12
-      - 7
-      - 1
-      s12_dvv:
-      - 12
-      - 7
-      - 0
-      s13_shh:
-      - 13
-      - 1
-      - 1
-      s13_shv:
-      - 13
-      - 2
-      - 0
-      s13_svh:
-      - 13
-      - 5
-      - 1
-      s13_svv:
-      - 13
-      - 6
-      - 0
-      s13_dhh:
-      - 13
-      - 3
-      - 1
-      s13_dhv:
-      - 13
-      - 3
-      - 0
-      s13_dvh:
-      - 13
-      - 7
-      - 1
-      s13_dvv:
-      - 13
-      - 7
-      - 0
-      s14_shh:
-      - 14
-      - 1
-      - 1
-      s14_shv:
-      - 14
-      - 2
-      - 0
-      s14_svh:
-      - 14
-      - 5
-      - 1
-      s14_svv:
-      - 14
-      - 6
-      - 0
-      s14_dhh:
-      - 14
-      - 3
-      - 1
-      s14_dhv:
-      - 14
-      - 3
-      - 0
-      s14_dvh:
-      - 14
-      - 7
-      - 1
-      s14_dvv:
-      - 14
-      - 7
-      - 0
-      s25_shh:
-      - 25
-      - 1
-      - 1
-      s25_shv:
-      - 25
-      - 2
-      - 0
-      s25_svh:
-      - 25
-      - 5
-      - 1
-      s25_svv:
-      - 25
-      - 6
-      - 0
-      s25_dhh:
-      - 25
-      - 3
-      - 1
-      s25_dhv:
-      - 25
-      - 3
-      - 0
-      s25_dvh:
-      - 25
-      - 7
-      - 1
-      s25_dvv:
-      - 25
-      - 7
-      - 0
-      s26_shh:
-      - 26
-      - 1
-      - 1
-      s26_shv:
-      - 26
-      - 2
-      - 0
-      s26_svh:
-      - 26
-      - 5
-      - 1
-      s26_svv:
-      - 26
-      - 6
-      - 0
-      s26_dhh:
-      - 26
-      - 3
-      - 1
-      s26_dhv:
-      - 26
-      - 3
-      - 0
-      s26_dvh:
-      - 26
-      - 7
-      - 1
-      s26_dvv:
-      - 26
-      - 7
-      - 0
-      s27_shh:
-      - 27
-      - 1
-      - 1
-      s27_shv:
-      - 27
-      - 2
-      - 0
-      s27_svh:
-      - 27
-      - 5
-      - 1
-      s27_svv:
-      - 27
-      - 6
-      - 0
-      s27_dhh:
-      - 27
-      - 3
-      - 1
-      s27_dhv:
-      - 27
-      - 3
-      - 0
-      s27_dvh:
-      - 27
-      - 7
-      - 1
-      s27_dvv:
-      - 27
-      - 7
-      - 0
-      n31shh:
+      # s11_shh:
+      # - 11
+      # - 1
+      # - 1
+      # s11_shv:
+      # - 11
+      # - 2
+      # - 0
+      # s11_svh:
+      # - 11
+      # - 5
+      # - 1
+      # s11_svv:
+      # - 11
+      # - 6
+      # - 0
+      # s11_dhh:
+      # - 11
+      # - 3
+      # - 1
+      # s11_dhv:
+      # - 11
+      # - 3
+      # - 0
+      # s11_dvh:
+      # - 11
+      # - 7
+      # - 1
+      # s11_dvv:
+      # - 11
+      # - 7
+      # - 0
+      # s12_shh:
+      # - 12
+      # - 1
+      # - 1
+      # s12_shv:
+      # - 12
+      # - 2
+      # - 0
+      # s12_svh:
+      # - 12
+      # - 5
+      # - 1
+      # s12_svv:
+      # - 12
+      # - 6
+      # - 0
+      # s12_dhh:
+      # - 12
+      # - 3
+      # - 1
+      # s12_dhv:
+      # - 12
+      # - 3
+      # - 0
+      # s12_dvh:
+      # - 12
+      # - 7
+      # - 1
+      # s12_dvv:
+      # - 12
+      # - 7
+      # - 0
+      # s13_shh:
+      # - 13
+      # - 1
+      # - 1
+      # s13_shv:
+      # - 13
+      # - 2
+      # - 0
+      # s13_svh:
+      # - 13
+      # - 5
+      # - 1
+      # s13_svv:
+      # - 13
+      # - 6
+      # - 0
+      # s13_dhh:
+      # - 13
+      # - 3
+      # - 1
+      # s13_dhv:
+      # - 13
+      # - 3
+      # - 0
+      # s13_dvh:
+      # - 13
+      # - 7
+      # - 1
+      # s13_dvv:
+      # - 13
+      # - 7
+      # - 0
+      # s14_shh:
+      # - 14
+      # - 1
+      # - 1
+      # s14_shv:
+      # - 14
+      # - 2
+      # - 0
+      # s14_svh:
+      # - 14
+      # - 5
+      # - 1
+      # s14_svv:
+      # - 14
+      # - 6
+      # - 0
+      # s14_dhh:
+      # - 14
+      # - 3
+      # - 1
+      # s14_dhv:
+      # - 14
+      # - 3
+      # - 0
+      # s14_dvh:
+      # - 14
+      # - 7
+      # - 1
+      # s14_dvv:
+      # - 14
+      # - 7
+      # - 0
+      # s25_shh:
+      # - 25
+      # - 1
+      # - 1
+      # s25_shv:
+      # - 25
+      # - 2
+      # - 0
+      # s25_svh:
+      # - 25
+      # - 5
+      # - 1
+      # s25_svv:
+      # - 25
+      # - 6
+      # - 0
+      # s25_dhh:
+      # - 25
+      # - 3
+      # - 1
+      # s25_dhv:
+      # - 25
+      # - 3
+      # - 0
+      # s25_dvh:
+      # - 25
+      # - 7
+      # - 1
+      # s25_dvv:
+      # - 25
+      # - 7
+      # - 0
+      # s26_shh:
+      # - 26
+      # - 1
+      # - 1
+      # s26_shv:
+      # - 26
+      # - 2
+      # - 0
+      # s26_svh:
+      # - 26
+      # - 5
+      # - 1
+      # s26_svv:
+      # - 26
+      # - 6
+      # - 0
+      # s26_dhh:
+      # - 26
+      # - 3
+      # - 1
+      # s26_dhv:
+      # - 26
+      # - 3
+      # - 0
+      # s26_dvh:
+      # - 26
+      # - 7
+      # - 1
+      # s26_dvv:
+      # - 26
+      # - 7
+      # - 0
+      # s27_shh:
+      # - 27
+      # - 1
+      # - 1
+      # s27_shv:
+      # - 27
+      # - 2
+      # - 0
+      # s27_svh:
+      # - 27
+      # - 5
+      # - 1
+      # s27_svv:
+      # - 27
+      # - 6
+      # - 0
+      # s27_dhh:
+      # - 27
+      # - 3
+      # - 1
+      # s27_dhv:
+      # - 27
+      # - 3
+      # - 0
+      # s27_dvh:
+      # - 27
+      # - 7
+      # - 1
+      # s27_dvv:
+      # - 27
+      # - 7
+      # - 0
+      n31_shh:
       - 31
       - 1
       - 1
-      n31shv:
+      n31_shv:
       - 31
       - 2
       - 0
-      n31svh:
+      n31_svh:
       - 31
       - 5
       - 1
-      n31svv:
+      n31_svv:
       - 31
       - 6
       - 0
-      n31dhh:
+      n31_dhh:
       - 31
       - 3
       - 1
-      n31dhv:
+      n31_dhv:
       - 31
       - 3
       - 0
-      n31dvh:
+      n31_dvh:
       - 31
       - 7
       - 1
-      n31dvv:
+      n31_dvv:
       - 31
       - 7
       - 0
-      n33shh:
+      n33_shh:
       - 33
       - 1
       - 1
-      n33shv:
+      n33_shv:
       - 33
       - 2
       - 0
-      n33svh:
+      n33_svh:
       - 33
       - 5
       - 1
-      n33svv:
+      n33_svv:
       - 33
       - 6
       - 0
-      n33dhh:
+      n33_dhh:
       - 33
       - 3
       - 1
-      n33dhv:
+      n33_dhv:
       - 33
       - 3
       - 0
-      n33dvh:
+      n33_dvh:
       - 33
       - 7
       - 1
-      n33dvv:
+      n33_dvv:
       - 33
       - 7
       - 0
-      n34shh:
+      n34_shh:
       - 34
       - 1
       - 1
-      n34shv:
+      n34_shv:
       - 34
       - 2
       - 0
-      n34svh:
+      n34_svh:
       - 34
       - 5
       - 1
-      n34svv:
+      n34_svv:
       - 34
       - 6
       - 0
-      n34dhh:
+      n34_dhh:
       - 34
       - 3
       - 1
-      n34dhv:
+      n34_dhv:
       - 34
       - 3
       - 0
-      n34dvh:
+      n34_dvh:
       - 34
       - 7
       - 1
-      n34dvv:
+      n34_dvv:
       - 34
       - 7
       - 0
-      n35shh:
+      n35_shh:
       - 35
       - 1
       - 1
-      n35shv:
+      n35_shv:
       - 35
       - 2
       - 0
-      n35svh:
+      n35_svh:
       - 35
       - 5
       - 1
-      n35svv:
+      n35_svv:
       - 35
       - 6
       - 0
-      n35dhh:
+      n35_dhh:
       - 35
       - 3
       - 1
-      n35dhv:
+      n35_dhv:
       - 35
       - 3
       - 0
-      n35dvh:
+      n35_dvh:
       - 35
       - 7
       - 1
-      n35dvv:
+      n35_dvv:
       - 35
       - 7
       - 0
@@ -1341,67 +1728,67 @@ S1:
       - 40
       - 7
       - 0
-      z5nshh:
+      z5n_shh:
       - 41
       - 1
       - 1
-      z5nshv:
+      z5n_shv:
       - 41
       - 2
       - 0
-      z5nsvh:
+      z5n_svh:
       - 41
       - 5
       - 1
-      z5nsvv:
+      z5n_svv:
       - 41
       - 6
       - 0
-      z5ndhh:
+      z5n_dhh:
       - 41
       - 3
       - 1
-      z5ndhv:
+      z5n_dhv:
       - 41
       - 3
       - 0
-      z5ndvh:
+      z5n_dvh:
       - 41
       - 7
       - 1
-      z5ndvv:
+      z5n_dvv:
       - 41
       - 7
       - 0
-      z5sshh:
+      z5s_shh:
       - 42
       - 1
       - 1
-      z5sshv:
+      z5s_shv:
       - 42
       - 2
       - 0
-      z5ssvh:
+      z5s_svh:
       - 42
       - 5
       - 1
-      z5ssvv:
+      z5s_svv:
       - 42
       - 6
       - 0
-      z5sdhh:
+      z5s_dhh:
       - 42
       - 3
       - 1
-      z5sdhv:
+      z5s_dhv:
       - 42
       - 3
       - 0
-      z5sdvh:
+      z5s_dvh:
       - 42
       - 7
       - 1
-      z5sdvv:
+      z5s_dvv:
       - 42
       - 7
       - 0
@@ -1509,10 +1896,101 @@ S1:
       - 46
       - 6
       - 0
+
+    # 9.10. Noise Packet Retrieval
+    get_noise_packets:
+      iw: true
+      ew: true
+      wv: true
+      s1: true
+      s2: true
+      s3: true
+      s4: true
+      s5: true
+      s6: true
+      n1: true
+      n2: true
+      n3: true
+      n4: true
+      n5: true
+      n6: true
+      rf: true
+
+    # 9.11. Ranks Configuration
+    ranks:
+      - ecc_number: 8
+        swath_number: 10
+        signal_type: 0
+        rank: 10
+      - ecc_number: 8
+        swath_number: 11
+        signal_type: 0
+        rank: 9
+      - ecc_number: 8
+        swath_number: 12
+        signal_type: 0
+        rank: 11
+      - ecc_number: 7
+        swath_number: 20
+        signal_type: 0
+        rank: 9
+      - ecc_number: 7
+        swath_number: 21
+        signal_type: 0
+        rank: 11
+      - ecc_number: 7
+        swath_number: 22
+        signal_type: 0
+        rank: 10
+      - ecc_number: 7
+        swath_number: 23
+        signal_type: 0
+        rank: 12
+      - ecc_number: 7
+        swath_number: 24
+        signal_type: 0
+        rank: 11
+      - ecc_number: 32
+        swath_number: 20
+        signal_type: 0
+        rank: 9
+      - ecc_number: 32
+        swath_number: 21
+        signal_type: 0
+        rank: 11
+      - ecc_number: 32
+        swath_number: 22
+        signal_type: 0
+        rank: 10
+      - ecc_number: 32
+        swath_number: 23
+        signal_type: 0
+        rank: 12
+      - ecc_number: 32
+        swath_number: 24
+        signal_type: 0
+        rank: 11
+      - ecc_number: 9
+        swath_number: 30
+        signal_type: 0
+        rank: 0
+      - ecc_number: 9
+        swath_number: 31
+        signal_type: 0
+        rank: 0
+
+  # -------------------------------------------------------------
+  # 10. Processing Mode and File Handling
+  # -------------------------------------------------------------
   streaming_mode: false
   nb_cadus_file_in_parallel: 6
   cadu_chunk_size: 10000
-  isp_chunk_size: 30000
+  isp_chunk_size:
+    sar: 30000
+    hktm: 30000
+    ais: 30000
+    gps: 30000
+
 S2:
   cadu_size: 2044
   syn_marker_size: 4
@@ -1547,35 +2025,56 @@ S2:
   nb_cadus_file_in_parallel: 6
   cadu_chunk_size: 10000
   isp_chunk_size: 1000
+
+# =============================================================
+# L0 Processor Configuration File for Sentinel-3
+# =============================================================
+
 S3:
-   # ==========================================================
-  # Window Time
-  # ==========================================================
-  # set the window start stop time base on instrument
+  # -------------------------------------------------------------
+  # 1. Window Time Configuration
+  # -------------------------------------------------------------
+  # Defines the start and stop acquisition time window for each instrument.
+  # Used to restrict processing to a specific temporal interval.
+  # Fine precision setting (if enabled) adjusts the granularity of slicing.
+
   window_time:
     olci:
-          start_slice: '2024-04-11T12:44:23.808509'
-          stop_slice: '2024-04-11T12:46:22.041641'
-          fine_precision: 24
-  cadu_size: 2044
-  syn_marker_size: 4
-  syn_marker_value: 449838109
-  annotation_size: 8
-  transfer_frame_header_size: 8
-  mpdu_header_size: 2
-  mpdu_packet_zone_size: 1902
-  rs_check_symbols_size: 128
-  use_dual_basis: 1
+      start_slice: '2024-04-11T12:44:23.808509'
+      stop_slice: '2024-04-11T12:46:22.041641'
+      fine_precision: 24
+
+  # -------------------------------------------------------------
+  # 2. Reed Solomon & CADU Configuration
+  # -------------------------------------------------------------
+  cadu_processing_configuration:
+    cadu_size: 2044
+    syn_marker_size: 4
+    syn_marker_value: 449838109
+    annotation_size: 8
+    transfer_frame_header_size: 8
+    mpdu_header_size: 2
+    mpdu_packet_zone_size: 1902
+    rs_check_symbols_size: 128
+    use_dual_basis: true
+
+  # -------------------------------------------------------------
+  # 3. ISP Headers Information
+  # -------------------------------------------------------------
   isp_primary_header_size: 6
   isp_secondary_header_size:
-    navatt: 12
-    olci: 12
-    slstr: 12
-    sral: 12
+    navatt: 176
+    olci: 14
+    slstr: 19
+    sral: 16
     mwr: 12
     gnss: 12
     doris: 12
     hktm: 12
+
+  # -------------------------------------------------------------
+  # 4. Packet Store Identifiers
+  # -------------------------------------------------------------
   packet_stores:
     navatt:
     - 0
@@ -1601,6 +2100,126 @@ S3:
     - 14
     - 21
     - 63
+
+  # -------------------------------------------------------------
+  # 5. General Metadata Properties
+  # -------------------------------------------------------------
+  properties:
+    mwr:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    gnss:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    doris:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    hktm:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    navatt:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    olci:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    slstr:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+    sral:
+      processing:expression: systematic
+      processing:facility: Copernicus S3 Core Ground Segment-DPA
+      processing:version: level-0
+      product:timeliness_category: NRT
+      product:timeliness: PT3H
+      sat:platform_international_designator: '2014-016A'
+      providers:
+      - name: 'SGS_'
+        roles:
+          - processor
+      - name: 'European Space Agency'
+        roles:
+          - producer
+  # -------------------------------------------------------------
+  # 6. Output Product Types
+  # -------------------------------------------------------------
   product_type:
     olci: S03OLCL0_
     slstr: S03SLSL0_
@@ -1610,12 +2229,16 @@ S3:
     gnss: S03GNSL0_
     mwr: S03MWRL0_
     navatt: S03NATL0_
+
+  # -------------------------------------------------------------
+  # 7. APID Mapping Configuration
+  # -------------------------------------------------------------
   apid_mapping:
-    navatt:
+    S03NATL0_:
     - 361
-    mwr:
+    S03MWRL0_:
     - 1323
-    gnss:
+    S03GNSL0_:
     - 772
     - 788
     - 774
@@ -1624,7 +2247,9 @@ S3:
     - 796
     - 781
     - 797
-    slstr:
+    - 779
+    - 795
+    S03SLSL0_:
     - 1184
     - 1185
     - 1186
@@ -1638,19 +2263,25 @@ S3:
     - 1194
     - 1195
     - 1196
-    olci_cal:
+    S03OLCCR0:
     - 1057
     - 1073
     - 1089
     - 1105
     - 1121
-    olci_efr:
+    S03OLCCR1:
+    - 1057
+    - 1073
+    - 1089
+    - 1105
+    - 1121
+    S03OLCL0_:
     - 1056
     - 1072
     - 1088
     - 1104
     - 1120
-    sral_cal:
+    S03SRCRL0:
     - 1442
     - 1458
     - 1443
@@ -1659,7 +2290,7 @@ S3:
     - 1460
     - 1445
     - 1461
-    sral_sra:
+    S03ALTL0_:
     - 1440
     - 1456
     - 1441
@@ -1668,18 +2299,20 @@ S3:
     - 1462
     - 1447
     - 1463
-    doris_nav:
+    S03DORNAV:
     - 1686
     - 1702
     - 1693
     - 1709
     - 1694
     - 1710
-    doris_dop:
+    S03DORDOP:
     - 1681
     - 1697
     - 1682
     - 1698
+    - 1685
+    - 1701
     - 1687
     - 1703
     - 1688
@@ -1690,9 +2323,9 @@ S3:
     - 1706
     - 1691
     - 1707
-    hkm:
-    - 772
-    - 788
+    - 1692
+    - 1708
+    S03HKML0_:
     - 65
     - 66
     - 69
@@ -1709,22 +2342,32 @@ S3:
     - 102
     - 113
     - 114
+    - 115
+    - 116
     - 117
     - 118
     - 129
     - 130
+    - 131
+    - 132
     - 133
     - 134
     - 145
     - 146
+    - 147
+    - 148
     - 149
     - 150
     - 161
     - 162
+    - 163
+    - 164
     - 165
     - 166
     - 177
     - 178
+    - 179
+    - 180
     - 181
     - 182
     - 193
@@ -1733,50 +2376,38 @@ S3:
     - 198
     - 209
     - 210
+    - 211
+    - 212
     - 213
     - 214
     - 225
     - 226
+    - 227
+    - 228
     - 229
     - 230
-    - 241
-    - 242
-    - 245
-    - 246
-    - 257
-    - 258
-    - 261
-    - 262
-    - 273
-    - 274
-    - 277
-    - 278
-    - 289
-    - 290
-    - 293
-    - 294
-    - 305
-    - 306
-    - 309
-    - 310
     - 321
     - 322
+    - 323
+    - 324
     - 325
     - 326
-    - 337
-    - 338
-    - 341
-    - 342
     - 353
     - 354
+    - 355
+    - 356
     - 357
     - 358
     - 369
     - 370
+    - 371
+    - 372
     - 373
     - 374
     - 385
     - 386
+    - 387
+    - 388
     - 389
     - 390
     - 401
@@ -1788,31 +2419,50 @@ S3:
     - 1281
     - 1282
     - 1283
+    - 1284
     - 1285
     - 1286
+    - 1287
+    - 1290
+    - 1291
+    - 1292
+    - 1293
+    - 1294
+    - 1295
     - 769
+    - 772
     - 775
     - 785
+    - 788
     - 791
-    - 1681
-    - 1697
-    - 1682
-    - 1698
     - 1025
     - 1026
     - 1027
+    - 1028
     - 1029
     - 1030
+    - 1037
+    - 1039
     - 1153
     - 1154
     - 1155
+    - 1156
     - 1157
     - 1158
+    - 1165
+    - 1167
     - 1409
     - 1410
+    - 1411
     - 1412
     - 1413
     - 1414
+    - 1416
+    - 1417
+    - 1420
+    - 1421
+    - 1422
+    - 1423
     - 513
     - 514
     - 515
@@ -1823,7 +2473,15 @@ S3:
     - 531
     - 533
     - 534
-    hkm2:
+    - 545
+    - 546
+    - 1665
+    - 1666
+    - 1681
+    - 1682
+    - 1697
+    - 1698
+    S03HKM2L0:
     - 74
     - 75
     - 90
@@ -1847,14 +2505,15 @@ S3:
     - 168
     - 170
     - 171
+    - 183
     - 184
     - 186
     - 187
     - 188
     - 190
+    - 199
     - 202
     - 203
-    - 206
     - 216
     - 218
     - 219
@@ -1897,7 +2556,6 @@ S3:
     - 1162
     - 1163
     - 1164
-    - 1165
     - 1166
     - 1415
     - 1418
@@ -1916,7 +2574,24 @@ S3:
     - 539
     - 540
     - 542
+
+  # -------------------------------------------------------------
+  # 8. Output File Naming and CADU Product Types
+  # -------------------------------------------------------------
   output_product_types:
+
+    cadu_olci: S03OLCISP
+    cadu_slstr: S03SLSISP
+    cadu_hktm: S03HKMISP
+    cadu_sral: S03SRAISP
+    cadu_doris: S03DORISP
+    cadu_gnss: S03GNSISP
+    cadu_mwr: S03MWRISP
+    cadu_navatt: S03NATISP
+
+    # TF product
+    hktm_tf: S03HKMRAW
+
     navatt: S03NATL0_
     gnss: S03GNSL0_
     mwr: S03MWRL0_
@@ -1927,9 +2602,124 @@ S3:
     sral_sra: S03ALTL0_
     doris_dop: S03DORDOP
     doris_nav: S03DORNAV
-    hkm: S03HKML0_
-    hkm2: S03HKM2L0
-  streaming_mode: false
-  nb_cadus_file_in_parallel: 6
-  cadu_chunk_size: 10000
-  isp_chunk_size: 1000
+    hkm_l0: S03HKML0_
+    hkm_2_l0: S03HKM2L0
+
+  # -------------------------------------------------------------
+  # 9. Granule Generation Settings
+  # -------------------------------------------------------------
+  granules_generation_time:
+    olci_efr: 120
+    sral_sra: 600
+    slstr: 300
+
+  # -------------------------------------------------------------
+  # 10. Product-Specific Sorting Configuration
+  # -------------------------------------------------------------
+  sorting:
+    slstr_specific: true
+    olci_cal_specific: true
+
+  # -------------------------------------------------------------
+  # 11. Spectral Configuration (OLCI Calibration)
+  # -------------------------------------------------------------
+  spectral_configuration:
+    first_sequence_code: 101
+    spectral_sequence:
+      - false
+      - true
+      - true
+      - false
+      - false
+      - false
+      - true
+      - false
+      - true
+
+    sequence_description:
+      S01:
+        id: 101
+        sequence: S01
+        triggers: RAC
+        description: "RADIOMETRIC CALIBRATION"
+      S02:
+        id: 102
+        sequence: S02
+        triggers: NONE
+        description: "SPECTRAL CALIBRATION with DIFF1 at ORBIT N"
+      S03:
+        id: 103
+        sequence: S03
+        triggers: SPC
+        description: "SPECTRAL CALIBRATION with DIFF3 at ORBIT N+1"
+      S04:
+        id: 104
+        sequence: S04
+        triggers: RAC
+        description: "DIFFUSER1 AGEING at ORBIT N"
+      S05:
+        id: 105
+        sequence: S05
+        triggers: RAC
+        description: "DIFFUSER1 AGEING at ORBIT N+1"
+      S06:
+        id: 106
+        sequence: S06
+        triggers: NONE
+        description: "ORBITAL STABILITY"
+      S07:
+        id: 107
+        sequence: S07
+        triggers: NONE
+        description: "SPECTRAL CALIBRATION using Solar Fraunhofer lines"
+      S08:
+        id: 108
+        sequence: S08
+        triggers: NONE
+        description: "RADIOMETRIC CALIBRATION for observation of atmospheric absorption lines"
+      S09:
+        id: 109
+        sequence: S09
+        triggers: NONE
+        description: "OBSERVATION of atmospheric absorption lines"
+
+  # -------------------------------------------------------------
+  # 12. Merge and Consolidation Configuration
+  # -------------------------------------------------------------
+  merge_and_consolidation:
+    # OLCI
+    olci:
+      # Activated
+      enabled: true
+      # Minimum length of a tolorated granule in seconds
+      min_granule_length: 16
+      # Maximum distance between granules to be merged in seconds
+      max_merge_distance: 360
+      # Seasonnal Effect Gap in secondes
+      seasonnal_effect_gap: 2700
+    # SLSTR
+    slstr:
+      # Activated
+      enabled: true
+      # Minimum length of a tolorated granule in seconds
+      min_granule_length: 155
+      # Maximum distance between granules to be merged in seconds
+      max_merge_distance: 900
+    # SRAL
+    sral:
+      # Activated
+      enabled: true
+      # Minimum length of a tolorated granule in seconds
+      min_granule_length: 16
+      # Maximum distance between granules to be merged in seconds
+      max_merge_distance: 1200
+
+  # -------------------------------------------------------------
+  # 13. Quality Control Parameters
+  # -------------------------------------------------------------
+  quality_check:
+    # Activated
+    check_crc: true
+    check_gaps: true
+    # Maximim threashold of errors allowed
+    max_format_errors: 1

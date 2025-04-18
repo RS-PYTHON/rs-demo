@@ -21,13 +21,16 @@ workflow:
     CADUS: S1ACADU
   outputs:
     datatakeid_.*: output_folder
+  adfs:
+    osf: OSF
+    fro: FRO
 
 I/O:
   # input products descriptions and access parameters
   input_products:
 
   - id: S1ACADU
-    path: s3://${S3_BUCKET_NAME}/stations/CADIP/S1A_20240410083700053369
+    path: s3://${S3_BUCKET_NAME}/stations/CADIP/S1A_20250413054825058734
     store_type: cadu
     store_params:
       storage_options:
@@ -43,9 +46,16 @@ I/O:
           endpoint_url: ${S3_ENDPOINT_K8S}
           region_name: ${S3_REGION_K8S}
 
+  adfs:
+  - id: OSF
+    path : ./S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0027.EOF
+
+  - id: FRO
+    path : ./S1A_OPER_MPL_ORBPRE_20250413T021756_20250420T021755_0001.EOF
+
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20240410083700053369
+    path: ${OUTPUT_DIR}/S1A_20250413054825058734
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     # The store type to use
