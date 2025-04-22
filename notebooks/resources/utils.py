@@ -17,13 +17,13 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
+import getpass
 import json
 import logging
 import os
 import pprint
 import time
 from datetime import datetime
-from time import sleep
 from typing import Optional
 
 import boto3
@@ -31,7 +31,6 @@ import requests
 import rs_common
 import rs_common.logging
 from pystac import (
-    Asset,
     Collection,
     Extent,
     Item,
@@ -63,9 +62,6 @@ from_cicd: bool = os.getenv("RSPY_FROM_CICD") == "1"
 
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str | None = None
-
-# "headers" field with the api key for HTTP requests
-apikey_headers: dict = {}
 
 # Client instances
 auxip_client: AuxipClient = None
@@ -107,73 +103,38 @@ def pretty_print(any_dict: dict, indent=2):
     print(json.dumps(any_dict, indent=2))
 
 
-def read_apikey(save_to_env: bool = False, overwrite: bool = False) -> None:
+def read_apikey(save_to_env: bool = False) -> None:
     """
     Read the API key, either from the environment variable or from an interactive input form.
 
     Args:
         save_to_env (bool): If True, saves the API key to the ~/.env file.
-        overwrite (bool): If True, overwrites the API key in the ~/.env file and in the environment if it's already set.
 
     NOTE: don't return the apikey value because there is a risk that it is displayed in the
     notebook (if this function is called from the last cell line) so this is not secured.
     """
-    global apikey, apikey_headers
+    global apikey
 
     # No API key in local mode
     if local_mode:
         return
 
-    # In cluster mode, read it from the user input or
-    # try to get the API key from the environment
-    if not apikey or save_to_env or overwrite:
+    # If the API is saved as an env var in the ~/.env file, then it has already
+    # been read automatically by rs-infra-core/.github/jupyter/resources/00-read-env.py
+    if apikey := os.getenv("RSPY_APIKEY"):
+        return
 
-        # Check if the env file exists and contains the API key
-        env_path = os.path.expanduser("~/.env")
-        env_exists = os.path.isfile(env_path)
-        key_in_file = False
+    # Else read it from user input
+    apikey = getpass.getpass(f"Enter your API key:")
 
-        if env_exists:
-            with open(env_path, "r") as env_file:
-                apikey = next(
-                    (
-                        line.split("=")[1].strip().strip('"')
-                        for line in env_file
-                        if "export RSPY_APIKEY=" in line
-                    ),
-                    None,
-                )
-                if apikey:
-                    key_in_file = True
-                    if not overwrite:
-                        os.environ["RSPY_APIKEY"] = apikey
+    # Save the env var
+    os.environ["RSPY_APIKEY"] = apikey
 
-        # If the API key is not found or overwrite is requested or save_to_env is enabled, prompt user for input
-        if (
-            not apikey
-            or overwrite
-            or (save_to_env and overwrite)
-            or (save_to_env and not key_in_file)
-        ):
-            import getpass
-
-            apikey = getpass.getpass(f"Enter your API key:")
-            os.environ["RSPY_APIKEY"] = apikey
-
-            # Save to ~/.env if requested
-            if save_to_env:
-                mode = "w" if overwrite else "a"
-                with open(env_path, mode) as env_file:
-                    # Overwrite or append the API key
-                    if overwrite:
-                        env_file.write(f"export RSPY_APIKEY={apikey}\n")
-                    else:
-                        env_file.write(f"\nexport RSPY_APIKEY={apikey}\n")
-                print("API key saved to ~/.env.")
-
-        # Set the header to use in HTTP requests
-        apikey_headers = {"headers": {"x-api-key": apikey}}
-    print("API key loaded successfully.")
+    # Save it in the ~/.env file, if requested
+    if save_to_env:
+        with open(os.path.expanduser("~/.env"), "a") as env_file:
+            env_file.write(f"\nRSPY_APIKEY={apikey}\n")
+            print("API key saved to ~/.env.")
 
 
 def get_s3_client():
