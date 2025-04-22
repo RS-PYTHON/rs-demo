@@ -76,12 +76,6 @@ else:
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client_eopf.scheduler_info()["workers"])
 
-# Some kind of workaround for boto3 to avoid checksum being added inside
-# the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
-# See: https://github.com/boto/boto3/issues/4435
-os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
-os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
-
 
 def log_http_exception(logger, detail: str, status_code: int = 500) -> Exception:
     """Log error and return an HTTP execption to be raised by the caller"""
