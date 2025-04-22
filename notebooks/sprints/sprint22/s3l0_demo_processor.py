@@ -30,11 +30,7 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
-from rs_client.auxip_client import AuxipClient
-from rs_client.cadip_client import CadipClient
-from rs_client.catalog_client import CatalogClient
 from rs_client.rs_client import RsClient
-from rs_client.staging_client import StagingClient
 
 # My local "./resources" folder contains my utility modules.
 # I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
@@ -75,12 +71,6 @@ else:
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client_eopf.scheduler_info()["workers"])
-
-
-def log_http_exception(logger, detail: str, status_code: int = 500) -> Exception:
-    """Log error and return an HTTP execption to be raised by the caller"""
-    logger.error(detail)
-    return Exception(status_code, detail)
 
 
 ##########################
@@ -145,20 +135,11 @@ def s3l0_demo_processor(
     auxip_client = generic_client.get_auxip_client()
     cadip_client = generic_client.get_cadip_client()
     catalog_client = generic_client.get_catalog_client()
-    staging_client = generic_client.get_staging_client()
 
     cadip_search_future = cadip_search.submit(
         cadip_client,
         cadip_stac_filter,
     )
-    cadip_data = cadip_search_future.result()
-    if not cadip_data:
-        logger.error("No cadip data found")
-        raise RuntimeError("No cadip data found")
-
-    catalog_item_ids = []
-    for item in cadip_data:
-        catalog_item_ids.append(item.id)
 
     # Retrieve cql2 from processor (currently the dpr processor is not working)
     auxip_cql2_future = start_processor_dask_for_aux_search(
@@ -168,20 +149,27 @@ def s3l0_demo_processor(
 
     logger.info(f" ### CQL2 : {auxip_cql2_filter}")
     # for now, the eopf search is not working, so hard-code it
-    auxip_cql2 = auxip_cql2_future.result()
     auxip_search_future = auxip_search.submit(
         auxip_client,
-        auxip_cql2,
+        auxip_cql2_future,
         auxip_cql2_filter,
-        wait_for=[auxip_cql2_future],
     )
+
     # wait for results
+    cadip_data = cadip_search_future.result()
     auxip_data = auxip_search_future.result()
+
     # protection against a searching failure
+    if not cadip_data:
+        logger.error("No cadip data found")
+        raise RuntimeError("No cadip data found")
     if not auxip_data:
         logger.error("No auxip data found")
         raise RuntimeError("No auxip data found")
 
+    catalog_item_ids = []
+    for item in cadip_data:
+        catalog_item_ids.append(item.id)
     for item in auxip_data:
         catalog_item_ids.append(item.id)
     logger.info(f"CATALOG items: {catalog_item_ids}")
@@ -197,7 +185,6 @@ def s3l0_demo_processor(
         cadip_data,
         collection_name,
         staging_timeout,
-        wait_for=[cadip_search_future],
     )
 
     auxip_job_staging_monitor_task = job_staging_monitor.submit(
@@ -206,7 +193,6 @@ def s3l0_demo_processor(
         auxip_data,
         collection_name,
         staging_timeout,
-        wait_for=[auxip_search_future],
     )
 
     # wait for results
@@ -227,6 +213,7 @@ def s3l0_demo_processor(
         input_config_dir,
         payload_file,
         output_data_dir,
+        # Use wait_for to show arrows between tasks in prefect dashboard
         wait_for=[cadip_job_staging_monitor_task, auxip_job_staging_monitor_task],
     )
 
@@ -252,7 +239,6 @@ def s3l0_demo_processor(
         collection_name,
         eopf_result,
         output_data_dir,
-        wait_for=[eopf_result],
     )
     if not catalog_result.result():
         raise RuntimeError("Failed to publish to catalog")
@@ -344,10 +330,13 @@ def job_staging_monitor(
 
 
 @task(name="auxip-search")
-def auxip_search(auxip_client, cql2: str, cql2_hardcoded):
+def auxip_search(auxip_client, cql2_from_processor: str, cql2_hardcoded):
     """Auxip search."""
     logger = get_run_logger()
     logger.info("Start auxip search.")
+
+    logger.info(f"CQL2 from processor : {cql2_from_processor}")
+
     cql2 = cql2_hardcoded
 
     try:
@@ -539,10 +528,8 @@ async def config_file(
     try:
         await prefect_utils.s3_upload_file(local_payload_path, s3_payload_path)
     except Exception as e:
-        raise log_http_exception(
-            logger,
-            f"Error uploading file to S3 ({s3_payload_path})",
-        ) from e
+        logger.error(f"Error uploading file to S3 ({s3_payload_path}): {e}")
+        return False
 
     logger.info("End config file")
     return new_payload_file
