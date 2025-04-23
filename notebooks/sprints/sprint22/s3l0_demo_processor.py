@@ -464,7 +464,7 @@ async def config_file(
                 new_product = copy.deepcopy(default_template)
                 new_product["id"] = item.id
                 new_product["path"] = session_s3_href
-                
+
                 # these are not accepted by the real processor
                 # if "cadip:id" in item.properties:
                 #     new_product["store_type"] = "cadu"
