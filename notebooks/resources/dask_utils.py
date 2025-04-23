@@ -218,6 +218,7 @@ def init_dask_cluster_eopf(
     local_environ_eopf_public = "DASK_GATEWAY_EOPF_PUBLIC"
     cluster_tag = "dask-eopf"
     if use_mockup:
+        image = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest"
         local_environ_eopf_address = "DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"
         local_environ_eopf_public = "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
         cluster_tag = "dask-eopf-mockup"
