@@ -23,6 +23,11 @@ ARG PREFECT_TAG=xxx
 ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
+
+COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
+# Copy the src folder from the dpr_mock image
+RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
+
 # Install EOPF
 COPY ./requirements.dask-eopf-local.txt /opt/
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
@@ -43,8 +48,6 @@ USER $USER
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install
 
-#COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-#RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 
 # Clean everything
 USER root

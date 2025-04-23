@@ -26,6 +26,9 @@ ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
+COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
+RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
+
 # Install complete dask subsets + prefect
 RUN pip install \
     dask[complete] \
@@ -41,12 +44,12 @@ USER $USER
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install
 
-#COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
+
 # Copy the src folder from the dpr_mock image
 COPY --from=dpr_mock /src /src
 WORKDIR /src/DPR
 RUN python3.11 -m pip install --upgrade pip
-#RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
+
 # Install poetry
 RUN python3.11 -m pip install --no-cache-dir poetry
 
