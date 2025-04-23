@@ -15,9 +15,11 @@
 # We will add eopf to the dask-gateway-server image for local mode
 # Declare ARG variables before the FROM instruction
 ARG DASK_GATEWAY_TAG=xxx
+
+# Stage 1: Get the contents from the rs-testmeans_dpr-processor-mock image
+FROM ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest as dpr_mock
 # add this when the dpr_service will be ready
 # FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
-
 # Use the ARG value in the FROM statement
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 ARG PREFECT_TAG=xxx
@@ -26,13 +28,8 @@ ARG USER=dask:dask
 ARG USER_NAME=dask
 
 # add the following 2 lines when the dpr_service will be ready
-#COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-#RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
-
-# Install EOPF
-COPY ./requirements.dask-eopf-local.txt /opt/
-RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
-    pip install -U -r /opt/requirements.dask-eopf-local.txt
+# COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
+# RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 
 # Install complete dask subsets + prefect
 RUN pip install \
@@ -50,9 +47,25 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
     opentelemetry-bootstrap -a install
 
 
-# Clean everything
+# Copy the src folder from the dpr_mock image
+COPY --from=dpr_mock /src /src
+WORKDIR /src/DPR
+RUN python3.11 -m pip install --upgrade pip
+
+# Install poetry
+RUN python3.11 -m pip install --no-cache-dir poetry
+
+SHELL ["/bin/bash", "-c"]
+RUN poetry install --no-root
+# tempfix
+RUN pip install crcmod
+
 USER root
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
+# Give USERNAME rights to write in /src
+RUN chown -R $USER_NAME /src
+
+# Clean everything
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/*
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):

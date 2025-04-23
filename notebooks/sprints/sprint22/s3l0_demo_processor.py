@@ -91,6 +91,7 @@ def s3l0_demo_processor(
     cadip_stac_filter: str,
     auxip_cql2_filter: dict,
     staging_timeout: int,
+    use_dpr_mockup: bool = False,
 ):
     """
     Prefect flow to trigger an EOPF L0 processing pipeline for CADIP and AUXIP data.
@@ -157,6 +158,7 @@ def s3l0_demo_processor(
     auxip_cql2_future = start_processor_dask_for_aux_search(
         module,
         processing_unit,
+        use_dpr_mockup,
     )
 
     logger.info(f" ### CQL2 : {auxip_cql2_filter}")
@@ -237,6 +239,7 @@ def s3l0_demo_processor(
         input_config_dir,
         payload_file,
         output_data_dir,
+        use_dpr_mockup,
     )
 
     # Call dummy catalog task
@@ -462,10 +465,13 @@ async def config_file(
                 new_product["id"] = item.id
                 new_product["path"] = session_s3_href
 
-                if "cadip:id" in item.properties:
-                    new_product["store_type"] = "cadu"
-                if "auxip:id" in item.properties:
-                    new_product["store_type"] = "aux"
+                # these are not accepted by the real processor
+                # if "cadip:id" in item.properties:
+                #     new_product["store_type"] = "cadu"
+                # if "auxip:id" in item.properties:
+                #     new_product["store_type"] = "aux"
+
+                new_product["store_type"] = "safe"
 
                 new_input_products.append(new_product)
 
@@ -592,12 +598,13 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
 def start_processor_dask_for_aux_search(
     module: str,
     processing_unit: str,
+    use_dpr_mockup: bool = False,
 ):
     """
     Dask flow used to call tasks in dask workers.
     Used only to retrieve CQL2 filter from processor.
     """
-    result = eopf_aux_data_search.submit(module, processing_unit)
+    result = eopf_aux_data_search.submit(module, processing_unit, use_dpr_mockup)
     return result
 
 
@@ -605,19 +612,23 @@ def start_processor_dask_for_aux_search(
 async def eopf_aux_data_search(
     module: str,
     processing_unit: str,
+    use_dpr_mockup: bool = False,
 ):
     """
     Retrieve CQL2 filter.
     See https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/processor-orchestration-guide/tasktables.rst
     """
     logger = get_run_logger()
-
     logger.info(
         f" Retrieve CQL2 filter for module : {module}, processing_unit : {processing_unit}",
     )
-
-    command = ["eopf", "trigger", "tasktable", module, processing_unit]
+    if use_dpr_mockup:
+        logger.info(
+            " Using dpr mockup, so no call will be made to the real eopf processor.",
+        )
+        return {}
     result = {}
+    command = ["eopf", "trigger", "tasktable", module, processing_unit]
     try:
         result = subprocess.run(command, check=True, text=True, capture_output=True)
         logger.info(result.stdout)
@@ -639,6 +650,7 @@ def s3l0_demo_processor_dask(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
+    use_dpr_mockup: bool = False,
 ):
     """
     Dask flow used to call tasks in dask workers.
@@ -647,6 +659,7 @@ def s3l0_demo_processor_dask(
         input_config_dir,
         payload_file,
         output_data_dir,
+        use_dpr_mockup,
     )
 
 
@@ -655,6 +668,7 @@ async def main_dask_task(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
+    use_dpr_mockup: bool = False,
 ):
     # NOTE: not sure this is useful so I'm removing it
     # with worker_client(separate_thread=False)
@@ -706,13 +720,19 @@ async def main_dask_task(
     # Create the reports dir
     os.makedirs(report_dirname, exist_ok=True)
 
+    command = ["eopf", "trigger", "local", payload_name]
+    wd = "."
+    if use_dpr_mockup:
+        command = ["python3.11", "DPR_processor_mock.py", "-p", payload_abs_path]
+        wd = "/src/DPR"
+
     # Trigger EOPF processing, catch output
     p = subprocess.Popen(
-        ["python3.11", "DPR_processor_mock.py", "-p", payload_abs_path],
+        command,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        cwd="/src/DPR",
+        cwd=wd,
     )
 
     # Log contents
