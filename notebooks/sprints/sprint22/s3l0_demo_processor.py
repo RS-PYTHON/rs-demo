@@ -25,12 +25,16 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import rs_common
 import yaml
+from opentelemetry import trace
+from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
 from rs_client.rs_client import RsClient
+from rs_common import init_opentelemetry
 
 # My local "./resources" folder contains my utility modules.
 # I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
@@ -51,8 +55,9 @@ dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
     )
 )
 
-# Now I need to upload my local utility module that will be used by the dask tasks
+# Now I need to upload my local utility modules that will be used by the dask tasks
 dask_client_eopf.upload_file("./resources/prefect_utils.py")
+dask_client_eopf.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
 # Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
 # These lines of code is not called by the dask workers.
@@ -120,128 +125,139 @@ def s3l0_demo_processor(
             - Configuration file creation fails
             - Publishing to the catalog fails
     """
-    logger = get_run_logger()
+    # Wrap all flow in an Opentelemetry flow
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("first_l0_processor_flow"):
 
-    module, processing_unit = extract_module_and_processing_unit(payload_file)
-    if not module or not processing_unit:
-        return
+        # Extract span infos to send to Dask
+        flow_span_context = trace.get_current_span().get_span_context()
 
-    generic_client = RsClient(
-        rs_server_href,
-        rs_server_api_key,
-        owner_id,
-        None,
-    )
-    auxip_client = generic_client.get_auxip_client()
-    cadip_client = generic_client.get_cadip_client()
-    catalog_client = generic_client.get_catalog_client()
+        logger = get_run_logger()
 
-    cadip_search_future = cadip_search.submit(
-        cadip_client,
-        cadip_stac_filter,
-    )
+        module, processing_unit = extract_module_and_processing_unit(payload_file)
+        if not module or not processing_unit:
+            return
 
-    # Retrieve cql2 from processor (currently the dpr processor is not working)
-    auxip_cql2_future = start_processor_dask_for_aux_search(
-        module,
-        processing_unit,
-    )
-
-    logger.info(f" ### CQL2 : {auxip_cql2_filter}")
-    # for now, the eopf search is not working, so hard-code it
-    auxip_search_future = auxip_search.submit(
-        auxip_client,
-        auxip_cql2_future,
-        auxip_cql2_filter,
-    )
-
-    # wait for results
-    cadip_data = cadip_search_future.result()
-    auxip_data = auxip_search_future.result()
-
-    # protection against a searching failure
-    if not cadip_data:
-        logger.error("No cadip data found")
-        raise RuntimeError("No cadip data found")
-    if not auxip_data:
-        logger.error("No auxip data found")
-        raise RuntimeError("No auxip data found")
-
-    catalog_item_ids = []
-    for item in cadip_data:
-        catalog_item_ids.append(item.id)
-    for item in auxip_data:
-        catalog_item_ids.append(item.id)
-    logger.info(f"CATALOG items: {catalog_item_ids}")
-
-    # call the staging
-
-    # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
-    # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
-
-    cadip_job_staging_monitor_task = job_staging_monitor.submit(
-        rs_server_api_key,
-        owner_id,
-        cadip_data,
-        collection_name,
-        staging_timeout,
-    )
-
-    auxip_job_staging_monitor_task = job_staging_monitor.submit(
-        rs_server_api_key,
-        owner_id,
-        auxip_data,
-        collection_name,
-        staging_timeout,
-    )
-
-    # wait for results
-    staging_cadip_res = cadip_job_staging_monitor_task.result()
-    staging_auxip_res = auxip_job_staging_monitor_task.result()
-
-    if not staging_cadip_res or not staging_auxip_res:
-        logger.error("Failed to stage all the needed files. Exiting")
-        raise RuntimeError("Failed to stage all the needed files. Exiting")
-    # get the staged files from the catalog
-    catalog_res = ItemCollection(
-        list(catalog_client.get_items(collection_name, catalog_item_ids)),
-    )
-    # logger.info(f"catalog_res = {catalog_res.to_dict()}")
-
-    config_file_task = config_file.submit(
-        catalog_res,
-        input_config_dir,
-        payload_file,
-        output_data_dir,
-        # Use wait_for to show arrows between tasks in prefect dashboard
-        wait_for=[cadip_job_staging_monitor_task, auxip_job_staging_monitor_task],
-    )
-
-    payload_file = config_file_task.result()
-    if not payload_file:
-        logger.error(
-            "Failed to create the configuration file nedeed by the eopf processor",
+        generic_client = RsClient(
+            rs_server_href,
+            rs_server_api_key,
+            owner_id,
+            None,
         )
-        raise RuntimeError(
-            "Failed to create the configuration file nedeed by the eopf processor",
+        auxip_client = generic_client.get_auxip_client()
+        cadip_client = generic_client.get_cadip_client()
+        catalog_client = generic_client.get_catalog_client()
+
+        cadip_search_future = cadip_search.submit(
+            cadip_client,
+            cadip_stac_filter,
         )
 
-    # Run the EOPF task with .submit in a dask node
-    eopf_result = s3l0_demo_processor_dask(
-        input_config_dir,
-        payload_file,
-        output_data_dir,
-    )
+        # Retrieve cql2 from processor (currently the dpr processor is not working)
+        auxip_cql2_future = start_processor_dask_for_aux_search(
+            flow_span_context.trace_id,
+            flow_span_context.span_id,
+            module,
+            processing_unit,
+        )
 
-    # Call dummy catalog task
-    catalog_result = publish_to_catalog.submit(
-        catalog_client,
-        collection_name,
-        eopf_result,
-        output_data_dir,
-    )
-    if not catalog_result.result():
-        raise RuntimeError("Failed to publish to catalog")
+        logger.info(f" ### CQL2 : {auxip_cql2_filter}")
+        # for now, the eopf search is not working, so hard-code it
+        auxip_search_future = auxip_search.submit(
+            auxip_client,
+            auxip_cql2_future,
+            auxip_cql2_filter,
+        )
+
+        # wait for results
+        cadip_data = cadip_search_future.result()
+        auxip_data = auxip_search_future.result()
+
+        # protection against a searching failure
+        if not cadip_data:
+            logger.error("No cadip data found")
+            raise RuntimeError("No cadip data found")
+        if not auxip_data:
+            logger.error("No auxip data found")
+            raise RuntimeError("No auxip data found")
+
+        catalog_item_ids = []
+        for item in cadip_data:
+            catalog_item_ids.append(item.id)
+        for item in auxip_data:
+            catalog_item_ids.append(item.id)
+        logger.info(f"CATALOG items: {catalog_item_ids}")
+
+        # call the staging
+
+        # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
+        # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
+
+        cadip_job_staging_monitor_task = job_staging_monitor.submit(
+            rs_server_api_key,
+            owner_id,
+            cadip_data,
+            collection_name,
+            staging_timeout,
+        )
+
+        auxip_job_staging_monitor_task = job_staging_monitor.submit(
+            rs_server_api_key,
+            owner_id,
+            auxip_data,
+            collection_name,
+            staging_timeout,
+        )
+
+        # wait for results
+        staging_cadip_res = cadip_job_staging_monitor_task.result()
+        staging_auxip_res = auxip_job_staging_monitor_task.result()
+
+        if not staging_cadip_res or not staging_auxip_res:
+            logger.error("Failed to stage all the needed files. Exiting")
+            raise RuntimeError("Failed to stage all the needed files. Exiting")
+        # get the staged files from the catalog
+        catalog_res = ItemCollection(
+            list(catalog_client.get_items(collection_name, catalog_item_ids)),
+        )
+        # logger.info(f"catalog_res = {catalog_res.to_dict()}")
+
+        config_file_task = config_file.submit(
+            catalog_res,
+            input_config_dir,
+            payload_file,
+            output_data_dir,
+            # Use wait_for to show arrows between tasks in prefect dashboard
+            wait_for=[cadip_job_staging_monitor_task, auxip_job_staging_monitor_task],
+        )
+
+        payload_file = config_file_task.result()
+        if not payload_file:
+            logger.error(
+                "Failed to create the configuration file nedeed by the eopf processor",
+            )
+            raise RuntimeError(
+                "Failed to create the configuration file nedeed by the eopf processor",
+            )
+
+        # Run the EOPF task with .submit in a dask node
+        eopf_result = s3l0_demo_processor_dask(
+            flow_span_context.trace_id,
+            flow_span_context.span_id,
+            input_config_dir,
+            payload_file,
+            output_data_dir,
+        )
+
+        # Call dummy catalog task
+        catalog_result = publish_to_catalog.submit(
+            catalog_client,
+            collection_name,
+            eopf_result,
+            output_data_dir,
+        )
+        if not catalog_result.result():
+            raise RuntimeError("Failed to publish to catalog")
 
 
 def extract_module_and_processing_unit(payload_file: str):
@@ -586,6 +602,8 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     ),
 )
 def start_processor_dask_for_aux_search(
+    otel_trace_id,
+    otel_span_id,
     module: str,
     processing_unit: str,
 ):
