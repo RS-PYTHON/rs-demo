@@ -25,6 +25,7 @@ from pathlib import Path
 import requests
 import rs_common
 from opentelemetry import trace
+from opentelemetry.trace.span import SpanContext
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
@@ -48,6 +49,7 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
 )
 
 # Now I need to upload my local utility modules that will be used by the dask tasks
+dask_client_eopf.upload_file("./resources/dask_utils.py")
 dask_client.upload_file("./resources/prefect_utils.py")
 dask_client.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
@@ -88,8 +90,8 @@ def first_l0_processor(
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
-
     # Record all flow in an Opentelemetry span
+    init_opentelemetry.init_traces("rs.client.prefect")
     with init_opentelemetry.start_span(__name__, "first_l0_processor_flow"):
 
         # Extract span infos to send to Dask
@@ -219,7 +221,7 @@ def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
     ),
 )
 def first_l0_processor_dask(
-    flow_span_context,
+    flow_span_context: SpanContext,
     staging_result,
     config_file_result,
     input_config_dir: str,
@@ -239,47 +241,29 @@ def first_l0_processor_dask(
 
 @task
 async def main_dask_task(
-    flow_span_context,
+    flow_span_context: SpanContext,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
 ):
-    # NOTE: not sure this is useful so I'm removing it
-    # with worker_client(separate_thread=False)
+    logger = get_run_logger()
 
-    import init_opentelemetry
-
-    # Use env vars from the caller
-    for key in [
-        "S3_ACCESSKEY",
-        "S3_SECRETKEY",
-        "S3_ENDPOINT",
-        "S3_REGION",
-        "S3_BUCKET_NAME",
-        "S3_BUCKET_FOLDER",
-        "DASK_GATEWAY_ADDRESS",
-        "DASK_CLUSTER_NAME",
-        "TEMPO_ENDPOINT",
-    ] + (
-        ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
-        if local_mode
-        else ["JUPYTERHUB_API_TOKEN"]
-    ):
-        os.environ[key] = caller_env[key]
+    # Copy env vars from the caller
+    dask_utils.copy_caller_env(caller_env)
 
     # Also save the given output dir as an env var
     os.environ["OUTPUT_DIR"] = output_data_dir
 
-    # Init opentelemetry and record all flow in an Opentelemetry span
-    init_opentelemetry.init_traces("rs.client.dask")
+    # Init opentelemetry and record all task in an Opentelemetry span
+    import init_opentelemetry
+
+    init_opentelemetry.init_traces("rs.client.dask", logger)
     with init_opentelemetry.start_span(__name__, "main_dask_flow", flow_span_context):
 
         # Basic request to use as test tracker
         wiki_result = requests.get(
             "https://fr.wikipedia.org/wiki/Patrick_Balkany#Affaires_judiciaires",
         )
-
-        logger = get_run_logger()
 
         # Output report dir
         report_dirname = "reports"

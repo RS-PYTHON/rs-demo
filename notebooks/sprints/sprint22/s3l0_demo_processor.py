@@ -28,7 +28,7 @@ from pathlib import Path
 import rs_common
 import yaml
 from opentelemetry import trace
-from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
+from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
@@ -56,6 +56,7 @@ dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
 )
 
 # Now I need to upload my local utility modules that will be used by the dask tasks
+dask_client_eopf.upload_file("./resources/dask_utils.py")
 dask_client_eopf.upload_file("./resources/prefect_utils.py")
 dask_client_eopf.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
@@ -125,9 +126,8 @@ def s3l0_demo_processor(
             - Configuration file creation fails
             - Publishing to the catalog fails
     """
-    # Wrap all flow in an Opentelemetry flow
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("first_l0_processor_flow"):
+    # Record all flow in an Opentelemetry span
+    with init_opentelemetry.start_span(__name__, "s3l0_demo_processor"):
 
         # Extract span infos to send to Dask
         flow_span_context = trace.get_current_span().get_span_context()
@@ -155,8 +155,7 @@ def s3l0_demo_processor(
 
         # Retrieve cql2 from processor (currently the dpr processor is not working)
         auxip_cql2_future = start_processor_dask_for_aux_search(
-            flow_span_context.trace_id,
-            flow_span_context.span_id,
+            flow_span_context,
             module,
             processing_unit,
         )
@@ -242,8 +241,7 @@ def s3l0_demo_processor(
 
         # Run the EOPF task with .submit in a dask node
         eopf_result = s3l0_demo_processor_dask(
-            flow_span_context.trace_id,
-            flow_span_context.span_id,
+            flow_span_context,
             input_config_dir,
             payload_file,
             output_data_dir,
@@ -602,8 +600,7 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     ),
 )
 def start_processor_dask_for_aux_search(
-    otel_trace_id,
-    otel_span_id,
+    flow_span_context: SpanContext,
     module: str,
     processing_unit: str,
 ):
@@ -611,12 +608,13 @@ def start_processor_dask_for_aux_search(
     Dask flow used to call tasks in dask workers.
     Used only to retrieve CQL2 filter from processor.
     """
-    result = eopf_aux_data_search.submit(module, processing_unit)
+    result = eopf_aux_data_search.submit(flow_span_context, module, processing_unit)
     return result
 
 
 @task(name="eopf-aux-data-search")
 async def eopf_aux_data_search(
+    flow_span_context: SpanContext,
     module: str,
     processing_unit: str,
 ):
@@ -626,20 +624,33 @@ async def eopf_aux_data_search(
     """
     logger = get_run_logger()
 
-    logger.info(
-        f" Retrieve CQL2 filter for module : {module}, processing_unit : {processing_unit}",
-    )
+    # Copy env vars from the caller
+    dask_utils.copy_caller_env(caller_env)
 
-    command = ["eopf", "trigger", "tasktable", module, processing_unit]
-    result = {}
-    try:
-        result = subprocess.run(command, check=True, text=True, capture_output=True)
-        logger.info(result.stdout)
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error: {e.stderr}")
+    # Init opentelemetry and record all task in an Opentelemetry span
+    import init_opentelemetry
 
-    # auxip_cql2_filter hardcoded value of CQL2 filter is used until the L0 V1 is ready
-    return result
+    init_opentelemetry.init_traces("rs.client.dask", logger)
+    with init_opentelemetry.start_span(
+        __name__,
+        "eopf_aux_data_search",
+        flow_span_context,
+    ):
+
+        logger.info(
+            f" Retrieve CQL2 filter for module : {module}, processing_unit : {processing_unit}",
+        )
+
+        command = ["eopf", "trigger", "tasktable", module, processing_unit]
+        result = {}
+        try:
+            result = subprocess.run(command, check=True, text=True, capture_output=True)
+            logger.info(result.stdout)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error: {e.stderr}")
+
+        # auxip_cql2_filter hardcoded value of CQL2 filter is used until the L0 V1 is ready
+        return result
 
 
 #######################
@@ -650,6 +661,7 @@ async def eopf_aux_data_search(
     ),
 )
 def s3l0_demo_processor_dask(
+    flow_span_context: SpanContext,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -658,6 +670,7 @@ def s3l0_demo_processor_dask(
     Dask flow used to call tasks in dask workers.
     """
     return main_dask_task.submit(
+        flow_span_context,
         input_config_dir,
         payload_file,
         output_data_dir,
@@ -666,141 +679,129 @@ def s3l0_demo_processor_dask(
 
 @task(name="eopf-dask-task")
 async def main_dask_task(
+    flow_span_context: SpanContext,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
 ):
-    # NOTE: not sure this is useful so I'm removing it
-    # with worker_client(separate_thread=False)
-
     logger = get_run_logger()
 
-    # Output report dir
-    report_dirname = "reports"
-
-    # Use env vars from the caller
-    for key in [
-        "S3_ACCESSKEY",
-        "S3_SECRETKEY",
-        "S3_ENDPOINT",
-        "S3_REGION",
-        "S3_BUCKET_NAME",
-        "S3_BUCKET_FOLDER",
-        "DASK_GATEWAY_EOPF_ADDRESS",
-        "DASK_CLUSTER_EOPF_NAME",
-        "AWS_REQUEST_CHECKSUM_CALCULATION",
-        "AWS_RESPONSE_CHECKSUM_VALIDATION",
-    ] + (
-        ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
-        if local_mode
-        else ["JUPYTERHUB_API_TOKEN"]
-    ):
-        os.environ[key] = caller_env[key]
+    # Copy env vars from the caller
+    dask_utils.copy_caller_env(caller_env)
 
     # Also save the given output dir as an env var
     os.environ["OUTPUT_DIR"] = output_data_dir
 
-    # Payload parent dir and filename
-    payload_dir = osp.dirname(payload_file)
-    payload_name = osp.basename(payload_file)
+    # Init opentelemetry and record all task in an Opentelemetry span
+    import init_opentelemetry
 
-    logger.info(f"payload_file = {payload_file}")
-    logger.info(f"payload_dir = {payload_dir}")
-    logger.info(f"payload_name = {payload_name}")
+    init_opentelemetry.init_traces("rs.client.dask", logger)
+    with init_opentelemetry.start_span(__name__, "main_dask_task", flow_span_context):
 
-    # Download the input config dir locally
-    # NOTE: maybe we should only download the payload file + only necessary config files
-    # rather than the whole directory.
-    local_config_dir = "config"
-    payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
-    logger.info(f"payload_abs_path = {payload_abs_path}")
-    await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
+        # Output report dir
+        report_dirname = "reports"
 
-    # Change working directory
-    os.chdir(osp.join(local_config_dir, payload_dir))
+        # Payload parent dir and filename
+        payload_dir = osp.dirname(payload_file)
+        payload_name = osp.basename(payload_file)
 
-    # Create the reports dir
-    os.makedirs(report_dirname, exist_ok=True)
+        logger.info(f"payload_file = {payload_file}")
+        logger.info(f"payload_dir = {payload_dir}")
+        logger.info(f"payload_name = {payload_name}")
 
-    # Trigger EOPF processing, catch output
-    p = subprocess.Popen(
-        ["python3.11", "DPR_processor_mock.py", "-p", payload_abs_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        cwd="/src/DPR",
-    )
+        # Download the input config dir locally
+        # NOTE: maybe we should only download the payload file + only necessary config files
+        # rather than the whole directory.
+        local_config_dir = "config"
+        payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
+        logger.info(f"payload_abs_path = {payload_abs_path}")
+        await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
 
-    # Log contents
-    log_str = ""
-    return_response = {}
-    # Write output to a log file and string + redirect to the prefect logger
-    with open(
-        osp.join(report_dirname, Path(payload_file).with_suffix(".log").name),
-        "w+",
-    ) as log_file:
-        while (line := p.stdout.readline()) != "":
+        # Change working directory
+        os.chdir(osp.join(local_config_dir, payload_dir))
 
-            # The log prints password in clear e.g 'key': '<my-secret>'... hide them with a regex
-            for key in (
-                "key",
-                "secret",
-                "endpoint_url",
-                "region_name",
-                "api_token",
-                "password",
-            ):
-                line = re.sub(rf"(\W{key}\W)[^,}}]*", r"\1: ***", line)
+        # Create the reports dir
+        os.makedirs(report_dirname, exist_ok=True)
 
-            # Write to log file and string
-            log_file.write(line)
-            log_str += line
-
-            # Write to prefect logger if not empty
-            line = line.rstrip()
-            if line:
-                logger.info(line)
-
-        logger.info(f"log_str = {log_str}")
-        # search for the JSON-like part, parse it, and ignore the rest.
-        match = re.search(r"(\[\s*\{.*\}\s*\])", log_str, re.DOTALL)
-        if not match:
-            raise ValueError("No valid data structure found in the output.")
-
-        payload_str = match.group(1)
-
-        # Use `ast.literal_eval` to safely evaluate the structure
-        try:
-            # payload_str is a string that looks like a JSON, extracted from the dpr mockup's raw output.
-            # ast.literal_eval() parses that string and returns the actual Python object (not just the string).
-            return_response = ast.literal_eval(payload_str)
-        except Exception as e:
-            raise ValueError(f"Failed to parse data structure: {e}")
-
-    try:
-        # Wait for the execution to finish
-        status_code = p.wait()
-
-        # Raise exception if the status code is != 0
-        if status_code:
-            raise Exception("EOPF error, please see the log.")
-
-    # In all cases, upload the reports dir to the s3 bucket.
-    finally:
-        try:
-            await prefect_utils.s3_upload_dir(
-                report_dirname,
-                osp.join(output_data_dir, report_dirname),
-            )
-        except Exception as exception:
-            logger.error(exception)
-
-        # Save log str into a markdown artifact
-        create_markdown_artifact(
-            key="logging",
-            markdown=f"```\n{log_str}\n```",
-            description="L0 processing logging",
+        # Trigger EOPF processing, catch output
+        p = subprocess.Popen(
+            ["python3.11", "DPR_processor_mock.py", "-p", payload_abs_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd="/src/DPR",
         )
 
-    # Dummy output for prefect
-    return return_response
+        # Log contents
+        log_str = ""
+        return_response = {}
+        # Write output to a log file and string + redirect to the prefect logger
+        with open(
+            osp.join(report_dirname, Path(payload_file).with_suffix(".log").name),
+            "w+",
+        ) as log_file:
+            while (line := p.stdout.readline()) != "":
+
+                # The log prints password in clear e.g 'key': '<my-secret>'... hide them with a regex
+                for key in (
+                    "key",
+                    "secret",
+                    "endpoint_url",
+                    "region_name",
+                    "api_token",
+                    "password",
+                ):
+                    line = re.sub(rf"(\W{key}\W)[^,}}]*", r"\1: ***", line)
+
+                # Write to log file and string
+                log_file.write(line)
+                log_str += line
+
+                # Write to prefect logger if not empty
+                line = line.rstrip()
+                if line:
+                    logger.info(line)
+
+            logger.info(f"log_str = {log_str}")
+            # search for the JSON-like part, parse it, and ignore the rest.
+            match = re.search(r"(\[\s*\{.*\}\s*\])", log_str, re.DOTALL)
+            if not match:
+                raise ValueError("No valid data structure found in the output.")
+
+            payload_str = match.group(1)
+
+            # Use `ast.literal_eval` to safely evaluate the structure
+            try:
+                # payload_str is a string that looks like a JSON, extracted from the dpr mockup's raw output.
+                # ast.literal_eval() parses that string and returns the actual Python object (not just the string).
+                return_response = ast.literal_eval(payload_str)
+            except Exception as e:
+                raise ValueError(f"Failed to parse data structure: {e}")
+
+        try:
+            # Wait for the execution to finish
+            status_code = p.wait()
+
+            # Raise exception if the status code is != 0
+            if status_code:
+                raise Exception("EOPF error, please see the log.")
+
+        # In all cases, upload the reports dir to the s3 bucket.
+        finally:
+            try:
+                await prefect_utils.s3_upload_dir(
+                    report_dirname,
+                    osp.join(output_data_dir, report_dirname),
+                )
+            except Exception as exception:
+                logger.error(exception)
+
+            # Save log str into a markdown artifact
+            create_markdown_artifact(
+                key="logging",
+                markdown=f"```\n{log_str}\n```",
+                description="L0 processing logging",
+            )
+
+        # Dummy output for prefect
+        return return_response

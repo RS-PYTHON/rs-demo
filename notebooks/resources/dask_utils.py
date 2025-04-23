@@ -288,3 +288,38 @@ def shutdown_dask_clusters(gateway: Gateway, name: str | None):
                 print(f"Shutting down cluster {cluster_info.name!r} ...")
         except Exception as e:
             print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
+
+
+def copy_caller_env(caller_env: dict[str, str]):
+    """
+    Copy environment variables from caller (=prefect or jupyter) environment.
+
+    Args:
+        caller_env: os.environ coming from caller
+    """
+
+    # Update the local/clsuter mode global variable with the env var coming from the caller
+    global local_mode, cluster_mode
+    local_mode = caller_env.get("RSPY_LOCAL_MODE") == "1"
+    cluster_mode = not local_mode
+
+    # Copy env vars from the caller
+    for key in [
+        "RSPY_LOCAL_MODE",
+        "S3_ACCESSKEY",
+        "S3_SECRETKEY",
+        "S3_ENDPOINT",
+        "S3_REGION",
+        "S3_BUCKET_NAME",
+        "S3_BUCKET_FOLDER",
+        "DASK_GATEWAY_EOPF_ADDRESS",
+        "DASK_CLUSTER_EOPF_NAME",
+        "AWS_REQUEST_CHECKSUM_CALCULATION",
+        "AWS_RESPONSE_CHECKSUM_VALIDATION",
+        "TEMPO_ENDPOINT",
+    ] + (
+        ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
+        if local_mode
+        else ["JUPYTERHUB_API_TOKEN"]
+    ):
+        os.environ[key] = caller_env[key]
