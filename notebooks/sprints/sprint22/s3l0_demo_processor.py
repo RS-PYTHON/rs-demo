@@ -239,7 +239,7 @@ def s3l0_demo_processor(
         input_config_dir,
         payload_file,
         output_data_dir,
-        use_dpr_mockup
+        use_dpr_mockup,
     )
 
     # Call dummy catalog task
@@ -600,7 +600,7 @@ def start_processor_dask_for_aux_search(
     """
     Dask flow used to call tasks in dask workers.
     Used only to retrieve CQL2 filter from processor.
-    """    
+    """
     result = eopf_aux_data_search.submit(module, processing_unit, use_dpr_mockup)
     return result
 
@@ -615,7 +615,7 @@ async def eopf_aux_data_search(
     Retrieve CQL2 filter.
     See https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/processor-orchestration-guide/tasktables.rst
     """
-    logger = get_run_logger()    
+    logger = get_run_logger()
     logger.info(
         f" Retrieve CQL2 filter for module : {module}, processing_unit : {processing_unit}",
     )
@@ -729,7 +729,7 @@ async def main_dask_task(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        cwd = wd,
+        cwd=wd,
     )
 
     # Log contents

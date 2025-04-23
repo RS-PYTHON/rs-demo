@@ -208,7 +208,7 @@ def init_dask_cluster_staging(
 def init_dask_cluster_eopf(
     scale: int,
     image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
-    use_mockup = False,
+    use_mockup=False,
     *args,
     **kwargs,
 ):
@@ -216,11 +216,11 @@ def init_dask_cluster_eopf(
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
     local_environ_eopf_address = "DASK_GATEWAY_EOPF_ADDRESS"
     local_environ_eopf_public = "DASK_GATEWAY_EOPF_PUBLIC"
-    cluster_tag="dask-eopf"
+    cluster_tag = "dask-eopf"
     if use_mockup:
         local_environ_eopf_address = "DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"
         local_environ_eopf_public = "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
-        cluster_tag="dask-eopf-mockup"
+        cluster_tag = "dask-eopf-mockup"
 
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
         (
