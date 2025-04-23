@@ -107,7 +107,8 @@ def init_dask_cluster(
         key=lambda cluster: cluster.start_time,
         reverse=True,
     )
-
+    for cluster in clusters:
+        print(f"image = {cluster.name}")
     # Get existing dask cluster name, if any.
     existing = None
     if clusters:
@@ -207,25 +208,35 @@ def init_dask_cluster_staging(
 def init_dask_cluster_eopf(
     scale: int,
     image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest",
+    use_mockup=False,
     *args,
     **kwargs,
 ):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
+    local_environ_eopf_address = "DASK_GATEWAY_EOPF_ADDRESS"
+    local_environ_eopf_public = "DASK_GATEWAY_EOPF_PUBLIC"
+    cluster_tag = "dask-eopf"
+    if use_mockup:
+        image = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest"
+        local_environ_eopf_address = "DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"
+        local_environ_eopf_public = "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
+        cluster_tag = "dask-eopf-mockup"
+
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
         (
             os.environ["DASK_GATEWAY_ADDRESS"]
             if cluster_mode
-            else os.environ["DASK_GATEWAY_EOPF_ADDRESS"]
+            else os.environ[local_environ_eopf_address]
         ),
         (
             os.environ["DASK_GATEWAY_PUBLIC"]
             if cluster_mode
-            else os.environ["DASK_GATEWAY_EOPF_PUBLIC"]
+            else os.environ[local_environ_eopf_public]
         ),
         scale,
         image=image,
-        cluster_tag="dask-eopf",
+        cluster_tag=cluster_tag,
         *args,
         **kwargs,
     )
