@@ -142,8 +142,8 @@ async def read_apikey(save_to_env: bool = True) -> None:
     global apikey
 
     # No API key in local mode
-    # if local_mode:
-    #     return
+    if local_mode:
+        return
 
     # If the API is saved as an env var in the ~/.env file, then it has already
     # been read automatically by rs-infra-core/.github/jupyter/resources/00-read-env.py

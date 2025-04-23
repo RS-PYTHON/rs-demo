@@ -159,7 +159,7 @@ def s3l0_demo_processor(
             flow_span_context,
             module,
             processing_unit,
-        use_dpr_mockup,
+            use_dpr_mockup,
         )
 
         logger.info(f" ### CQL2 : {auxip_cql2_filter}")
@@ -247,7 +247,7 @@ def s3l0_demo_processor(
             input_config_dir,
             payload_file,
             output_data_dir,
-        use_dpr_mockup,
+            use_dpr_mockup,
         )
 
         # Call dummy catalog task
@@ -615,7 +615,12 @@ def start_processor_dask_for_aux_search(
     Dask flow used to call tasks in dask workers.
     Used only to retrieve CQL2 filter from processor.
     """
-    result = eopf_aux_data_search.submit(flow_span_context, module, processing_unit, use_dpr_mockup)
+    result = eopf_aux_data_search.submit(
+        flow_span_context,
+        module,
+        processing_unit,
+        use_dpr_mockup,
+    )
     return result
 
 
