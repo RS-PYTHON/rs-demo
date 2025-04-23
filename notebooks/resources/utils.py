@@ -17,7 +17,6 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
-import getpass
 import json
 import logging
 import os
@@ -81,9 +80,7 @@ RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
 
 # For local mode only
 if local_mode:
-
-    # Username
-    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
+    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]  # username
 
 OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
@@ -101,40 +98,6 @@ stop_date = datetime(2024, 1, 1)
 def pretty_print(any_dict: dict, indent=2):
     """Pretty print any dict e.g. JSON data."""
     print(json.dumps(any_dict, indent=2))
-
-
-def read_apikey(save_to_env: bool = False) -> None:
-    """
-    Read the API key, either from the environment variable or from an interactive input form.
-
-    Args:
-        save_to_env (bool): If True, saves the API key to the ~/.env file.
-
-    NOTE: don't return the apikey value because there is a risk that it is displayed in the
-    notebook (if this function is called from the last cell line) so this is not secured.
-    """
-    global apikey
-
-    # No API key in local mode
-    if local_mode:
-        return
-
-    # If the API is saved as an env var in the ~/.env file, then it has already
-    # been read automatically by rs-infra-core/.github/jupyter/resources/00-read-env.py
-    if apikey := os.getenv("RSPY_APIKEY"):
-        return
-
-    # Else read it from user input
-    apikey = getpass.getpass(f"Enter your API key:")
-
-    # Save the env var
-    os.environ["RSPY_APIKEY"] = apikey
-
-    # Save it in the ~/.env file, if requested
-    if save_to_env:
-        with open(os.path.expanduser("~/.env"), "a") as env_file:
-            env_file.write(f"\nRSPY_APIKEY={apikey}\n")
-            print("API key saved to ~/.env.")
 
 
 def get_s3_client():
