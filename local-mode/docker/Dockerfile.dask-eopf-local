@@ -15,7 +15,8 @@
 # We will add eopf to the dask-gateway-server image for local mode
 # Declare ARG variables before the FROM instruction
 ARG DASK_GATEWAY_TAG=xxx
-FROM ghcr.io/rs-python/rs-dpr-service:feat-rspy653-add-ci-cd-dev as dpr_service
+# add this when the dpr_service will be ready
+# FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
 
 # Use the ARG value in the FROM statement
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
@@ -24,9 +25,9 @@ ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
-COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-# Copy the src folder from the dpr_mock image
-RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
+# add the following 2 lines when the dpr_service will be ready
+#COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
+#RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 
 # Install EOPF
 COPY ./requirements.dask-eopf-local.txt /opt/
