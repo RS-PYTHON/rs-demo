@@ -322,4 +322,5 @@ def copy_caller_env(caller_env: dict[str, str]):
         if local_mode
         else ["JUPYTERHUB_API_TOKEN"]
     ):
-        os.environ[key] = caller_env[key]
+        if value := caller_env.get(key):
+            os.environ[key] = value

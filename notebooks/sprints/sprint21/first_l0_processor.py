@@ -42,14 +42,14 @@ import prefect_utils
 prefect_utils.blocks_to_env_vars(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
-dask_cluster_name = os.environ["DASK_CLUSTER_NAME"]
+dask_cluster_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     dask_cluster_name,
 )
 
 # Now I need to upload my local utility modules that will be used by the dask tasks
-dask_client_eopf.upload_file("./resources/dask_utils.py")
+dask_client.upload_file("./resources/dask_utils.py")
 dask_client.upload_file("./resources/prefect_utils.py")
 dask_client.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
