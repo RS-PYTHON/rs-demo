@@ -154,12 +154,22 @@ def s3l0_demo_processor(
             cadip_stac_filter,
         )
 
+        # wait for results
+        cadip_data = cadip_search_future.result()
+
+        # protection against a searching failure
+        if not cadip_data:
+            logger.error("No cadip data found")
+            raise RuntimeError("No cadip data found")
+
         # Retrieve cql2 from processor (currently the dpr processor is not working)
         auxip_cql2_future = start_processor_dask_for_aux_search(
             flow_span_context,
             module,
             processing_unit,
+            cadip_data.to_dict(),
             use_dpr_mockup,
+            wait_for=[cadip_search_future]
         )
 
         logger.info(f" ### CQL2 : {auxip_cql2_filter}")
@@ -171,13 +181,9 @@ def s3l0_demo_processor(
         )
 
         # wait for results
-        cadip_data = cadip_search_future.result()
         auxip_data = auxip_search_future.result()
 
         # protection against a searching failure
-        if not cadip_data:
-            logger.error("No cadip data found")
-            raise RuntimeError("No cadip data found")
         if not auxip_data:
             logger.error("No auxip data found")
             raise RuntimeError("No auxip data found")
@@ -609,6 +615,7 @@ def start_processor_dask_for_aux_search(
     flow_span_context: SpanContext,
     module: str,
     processing_unit: str,
+    cadip_data, # NOTE: not used for now
     use_dpr_mockup: bool = False,
 ):
     """
@@ -619,6 +626,7 @@ def start_processor_dask_for_aux_search(
         flow_span_context,
         module,
         processing_unit,
+        cadip_data,
         use_dpr_mockup,
     )
     return result
@@ -629,6 +637,7 @@ async def eopf_aux_data_search(
     flow_span_context: SpanContext,
     module: str,
     processing_unit: str,
+    cadip_data, # NOTE: not used for now
     use_dpr_mockup: bool = False,
 ):
     """
