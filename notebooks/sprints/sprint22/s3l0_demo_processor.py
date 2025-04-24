@@ -169,6 +169,7 @@ def s3l0_demo_processor(
             processing_unit,
             cadip_data.to_dict(),
             use_dpr_mockup,
+            # Use wait_for to show arrows between tasks in prefect dashboard
             wait_for=[cadip_search_future]
         )
 

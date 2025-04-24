@@ -207,7 +207,7 @@ def init_dask_cluster_staging(
 
 def init_dask_cluster_eopf(
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest",
+    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
     use_mockup=False,
     *args,
     **kwargs,

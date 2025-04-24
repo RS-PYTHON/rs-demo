@@ -155,13 +155,14 @@ async def read_apikey(save_to_env: bool = True) -> None:
         # Save the env var
         os.environ["RSPY_APIKEY"] = apikey
 
-        # Save it in the ~/.env file, if requested
+        # Append it to the ~/.env file, if requested. 
+        # Don't overwrite the full ~/.env file because it can contain other user info.
         if save_to_env:
             with open(os.path.expanduser("~/.env"), "a") as env_file:
                 env_file.write(f"\nRSPY_APIKEY={apikey}\n")
                 print("API key saved to ~/.env.")
 
-    # Save it in a prefect secret block prefixed by the username.
+    # Save it in a prefect secret block
     await Secret(value=apikey).save(get_block_apikey(), overwrite=True)
 
 
@@ -175,7 +176,6 @@ async def blocks_to_env_vars():
     # Prefect block names
     block_auth = os.environ.get("PREFECT_BLOCK_AUTH")
     block_s3 = os.environ["PREFECT_BLOCK_S3"]
-    block_apikey = get_block_apikey()
 
     #
     # Auth block
@@ -215,12 +215,12 @@ async def blocks_to_env_vars():
     # RSPY API key block
 
     try:
-        rspy_apikey: str = (await read_block(Secret, block_apikey)).get()
-        if rspy_apikey:
+        if rspy_apikey := (await read_block(Secret, get_block_apikey())).get():
             os.environ["RSPY_APIKEY"] = rspy_apikey
-    except ValueError:
-        # do nothing if the block does not exist
-        pass
+
+    # Don't raise exception: the api key is not needed by all prefect flows.
+    except Exception:
+        print("INFO: cannot read the RSPY API key")
 
 
 def hack_for_jupyter(func: Callable, *args, **kwargs) -> asyncio.Task:
