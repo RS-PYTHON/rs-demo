@@ -155,7 +155,7 @@ async def read_apikey(save_to_env: bool = True) -> None:
         # Save the env var
         os.environ["RSPY_APIKEY"] = apikey
 
-        # Append it to the ~/.env file, if requested. 
+        # Append it to the ~/.env file, if requested.
         # Don't overwrite the full ~/.env file because it can contain other user info.
         if save_to_env:
             with open(os.path.expanduser("~/.env"), "a") as env_file:

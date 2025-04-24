@@ -170,7 +170,7 @@ def s3l0_demo_processor(
             cadip_data.to_dict(),
             use_dpr_mockup,
             # Use wait_for to show arrows between tasks in prefect dashboard
-            wait_for=[cadip_search_future]
+            wait_for=[cadip_search_future],
         )
 
         logger.info(f" ### CQL2 : {auxip_cql2_filter}")
@@ -616,7 +616,7 @@ def start_processor_dask_for_aux_search(
     flow_span_context: SpanContext,
     module: str,
     processing_unit: str,
-    cadip_data, # NOTE: not used for now
+    cadip_data,  # NOTE: not used for now
     use_dpr_mockup: bool = False,
 ):
     """
@@ -638,7 +638,7 @@ async def eopf_aux_data_search(
     flow_span_context: SpanContext,
     module: str,
     processing_unit: str,
-    cadip_data, # NOTE: not used for now
+    cadip_data,  # NOTE: not used for now
     use_dpr_mockup: bool = False,
 ):
     """
