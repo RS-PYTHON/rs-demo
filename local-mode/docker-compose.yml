@@ -272,6 +272,21 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
+  rs-dpr-service:
+    image: ghcr.io/rs-python/rs-dpr-service:0.0.0.post35.dev0.88f7685
+    container_name: rs-dpr-service
+    ports:
+      - 6003:8000
+    # variables are set in the .env file
+    environment:
+      RSPY_LOCAL_MODE: 1
+      # postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+
   ###############
   # PRE-ACTIONS #
   ###############
