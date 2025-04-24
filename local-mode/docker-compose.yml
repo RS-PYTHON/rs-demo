@@ -273,12 +273,13 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   rs-dpr-service:
-    image: ghcr.io/rs-python/rs-dpr-service:0.0.0.post35.dev0.88f7685
+    image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
     ports:
       - 6003:8000
     # variables are set in the .env file
     environment:
+      RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-eopf-mockup
       RSPY_LOCAL_MODE: 1
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
