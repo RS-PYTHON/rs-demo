@@ -183,8 +183,14 @@ def get_or_create_test_collection(
     stac_extensions: list[str] | None = None,
 ) -> CollectionClient:
     """Returns the given STAC collection or creates it if does not exist"""
-    if (collection := catalog_client.get_collection(collection_id)) is not None:
-        return collection
+    try:
+        if (collection := catalog_client.get_collection(collection_id)) is not None:
+            return collection
+    except Exception as e:
+        if "NotFoundError" in str(e):
+            pass
+        else:
+            raise e
     return create_test_collection(
         collection_id,
         description,
