@@ -173,6 +173,7 @@ services:
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+      - ./config/expiration_bucket.csv:/home/user/.config/expiration_bucket.csv
 
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
@@ -216,6 +217,7 @@ services:
       - ./config/openapi.json:/etc/openapi.json
       #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/expiration_bucket.csv:/home/user/.config/expiration_bucket.csv
 
   ############
   # STATIONS #
