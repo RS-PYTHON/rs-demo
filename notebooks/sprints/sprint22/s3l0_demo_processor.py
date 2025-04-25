@@ -33,15 +33,9 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
+from resources import dask_utils, prefect_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry
-
-# My local "./resources" folder contains my utility modules.
-# I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
-# For this, I'm updating my PYTHONPATH.
-sys.path.append("./resources")
-import dask_utils
-import prefect_utils
 
 # Convert the prefect blocks into environment variables for the S3 bucket and authentication.
 prefect_utils.blocks_to_env_vars(_sync=True)
@@ -54,11 +48,6 @@ dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
         dask_cluster_eopf_name,
     )
 )
-
-# Now I need to upload my local utility modules that will be used by the dask tasks
-dask_client_eopf.upload_file("./resources/dask_utils.py")
-dask_client_eopf.upload_file("./resources/prefect_utils.py")
-dask_client_eopf.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
 # Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
 # These lines of code is not called by the dask workers.
@@ -140,6 +129,9 @@ def s3l0_demo_processor(
         flow_span_context = trace.get_current_span().get_span_context()
 
         logger = get_run_logger()
+
+        # Upload utility files to dask clients
+        dask_utils.upload_util_files([dask_client_eopf])
 
         module, processing_unit = extract_module_and_processing_unit(payload_file)
         if not module or not processing_unit:
@@ -656,8 +648,6 @@ async def eopf_aux_data_search(
     dask_utils.copy_caller_env(caller_env)
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    import init_opentelemetry
-
     init_opentelemetry.init_traces("rs.client.dask", logger)
     with init_opentelemetry.start_span(
         __name__,
@@ -728,8 +718,6 @@ async def main_dask_task(
     os.environ["OUTPUT_DIR"] = output_data_dir
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    import init_opentelemetry
-
     init_opentelemetry.init_traces("rs.client.dask", logger)
     with init_opentelemetry.start_span(__name__, "main_dask_task", flow_span_context):
 
