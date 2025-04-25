@@ -276,8 +276,7 @@ services:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
     depends_on:
-      catalog-db:
-        condition: service_healthy
+      - postgres
     ports:
       - 6003:8000
     # variables are set in the .env file
