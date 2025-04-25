@@ -64,15 +64,21 @@ dask_client_eopf.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 # These lines of code is not called by the dask workers.
 caller_env = os.environ
 local_mode = prefect_utils.local_mode
+cluster_mode = not local_mode
 
 # In local mode, the service URLs are hardcoded in the docker-compose file
 if local_mode:
     rs_server_href = None  # not used
-    rs_server_api_key = None
 # In cluster mode, they are set in an environment variables
 else:
     rs_server_href = os.environ["RSPY_WEBSITE"]
-    rs_server_api_key = os.environ["RSPY_APIKEY"]
+
+# In cluster mode, read the API key or OAuth2 token to authenticate to rs-server
+rs_server_api_key = None
+if cluster_mode:
+    rs_server_api_key = os.environ.get("RSPY_APIKEY")
+    if (not rs_server_api_key) and (not os.environ.get("RSPY_OAUTH2_COOKIE")):
+        raise Exception("You need an API key or OAuth2 token to run this flow")
 
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
