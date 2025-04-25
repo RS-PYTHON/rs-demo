@@ -18,6 +18,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import asyncio
+import getpass
 import os
 import secrets
 import socket
@@ -46,6 +47,20 @@ PREFECT_BLOCK_S3: S3Bucket = None
 S3_BUCKETS: dict[str, S3Bucket] = {}
 
 
+def get_block_auth_user():
+    """
+    Return the prefect block name that contains the authentication
+    specific to one user = the api key or oauth2 cookie.
+    """
+    if local_mode:
+        owner_id = os.environ["RSPY_HOST_USER"]
+    else:  # cluster mode
+        owner_id = os.environ["JUPYTERHUB_USER"]
+
+    # NOTE: for now all prefect users share their blocks and secrets, but later this will not be the case anymore.
+    return f"auth-user-{owner_id.lower()}"
+
+
 def get_ip_address() -> str:
     """Return IP address, see: https://stackoverflow.com/a/166520"""
     return socket.gethostbyname(socket.gethostname())
@@ -65,6 +80,43 @@ async def read_block(cls, name: str):
             raise ValueError(
                 f"The Prefect secret block {name!r} must be initialized manually before calling this function.",
             ) from error
+
+
+@sync_compatible
+async def read_apikey(optional: bool = True, save_to_env: bool = True) -> None:
+    """
+    Read the API key, either from the environment variable or from an interactive input form.
+
+    Args:
+        optional (bool): If False and if the env var is missing, ask it from an interactive input form.
+        save_to_env (bool): If True, saves the API key to the ~/.env file.
+
+    NOTE: don't return the apikey value because there is a risk that it is displayed in the
+    notebook (if this function is called from the last cell line) so this is not secured.
+    """
+    global apikey
+
+    # No API key in local mode
+    if local_mode:
+        return
+
+    # If the API is saved as an env var in the ~/.env file, then it has already
+    # been read automatically by rs-infra-core/.github/jupyter/resources/00-read-env.py
+    apikey = os.getenv("RSPY_APIKEY")
+    if (not apikey) and (not optional):
+
+        # Else read it from user input
+        apikey = getpass.getpass(f"Enter your API key:")
+
+        # Save the env var
+        os.environ["RSPY_APIKEY"] = apikey
+
+        # Append it to the ~/.env file, if requested.
+        # Don't overwrite the full ~/.env file because it can contain other user info.
+        if save_to_env:
+            with open(os.path.expanduser("~/.env"), "a") as env_file:
+                env_file.write(f"\nRSPY_APIKEY={apikey}\n")
+                print("API key saved to ~/.env.")
 
 
 @sync_compatible
@@ -107,9 +159,20 @@ async def init_prefect_blocks():
         )
         await PREFECT_BLOCK_S3.save(block_s3, overwrite=True)
 
-    # In cluster mode, read the S3 block
+    # In cluster mode
     else:
-        PREFECT_BLOCK_S3 = await read_block(S3Bucket, block_s3)
+        # Read the rspy api key
+        await read_apikey()
+
+        # In a prefect secret block, save the user authentication = api key and oauth2 cookie
+        auth_user = {"RSPY_OAUTH2_COOKIE": os.environ["RSPY_OAUTH2_COOKIE"]}
+
+        # Add the api key, if present
+        if apikey:
+            auth_user["RSPY_APIKEY"] = apikey
+
+        # Save the prefect secret block
+        await Secret(value=auth_user).save(get_block_auth_user(), overwrite=True)
 
     # Save the dask authentication from prefect blocks as env vars
     await blocks_to_env_vars()
@@ -159,6 +222,16 @@ async def blocks_to_env_vars():
             "S3_BUCKET_FOLDER": PREFECT_BLOCK_S3.bucket_folder,
         },
     )
+
+    #
+    # User authentication = api key and oauth2 cookie
+
+    # Only for cluster mode. Don't overwrite existing environment, if any.
+    if cluster_mode:
+        auth_user = (await read_block(Secret, get_block_auth_user())).get()
+        for key, value in auth_user.items():
+            if key not in os.environ:
+                os.environ[key] = value
 
 
 def hack_for_jupyter(func: Callable, *args, **kwargs) -> asyncio.Task:

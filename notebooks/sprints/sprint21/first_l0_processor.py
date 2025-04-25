@@ -25,14 +25,10 @@ from pathlib import Path
 import requests
 import rs_common
 from opentelemetry import trace
-from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
+from opentelemetry.trace.span import SpanContext
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
-from rs_client.auxip_client import AuxipClient
-from rs_client.cadip_client import CadipClient
-from rs_client.catalog_client import CatalogClient
-from rs_client.staging_client import StagingClient
 from rs_common import init_opentelemetry
 
 # My local "./resources" folder contains my utility modules.
@@ -46,13 +42,14 @@ import prefect_utils
 prefect_utils.blocks_to_env_vars(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
-dask_cluster_name = os.environ["DASK_CLUSTER_NAME"]
+dask_cluster_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     dask_cluster_name,
 )
 
-# Now I need to upload my local utility module that will be used by the dask tasks
+# Now I need to upload my local utility modules that will be used by the dask tasks
+dask_client.upload_file("./resources/dask_utils.py")
 dask_client.upload_file("./resources/prefect_utils.py")
 dask_client.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
@@ -71,10 +68,6 @@ else:
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client.scheduler_info()["workers"])
-
-# Opentelemetry configuration
-tracer = trace.get_tracer(__name__)
-TEMPO_ENDPOINT = os.getenv("TEMPO_ENDPOINT")
 
 
 ##########################
@@ -97,13 +90,9 @@ def first_l0_processor(
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
-
+    # Record all flow in an Opentelemetry span
     init_opentelemetry.init_traces("rs.client.prefect")
-
-    tracer = trace.get_tracer(__name__)
-
-    # Wrap all flow in an Opentelemetry flow
-    with tracer.start_as_current_span("first_l0_processor_flow"):
+    with init_opentelemetry.start_span(__name__, "first_l0_processor_flow"):
 
         # Extract span infos to send to Dask
         flow_span_context = trace.get_current_span().get_span_context()
@@ -139,8 +128,7 @@ def first_l0_processor(
 
         # Run the EOPF task with .submit in a dask node
         eopf_result = first_l0_processor_dask(
-            flow_span_context.trace_id,
-            flow_span_context.span_id,
+            flow_span_context,
             staging_result,
             config_file_result,
             input_config_dir,
@@ -233,8 +221,7 @@ def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
     ),
 )
 def first_l0_processor_dask(
-    optl_trace_id,
-    optl_span_id,
+    flow_span_context: SpanContext,
     staging_result,
     config_file_result,
     input_config_dir: str,
@@ -245,8 +232,7 @@ def first_l0_processor_dask(
     Dask flow used to call tasks in dask workers.
     """
     return main_dask_task.submit(
-        optl_trace_id,
-        optl_span_id,
+        flow_span_context,
         input_config_dir,
         payload_file,
         output_data_dir,
@@ -255,148 +241,117 @@ def first_l0_processor_dask(
 
 @task
 async def main_dask_task(
-    optl_trace_id: int,
-    optl_span_id: int,
+    flow_span_context: SpanContext,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
 ):
-    # NOTE: not sure this is useful so I'm removing it
-    # with worker_client(separate_thread=False)
+    logger = get_run_logger()
 
-    os.environ["TEMPO_ENDPOINT"] = TEMPO_ENDPOINT
+    # Copy env vars from the caller
+    dask_utils.copy_caller_env(caller_env)
+
+    # Also save the given output dir as an env var
+    os.environ["OUTPUT_DIR"] = output_data_dir
+
+    # Init opentelemetry and record all task in an Opentelemetry span
     import init_opentelemetry
 
-    init_opentelemetry.init_traces("rs.client.dask")
-
-    tracer = trace.get_tracer(__name__)
-
-    main_span_context = SpanContext(
-        trace_id=optl_trace_id,
-        span_id=optl_span_id,
-        is_remote=True,
-        trace_flags=TraceFlags(0x01),
-    )
-    main_span = NonRecordingSpan(main_span_context)
-
-    with trace.use_span(main_span):
+    init_opentelemetry.init_traces("rs.client.dask", logger)
+    with init_opentelemetry.start_span(__name__, "main_dask_flow", flow_span_context):
 
         # Basic request to use as test tracker
         wiki_result = requests.get(
             "https://fr.wikipedia.org/wiki/Patrick_Balkany#Affaires_judiciaires",
         )
 
-        with tracer.start_as_current_span("main_dask_flow"):
+        # Output report dir
+        report_dirname = "reports"
 
-            logger = get_run_logger()
+        # Payload parent dir and filename
+        payload_dir = osp.dirname(payload_file)
+        payload_name = osp.basename(payload_file)
 
-            # Output report dir
-            report_dirname = "reports"
+        # Download the input config dir locally
+        # NOTE: maybe we should only download the payload file + only necessary config files
+        # rather than the whole directory.
+        local_config_dir = "config"
+        await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
 
-            # Use env vars from the caller
-            for key in [
-                "S3_ACCESSKEY",
-                "S3_SECRETKEY",
-                "S3_ENDPOINT",
-                "S3_REGION",
-                "S3_BUCKET_NAME",
-                "S3_BUCKET_FOLDER",
-                "DASK_GATEWAY_ADDRESS",
-                "DASK_CLUSTER_NAME",
-            ] + (
-                ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
-                if local_mode
-                else ["JUPYTERHUB_API_TOKEN"]
-            ):
-                os.environ[key] = caller_env[key]
+        # Change working directory
+        os.chdir(osp.join(local_config_dir, payload_dir))
 
-            # Also save the given output dir as an env var
-            os.environ["OUTPUT_DIR"] = output_data_dir
+        # Create the reports dir
+        os.makedirs(report_dirname, exist_ok=True)
 
-            # Payload parent dir and filename
-            payload_dir = osp.dirname(payload_file)
-            payload_name = osp.basename(payload_file)
+        # Hack the payload file
+        await hack_payload(payload_name)
 
-            # Download the input config dir locally
-            # NOTE: maybe we should only download the payload file + only necessary config files
-            # rather than the whole directory.
-            local_config_dir = "config"
-            await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
+        # Trigger EOPF processing, catch output
+        p = subprocess.Popen(
+            ["eopf", "trigger", "local", payload_name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
 
-            # Change working directory
-            os.chdir(osp.join(local_config_dir, payload_dir))
+        # Log contents
+        log_str = ""
 
-            # Create the reports dir
-            os.makedirs(report_dirname, exist_ok=True)
+        # Write output to a log file and string + redirect to the prefect logger
+        with open(
+            osp.join(report_dirname, Path(payload_file).with_suffix(".log").name),
+            "w+",
+        ) as log_file:
+            while (line := p.stdout.readline()) != "":
 
-            # Hack the payload file
-            await hack_payload(payload_name)
+                # The log prints password in clear e.g 'key': '<my-secret>'... hide them with a regex
+                for key in (
+                    "key",
+                    "secret",
+                    "endpoint_url",
+                    "region_name",
+                    "api_token",
+                    "password",
+                ):
+                    line = re.sub(rf"(\W{key}\W)[^,}}]*", r"\1: ***", line)
 
-            # Trigger EOPF processing, catch output
-            p = subprocess.Popen(
-                ["eopf", "trigger", "local", payload_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
+                # Write to log file and string
+                log_file.write(line)
+                log_str += line
+
+                # Write to prefect logger if not empty
+                line = line.rstrip()
+                if line:
+                    logger.info(line)
+
+        try:
+            # Wait for the execution to finish
+            status_code = p.wait()
+
+            # Raise exception if the status code is != 0
+            if status_code:
+                raise Exception("EOPF error, please see the log.")
+
+        # In all cases, upload the reports dir to the s3 bucket.
+        finally:
+            try:
+                await prefect_utils.s3_upload_dir(
+                    report_dirname,
+                    osp.join(output_data_dir, report_dirname),
+                )
+            except Exception as exception:
+                logger.error(exception)
+
+            # Save log str into a markdown artifact
+            create_markdown_artifact(
+                key="logging",
+                markdown=f"```\n{log_str}\n```",
+                description="L0 processing logging",
             )
 
-            # Log contents
-            log_str = ""
-
-            # Write output to a log file and string + redirect to the prefect logger
-            with open(
-                osp.join(report_dirname, Path(payload_file).with_suffix(".log").name),
-                "w+",
-            ) as log_file:
-                while (line := p.stdout.readline()) != "":
-
-                    # The log prints password in clear e.g 'key': '<my-secret>'... hide them with a regex
-                    for key in (
-                        "key",
-                        "secret",
-                        "endpoint_url",
-                        "region_name",
-                        "api_token",
-                        "password",
-                    ):
-                        line = re.sub(rf"(\W{key}\W)[^,}}]*", r"\1: ***", line)
-
-                    # Write to log file and string
-                    log_file.write(line)
-                    log_str += line
-
-                    # Write to prefect logger if not empty
-                    line = line.rstrip()
-                    if line:
-                        logger.info(line)
-
-            try:
-                # Wait for the execution to finish
-                status_code = p.wait()
-
-                # Raise exception if the status code is != 0
-                if status_code:
-                    raise Exception("EOPF error, please see the log.")
-
-            # In all cases, upload the reports dir to the s3 bucket.
-            finally:
-                try:
-                    await prefect_utils.s3_upload_dir(
-                        report_dirname,
-                        osp.join(output_data_dir, report_dirname),
-                    )
-                except Exception as exception:
-                    logger.error(exception)
-
-                # Save log str into a markdown artifact
-                create_markdown_artifact(
-                    key="logging",
-                    markdown=f"```\n{log_str}\n```",
-                    description="L0 processing logging",
-                )
-
-            # Dummy output for prefect
-            return {}
+        # Dummy output for prefect
+        return {}
 
 
 @task

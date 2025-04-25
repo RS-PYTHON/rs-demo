@@ -18,13 +18,17 @@ deployments:
     job_variables:
         env:
             # Copy env vars from client environment
+            RSPY_HOST_USER: "{{ RSPY_HOST_USER }}"
+            JUPYTERHUB_USER: "{{ JUPYTERHUB_USER }}"
             S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
             PREFECT_BLOCK_AUTH: "{{ PREFECT_BLOCK_AUTH }}"
             PREFECT_BLOCK_S3: "{{ PREFECT_BLOCK_S3 }}"
             DASK_GATEWAY_EOPF_ADDRESS: "{{ DASK_GATEWAY_EOPF_ADDRESS }}"
             DASK_CLUSTER_EOPF_NAME: "{{ DASK_CLUSTER_EOPF_NAME }}"
             RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
+            AWS_REQUEST_CHECKSUM_CALCULATION: "{{ AWS_REQUEST_CHECKSUM_CALCULATION }}"
+            AWS_RESPONSE_CHECKSUM_VALIDATION: "{{ AWS_RESPONSE_CHECKSUM_VALIDATION }}"
             # TODO: should rather be set in the deployment helm charts
-            RSPY_APIKEY : "{{ RSPY_APIKEY }}"
             RSPY_WEBSITE: "{{ RSPY_WEBSITE }}"
             RSPY_UAC_CHECK_URL: "{{ RSPY_UAC_CHECK_URL }}"
+            TEMPO_ENDPOINT: "{{ TEMPO_ENDPOINT }}"
