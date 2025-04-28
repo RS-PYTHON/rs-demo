@@ -282,7 +282,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-eopf-mockup
-      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      DASK_GATEWAY__ADDRESS: ${RSPY_DASK_DPR_SERVICE_CLUSTER_NAME}
       RSPY_LOCAL_MODE: 1
       # postgres
       POSTGRES_USER: ${POSTGRES_USER}
