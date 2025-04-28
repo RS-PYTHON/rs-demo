@@ -20,12 +20,10 @@ import os
 import os.path as osp
 import re
 import subprocess
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
-import rs_common
 import yaml
 from opentelemetry import trace
 from opentelemetry.trace import SpanContext
@@ -644,6 +642,7 @@ async def eopf_aux_data_search(
     See https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/processor-orchestration-guide/tasktables.rst
     """
     logger = get_run_logger()
+
     # Copy env vars from the caller
     dask_utils.copy_caller_env(caller_env)
 
@@ -654,7 +653,6 @@ async def eopf_aux_data_search(
         "eopf_aux_data_search",
         flow_span_context,
     ):
-
         logger.info(
             f" Retrieve CQL2 filter for module : {module}, processing_unit : {processing_unit}",
         )

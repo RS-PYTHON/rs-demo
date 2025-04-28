@@ -328,6 +328,7 @@ def upload_util_modules(clients: list[DaskClient]):
         root / "resources/dask_utils.py": "resources/dask_utils.py",
         root / "resources/prefect_utils.py": "resources/prefect_utils.py",
         rs_common_dir / "__init__.py": "rs_common/__init__.py",
+        rs_common_dir / "logging.py": "rs_common/logging.py",
         rs_common_dir / "utils.py": "rs_common/utils.py",
         rs_common_dir / "init_opentelemetry.py": "rs_common/init_opentelemetry.py",
     }
