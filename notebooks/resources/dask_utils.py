@@ -304,14 +304,14 @@ def shutdown_dask_clusters(gateway: Gateway, name: str | None):
             print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
 
 
-def upload_util_files(clients: list[DaskClient]):
+def upload_util_modules(clients: list[DaskClient]):
     """
-    Upload utility files from the caller (=prefect or jupyter) environment to dask clients.
-    These files should not import modules that are not installed in the dask environment
+    Upload utility modules from the caller (=prefect or jupyter) environment to dask clients.
+    These modules should not import other modules that are not installed in the dask environment
     or you'll have import errors.
 
     Args:
-        clients: list of dask clients to which upload the files.
+        clients: list of dask clients to which upload the modules.
     """
 
     # Root of the current project
@@ -343,7 +343,8 @@ def upload_util_files(clients: list[DaskClient]):
             for key, value in files.items():
                 zipped.write(str(key), str(value))
 
-        # Upload zip file to dask clients
+        # Upload zip file to dask clients.
+        # This also installs the zipped modules inside the dask python interpreter.
         for client in clients:
             client.upload_file(zip_path)
 
@@ -375,6 +376,8 @@ def copy_caller_env(caller_env: dict[str, str]):
         "AWS_REQUEST_CHECKSUM_CALCULATION",
         "AWS_RESPONSE_CHECKSUM_VALIDATION",
         "TEMPO_ENDPOINT",
+        "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
+        "OTEL_PYTHON_REQUESTS_TRACE_BODY",
     ] + (
         ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
         if local_mode

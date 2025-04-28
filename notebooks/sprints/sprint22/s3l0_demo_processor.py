@@ -130,8 +130,8 @@ def s3l0_demo_processor(
 
         logger = get_run_logger()
 
-        # Upload utility files to dask clients
-        dask_utils.upload_util_files([dask_client_eopf])
+        # Upload utility modules to dask clients
+        dask_utils.upload_util_modules([dask_client_eopf])
 
         module, processing_unit = extract_module_and_processing_unit(payload_file)
         if not module or not processing_unit:

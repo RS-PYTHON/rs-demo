@@ -86,8 +86,8 @@ def first_l0_processor(
         # Extract span infos to send to Dask
         flow_span_context = trace.get_current_span().get_span_context()
 
-        # Upload utility files to dask clients
-        dask_utils.upload_util_files([dask_client])
+        # Upload utility modules to dask clients
+        dask_utils.upload_util_modules([dask_client])
 
         test_req = requests.get("https://fr.wikipedia.org/wiki/Topinambour")
 
