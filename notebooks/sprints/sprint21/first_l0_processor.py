@@ -29,14 +29,8 @@ from opentelemetry.trace.span import SpanContext
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
+from resources import dask_utils, prefect_utils
 from rs_common import init_opentelemetry
-
-# My local "./resources" folder contains my utility modules.
-# I want to be able to use the same "from dask_utils import ..." line on both client, prefect and dask workers.
-# For this, I'm updating my PYTHONPATH.
-sys.path.append("./resources")
-import dask_utils
-import prefect_utils
 
 # Convert the prefect blocks into environment variables for the S3 bucket and authentication.
 prefect_utils.blocks_to_env_vars(_sync=True)
@@ -47,11 +41,6 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     dask_cluster_name,
 )
-
-# Now I need to upload my local utility modules that will be used by the dask tasks
-dask_client.upload_file("./resources/dask_utils.py")
-dask_client.upload_file("./resources/prefect_utils.py")
-dask_client.upload_file(f"{rs_common.__path__[0]}/init_opentelemetry.py")
 
 # Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
 # These lines of code is not called by the dask workers.
@@ -96,6 +85,9 @@ def first_l0_processor(
 
         # Extract span infos to send to Dask
         flow_span_context = trace.get_current_span().get_span_context()
+
+        # Upload utility modules to dask clients
+        dask_utils.upload_util_modules([dask_client])
 
         test_req = requests.get("https://fr.wikipedia.org/wiki/Topinambour")
 
@@ -255,8 +247,6 @@ async def main_dask_task(
     os.environ["OUTPUT_DIR"] = output_data_dir
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    import init_opentelemetry
-
     init_opentelemetry.init_traces("rs.client.dask", logger)
     with init_opentelemetry.start_span(__name__, "main_dask_flow", flow_span_context):
 
