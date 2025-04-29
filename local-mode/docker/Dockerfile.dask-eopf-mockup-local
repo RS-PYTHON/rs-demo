@@ -38,7 +38,7 @@ RUN pip install \
 
 USER root
 RUN apt update && apt install -y python3-pydot graphviz git gcc libpq-dev
-USER $USER    
+USER $USER
 
 COPY ./requirements.dask-eopf-mockup.local.txt /opt/
 ENV FORCE=1
