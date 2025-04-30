@@ -25,7 +25,9 @@ PREFECT_DASK_TAG=0.3.3
 # Determine what to build
 # Options: local, mockup, all
 BUILD_TARGET="${1:-all}"
-# Shift the positional arguments so "$@" works correctly later
+shift || true
+
+TAG_TO_USE="${1:-latest}"
 shift || true
 
 set +x
@@ -40,6 +42,8 @@ build_and_push() {
     local image_name=$1
     local dockerfile=$2
     local registry=$3
+    # shift off the first three fixed arguments
+    shift 3  
 
     docker build \
         --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
@@ -47,13 +51,13 @@ build_and_push() {
         --build-arg "PREFECT_DASK_TAG=${PREFECT_DASK_TAG}" \
         --secret id=GITLAB_EOPF_TOKEN \
         -f "${SCRIPT_DIR}/${dockerfile}" \
-        -t "${registry}:latest" \
+        -t "${registry}:${TAG_TO_USE}" \
         --progress=plain \
         "$SCRIPT_DIR"
 
     if [[ " $@ " == *" --push "* ]]; then
         docker login https://ghcr.io/v2/rs-python
-        docker push "${registry}:latest"
+        docker push "${registry}:${TAG_TO_USE}"
     fi
 }
 
