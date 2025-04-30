@@ -20,6 +20,7 @@ import json
 import os
 import os.path as osp
 import re
+import ast
 import subprocess
 import time
 from datetime import datetime
@@ -736,24 +737,18 @@ async def main_dask_task(
             "http://rs-dpr-service:8000/processes/s3_l0/execution",
             data=json.dumps(data),
         ).json()
-        import re
 
         match = re.search(r"'identifier': '([^']+)'", dpr_service_response)
         dpr_service_job_id = match.group(1) if match else None
         logger.info(f"DPR service job id {dpr_service_job_id}")
-        status_response = requests.get(
+        job_response = requests.get(
             f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
         ).json()
-        status = re.search(r"'status': '([^']+)'", status_response).group(1)
-        while status == "running":
-            time.sleep(1)
-            status_response = requests.get(
+        while job_response['status'] == "running":
+            job_response = requests.get(
                 f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
             ).json()
-            status = re.search(r"'status': '([^']+)'", status_response).group(1)
         #
-        result = re.search(r"message'\s*:\s*'([^']+|[^']+\])'", status_response).group(
-            1,
-        )
+        result = ast.literal_eval(job_response['message'])
         logger.info(result)
         return result
