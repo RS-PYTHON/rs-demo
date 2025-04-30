@@ -19,7 +19,10 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 
 import os
 import socket
+import tempfile
 import time
+import zipfile
+from pathlib import Path
 
 from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
@@ -301,6 +304,52 @@ def shutdown_dask_clusters(gateway: Gateway, name: str | None):
             print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
 
 
+def upload_util_modules(clients: list[DaskClient]):
+    """
+    Upload utility modules from the caller (=prefect or jupyter) environment to dask clients.
+    These modules should not import other modules that are not installed in the dask environment
+    or you'll have import errors.
+
+    Args:
+        clients: list of dask clients to which upload the modules.
+    """
+
+    # Root of the current project
+    root = Path(__file__).parent.parent
+
+    # Upload files from rs_common
+    import rs_common
+
+    rs_common_dir = Path(rs_common.__path__[0])
+
+    # Files and archive names to upload
+    files = {
+        root / "resources/__init__.py": "resources/__init__.py",
+        root / "resources/dask_utils.py": "resources/dask_utils.py",
+        root / "resources/prefect_utils.py": "resources/prefect_utils.py",
+        rs_common_dir / "__init__.py": "rs_common/__init__.py",
+        rs_common_dir / "logging.py": "rs_common/logging.py",
+        rs_common_dir / "utils.py": "rs_common/utils.py",
+        rs_common_dir / "init_opentelemetry.py": "rs_common/init_opentelemetry.py",
+    }
+
+    # From a temp dir
+    with tempfile.TemporaryDirectory() as tmpdir:
+
+        # Create a zip with our files
+        zip_path = f"{tmpdir}/for-dask.zip"
+        with zipfile.ZipFile(zip_path, "w") as zipped:
+
+            # Zip all files
+            for key, value in files.items():
+                zipped.write(str(key), str(value))
+
+        # Upload zip file to dask clients.
+        # This also installs the zipped modules inside the dask python interpreter.
+        for client in clients:
+            client.upload_file(zip_path)
+
+
 def copy_caller_env(caller_env: dict[str, str]):
     """
     Copy environment variables from caller (=prefect or jupyter) environment.
@@ -328,6 +377,8 @@ def copy_caller_env(caller_env: dict[str, str]):
         "AWS_REQUEST_CHECKSUM_CALCULATION",
         "AWS_RESPONSE_CHECKSUM_VALIDATION",
         "TEMPO_ENDPOINT",
+        "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
+        "OTEL_PYTHON_REQUESTS_TRACE_BODY",
     ] + (
         ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
         if local_mode

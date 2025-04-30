@@ -63,6 +63,8 @@ services:
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
+      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
+      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
@@ -111,6 +113,8 @@ services:
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
+      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
+      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
@@ -171,6 +175,8 @@ services:
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
+      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
+      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
@@ -211,6 +217,11 @@ services:
       #S3_ENDPOINT: http://127.0.0.1:9100
       S3_REGION: ${S3_REGION}
       RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
+      # opentelemetry
+      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
+      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
+      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
+      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
@@ -623,6 +634,8 @@ services:
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
+      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
+      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - ../notebooks:/home/jovyan/notebooks
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
