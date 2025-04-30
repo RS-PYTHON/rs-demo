@@ -213,7 +213,7 @@ services:
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}      
+      S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
       RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
       # opentelemetry
@@ -306,9 +306,9 @@ services:
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}      
+      S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
-      
+
 
   ###############
   # PRE-ACTIONS #
@@ -498,7 +498,7 @@ services:
     ports:
       - 8702:8000
     volumes:
-      - ~/.s3cfg:/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket      
+      - ~/.s3cfg:/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
 
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:feat-rspy653-dpr-service

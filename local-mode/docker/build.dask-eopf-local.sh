@@ -43,7 +43,7 @@ build_and_push() {
     local dockerfile=$2
     local registry=$3
     # shift off the first three fixed arguments
-    shift 3  
+    shift 3
 
     docker build \
         --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
