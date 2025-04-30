@@ -20,7 +20,6 @@ import json
 import os
 import os.path as osp
 import re
-import ast
 import subprocess
 import time
 from datetime import datetime
@@ -744,11 +743,11 @@ async def main_dask_task(
         job_response = requests.get(
             f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
         ).json()
-        while job_response['status'] == "running":
+        while job_response["status"] == "running":
             job_response = requests.get(
                 f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
             ).json()
         #
-        result = ast.literal_eval(job_response['message'])
+        result = ast.literal_eval(job_response["message"])
         logger.info(result)
         return result
