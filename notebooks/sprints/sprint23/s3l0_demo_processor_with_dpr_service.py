@@ -1,0 +1,747 @@
+# Copyright 2024 CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""First L0 processor"""
+
+import ast
+import copy
+import os
+import os.path as osp
+import re
+import subprocess
+import time
+from datetime import datetime
+from pathlib import Path
+import requests
+import yaml
+import json
+from opentelemetry import trace
+from opentelemetry.trace import SpanContext
+from prefect import flow, get_run_logger, task
+from prefect.artifacts import create_markdown_artifact
+from prefect_dask import DaskTaskRunner
+from pystac import Asset, Item, ItemCollection
+from rs_client.rs_client import RsClient
+from rs_common import init_opentelemetry
+
+from resources import dask_utils, prefect_utils
+
+# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
+prefect_utils.blocks_to_env_vars(_sync=True)
+
+# Get the existing dask cluster info from the env vars passed by the client.
+dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
+dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
+    dask_utils.get_existing_cluster(
+        os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
+        dask_cluster_eopf_name,
+    )
+)
+
+# Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
+# These lines of code is not called by the dask workers.
+caller_env = os.environ
+local_mode = prefect_utils.local_mode
+cluster_mode = not local_mode
+
+# In local mode, the service URLs are hardcoded in the docker-compose file
+if local_mode:
+    rs_server_href = None  # not used
+# In cluster mode, they are set in an environment variables
+else:
+    rs_server_href = os.environ["RSPY_WEBSITE"]
+
+# In cluster mode, read the API key or OAuth2 token to authenticate to rs-server
+rs_server_api_key = None
+if cluster_mode:
+    rs_server_api_key = os.environ.get("RSPY_APIKEY")
+    if (not rs_server_api_key) and (not os.environ.get("RSPY_OAUTH2_COOKIE")):
+        raise Exception("You need an API key or OAuth2 token to run this flow")
+
+# TEMP: EOPF changes the number of dask workers but we want to keep the current number
+# See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
+worker_count = len(dask_client_eopf.scheduler_info()["workers"])
+
+
+##########################
+# Prefect tasks and flow #
+##########################
+
+
+@flow
+def s3l0_demo_processor(
+    input_config_dir: str,
+    payload_file: str,
+    output_data_dir: str,
+    owner_id: str,
+    collection_name: str,
+    cadip_stac_filter: str,
+    staging_timeout: int,
+    use_dpr_mockup: bool = False,
+):
+    """
+    Prefect flow to trigger an EOPF L0 processing pipeline for CADIP and AUXIP data.
+
+    This flow orchestrates multiple tasks to perform:
+        - Data discovery on CADIP and AUXIP stations
+        - Staging of the selected items into an accessible S3 location
+        - Configuration generation for the EOPF processor
+        - Execution of the processing logic via a Dask cluster
+        - Publishing results back to a STAC catalog
+
+    Args:
+        input_config_dir (str): Directory containing base configuration templates.
+        payload_file (str): File path to the payload file specifying the processor module and unit.
+        output_data_dir (str): Directory where processed outputs will be written.
+        owner_id (str): Owner ID used for catalog and staging operations.
+        collection_name (str): Name of the target collection in the catalog.
+        cadip_stac_filter (str): STAC filter for querying CADIP data.
+        staging_timeout (int): Timeout in seconds for staging tasks to complete.
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: If any of the following occur:
+            - No CADIP data is found
+            - No AUXIP data is found
+            - Staging of CADIP or AUXIP data fails
+            - Configuration file creation fails
+            - Publishing to the catalog fails
+    """
+    # Record all flow in an Opentelemetry span
+    with init_opentelemetry.start_span(__name__, "s3l0_demo_processor"):
+
+        # Extract span infos to send to Dask
+        flow_span_context = trace.get_current_span().get_span_context()
+
+        logger = get_run_logger()
+
+        # Upload utility modules to dask clients
+        dask_utils.upload_util_modules([dask_client_eopf])
+
+        module, processing_unit = extract_module_and_processing_unit(payload_file)
+        if not module or not processing_unit:
+            return
+
+        generic_client = RsClient(
+            rs_server_href,
+            rs_server_api_key,
+            owner_id,
+            None,
+        )
+        auxip_client = generic_client.get_auxip_client()
+        cadip_client = generic_client.get_cadip_client()
+        catalog_client = generic_client.get_catalog_client()
+
+        cadip_search_future = cadip_search.submit(
+            cadip_client,
+            cadip_stac_filter,
+        )
+
+        # wait for results
+        cadip_data = cadip_search_future.result()
+
+        # protection against a searching failure
+        if not cadip_data:
+            logger.error("No cadip data found")
+            raise RuntimeError("No cadip data found")
+
+        # Retrieve cql2 from processor (currently the dpr processor is not working)
+        auxip_cql2_filter = start_processor_dask_for_aux_search(
+            flow_span_context,
+            module,
+            processing_unit,
+            cadip_data.to_dict(),
+            use_dpr_mockup,
+            # Use wait_for to show arrows between tasks in prefect dashboard
+            wait_for=[cadip_search_future],
+        )
+
+        logger.info(f" ### CQL2 : {auxip_cql2_filter}")
+        # for now, the eopf search is not working, so hard-code it
+        auxip_search_future = auxip_search.submit(
+            auxip_client,
+            auxip_cql2_filter,
+        )
+
+        # wait for results
+        auxip_data = auxip_search_future.result()
+
+        # protection against a searching failure
+        if not auxip_data:
+            logger.error("No auxip data found")
+            raise RuntimeError("No auxip data found")
+
+        catalog_item_ids = []
+        for item in cadip_data:
+            catalog_item_ids.append(item.id)
+        for item in auxip_data:
+            catalog_item_ids.append(item.id)
+        logger.info(f"CATALOG items: {catalog_item_ids}")
+
+        # call the staging
+
+        # NOTE: maybe we could init a generic RsClient object from the flow and pass it to the tasks.
+        # But I think (to be confirmed) that it will be serialized/deserialized so this is not optimized.
+
+        cadip_job_staging_monitor_task = job_staging_monitor.submit(
+            rs_server_api_key,
+            owner_id,
+            cadip_data,
+            collection_name,
+            staging_timeout,
+        )
+
+        auxip_job_staging_monitor_task = job_staging_monitor.submit(
+            rs_server_api_key,
+            owner_id,
+            auxip_data,
+            collection_name,
+            staging_timeout,
+        )
+
+        # wait for results
+        staging_cadip_res = cadip_job_staging_monitor_task.result()
+        staging_auxip_res = auxip_job_staging_monitor_task.result()
+
+        if not staging_cadip_res or not staging_auxip_res:
+            logger.error("Failed to stage all the needed files. Exiting")
+            raise RuntimeError("Failed to stage all the needed files. Exiting")
+        # get the staged files from the catalog
+        catalog_res = ItemCollection(
+            list(catalog_client.get_items(collection_name, catalog_item_ids)),
+        )
+        # logger.info(f"catalog_res = {catalog_res.to_dict()}")
+
+        config_file_task = config_file.submit(
+            catalog_res,
+            input_config_dir,
+            payload_file,
+            output_data_dir,
+            # Use wait_for to show arrows between tasks in prefect dashboard
+            wait_for=[cadip_job_staging_monitor_task, auxip_job_staging_monitor_task],
+        )
+
+        payload_file = config_file_task.result()
+        if not payload_file:
+            logger.error(
+                "Failed to create the configuration file nedeed by the eopf processor",
+            )
+            raise RuntimeError(
+                "Failed to create the configuration file nedeed by the eopf processor",
+            )
+
+        # Run the EOPF task with .submit in a dask node
+        eopf_result = s3l0_demo_processor_dask(
+            flow_span_context,
+            input_config_dir,
+            payload_file,
+            output_data_dir,
+            use_dpr_mockup,
+        )
+
+        # Call dummy catalog task
+        catalog_result = publish_to_catalog.submit(
+            catalog_client,
+            collection_name,
+            eopf_result,
+            output_data_dir,
+        )
+        if not catalog_result.result():
+            raise RuntimeError("Failed to publish to catalog")
+
+
+def extract_module_and_processing_unit(payload_file: str):
+    """Extract module and processing unit from the payload file."""
+    logger = get_run_logger()
+
+    with open(os.path.join("l0", "config", payload_file), "r") as file:
+        payload = yaml.safe_load(file)
+
+    workflow = payload.get("workflow", [])
+    for step in workflow:
+        if "name" not in step:
+            continue
+        module = step.get("module")
+        processing_unit = step.get("processing_unit")
+        if not module:
+            logger.error(
+                f"Missing 'module' in processor payload configuration: {step['name']}",
+            )
+            return None, None
+        if not processing_unit:
+            logger.error(
+                f"Missing 'processing_unit' in processor payload configuration: {step['name']}",
+            )
+            return None, None
+        logger.info(
+            f"For {step['name']} found module: {module} and processing_unit: {processing_unit}",
+        )
+        return module, processing_unit
+
+    logger.error(
+        f"No processor defined in the workflow of payload file {payload_file}.",
+    )
+    return None, None
+
+
+@task(name="job-staging-monitor")
+def job_staging_monitor(
+    rs_server_api_key,
+    owner_id,
+    data_to_be_staged,
+    collection_name,
+    timeout=120,
+    poll_interval=2,
+):
+    logger = get_run_logger()
+    generic_client = RsClient(
+        rs_server_href,
+        rs_server_api_key,
+        owner_id,
+        None,
+    )
+
+    staging_client = generic_client.get_staging_client()
+    job_status = staging_client.run_staging(
+        data_to_be_staged.to_dict(),
+        collection_name,
+    )
+
+    try:
+        status_type, job_identifier = job_status["status"], job_status["jobID"]
+        if not job_identifier:
+            logger.error("Job identifier is missing.")
+            return False
+
+        while timeout > 0 and status_type not in {"successful", "failed", "dismissed"}:
+            job_status = staging_client.get_job_info(job_identifier)
+            logger.info(f"job_status = {job_status}")
+            status_type = job_status.get("status")
+            logger.info(
+                f"----- Staging job for {job_identifier}: {status_type.upper()} \n",
+            )
+            time.sleep(poll_interval)
+            timeout -= poll_interval
+
+    except Exception as e:
+        logger.exception(f"Exception while monitoring job: {e}")
+        return False
+
+    if status_type == "successful":
+        logger.info(f"----- Staging job for {job_identifier}: COMPLETED \n")
+        return True
+    else:
+        logger.info(f"----- Staging job for {job_identifier}: FAILED \n")
+        return False
+
+
+@task(name="auxip-search")
+def auxip_search(auxip_client, cql2_from_processor: str):
+    """Auxip search."""
+    logger = get_run_logger()
+    logger.info("Start auxip search.")
+
+    logger.info(f"CQL2 from processor : {cql2_from_processor}")
+
+
+    try:
+        found = auxip_client.search(
+            method="POST",
+            stac_filter=cql2_from_processor.get("filter"),
+            max_items=cql2_from_processor.get("limit"),
+            sortby=cql2_from_processor.get("sortby"),
+        )
+        logger.info(f"Auxip Client search found: {len(found)} results")
+    except Exception as e:
+        logger.error("An error occurred in auxip_search: %s", e)
+        return {}
+
+    logger.info("End auxip search.")
+    return found
+
+
+@task(name="cadip-search")
+def cadip_search(
+    cadip_client,
+    cadip_filter: str,
+):
+    """Cadip search."""
+    logger = get_run_logger()
+    logger.info("Start cadip search")
+
+    try:
+        found = cadip_client.search(method="GET", stac_filter=cadip_filter)
+        logger.info(f"Cadip Client search found: {len(found)} results")
+
+    except Exception as e:
+        logger.error("An error occurred in cadip_search: %s", e)
+        return {}
+
+    logger.info("End cadip search")
+    return found
+
+
+@task(name="config-file")
+async def config_file(
+    items_list,
+    input_config_dir,
+    payload_file,
+    output_data_dir,
+):
+    """Config file writing for the processor"""
+
+    logger = get_run_logger()
+    logger.info("Start config file")
+
+    # Read the payload file from the local config directory
+    local_payload_path = os.path.join("l0", "config", payload_file)
+    try:
+        with open(local_payload_path, "r", encoding="utf-8") as f:
+            try:
+                payload = yaml.safe_load(f)
+            except yaml.YAMLError as ye:
+                logger.error(f"Error parsing YAML file {local_payload_path}: {ye}")
+                return False
+    except FileNotFoundError as fnf_error:
+        logger.error(f"Payload file not found at {local_payload_path}: {fnf_error}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error reading {local_payload_path}: {e}")
+        return False
+
+    # Retrieve a default template from the existing input_products if available;
+    # otherwise, use a minimal default.
+    if payload.get("I/O", {}).get("input_products"):
+        default_template = copy.deepcopy(payload["I/O"]["input_products"][0])
+    else:
+        default_template = {"id": None, "path": None}
+
+    # Retrieve a default template from the existing output_products if available;
+    # otherwise, use a minimal default.
+    if payload.get("I/O", {}).get("output_products"):
+        default_template_out = copy.deepcopy(payload["I/O"]["output_products"][0])
+    else:
+        default_template_out = {"id": None, "path": None}
+    output_ids = {}
+    try:
+        for wf in payload.get("workflow", []):
+            outputs = wf.get("outputs", {})
+            if outputs:
+                # Merge outputs from all workflows; keys are not used here, only the values (output IDs)
+                output_ids.update(outputs)
+            else:
+                logger.error(f"At least on output should be in outputs workflow")
+                return False
+    except Exception as e:
+        logger.error(f"Missing outputs in workflow when reading payload structure: {e}")
+        return False
+
+    new_input_products = []
+    workflow_inputs = {}
+    cadip_index = 1
+    auxip_index = 1
+
+    logger.info(f"Items from CATALOG: {items_list}")
+
+    # For each staged item in the catalog collection
+    for item in items_list:
+        if len(item.assets) == 0:
+            logger.error(f"Fatal: there are no assets in item {item.id}")
+            return False
+        try:
+            first_asset = list(item.assets.items())[0][1]
+            logger.info(f"first_asset = {first_asset}")
+            full_s3_href = (
+                first_asset.extra_fields.get("alternate", {}).get("s3", {}).get("href")
+            )
+            if full_s3_href:
+                session_s3_href = "/".join(full_s3_href.split("/")[:-1])
+                logger.info(f"Session {item.id} has S3_HREF: {session_s3_href}")
+
+                # Create a new input product using the default template.
+                new_product = copy.deepcopy(default_template)
+                new_product["id"] = item.id
+                new_product["path"] = session_s3_href
+
+                # these are not accepted by the real processor
+                # if "cadip:id" in item.properties:
+                #     new_product["store_type"] = "cadu"
+                # if "auxip:id" in item.properties:
+                #     new_product["store_type"] = "aux"
+
+                new_product["store_type"] = "safe"
+
+                new_input_products.append(new_product)
+
+                if "cadip:id" in item.properties:
+                    workflow_inputs[f"CADU{cadip_index}"] = item.id
+                    cadip_index += 1
+                if "auxip:id" in item.properties:
+                    workflow_inputs[f"AUX{auxip_index}"] = item.id
+                    auxip_index += 1
+            else:
+                logger.error(f"S3 HREF not found in extra fields for item {item.id}")
+                return False
+        except KeyError as ke:
+            logger.error(
+                f"Failed to load from item {item.id}. The key {ke} is missing from the dictionary.",
+            )
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error processing item {item.id}: {e}")
+            return False
+
+    # Build a new output_products list using the default template for each output
+    new_output_products = []
+    for key, output_id in output_ids.items():
+        # Create a new entry from the default template
+        product_entry = copy.deepcopy(default_template_out)
+        # Update the id and path accordingly
+        product_entry["id"] = output_id
+        product_entry["path"] = f"{output_data_dir}"  # with /{output_id} ?
+        new_output_products.append(product_entry)
+
+    # Update payload with new input products and workflow inputs
+    try:
+        payload["I/O"]["input_products"] = new_input_products
+        for wf in payload.get("workflow", []):
+            wf["inputs"] = workflow_inputs
+        payload["I/O"]["output_products"] = new_output_products
+    except Exception as e:
+        logger.error(f"Error updating payload structure: {e}")
+        return False
+
+    # Write back the payload contents
+    try:
+        with open(local_payload_path, "w", encoding="utf-8") as f:
+            yaml.dump(payload, f, default_flow_style=False, sort_keys=False)
+    except Exception as e:
+        logger.error(f"Error writing to file {local_payload_path}: {e}")
+        return False
+
+    try:
+        with open(local_payload_path, "r", encoding="utf-8") as f:
+            payload_after = f.read()
+        logger.info("Payload file AFTER config_file:\n" + payload_after)
+    except Exception as e:
+        logger.error(f"Error reading back the file {local_payload_path}: {e}")
+        return False
+
+    # Upload the new config payload file back to S3
+    new_payload_file = osp.join(
+        osp.dirname(payload_file),
+        "s3_l0_demo_payload_dpr_mockup_run.yaml",
+    )
+    s3_payload_path = f"{input_config_dir}/{new_payload_file}"
+    try:
+        await prefect_utils.s3_upload_file(local_payload_path, s3_payload_path)
+    except Exception as e:
+        logger.error(f"Error uploading file to S3 ({s3_payload_path}): {e}")
+        return False
+
+    logger.info("End config file")
+    return new_payload_file
+
+
+@task(name="publish-to-catalog")
+def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data_dir):
+    """Dummy catalog call to save results"""
+    logger = get_run_logger()
+    logger.info("Start catalog saving")
+    # logger.info(f"eopf_result = {eopf_result}")
+    # eopf_features = []
+    try:
+        for feature_dict in eopf_result:
+            item = Item(
+                id=feature_dict["stac_discovery"]["id"],
+                geometry=feature_dict["stac_discovery"]["geometry"],
+                bbox=feature_dict["stac_discovery"]["bbox"],
+                datetime=datetime.fromisoformat(
+                    feature_dict["stac_discovery"]["properties"]["datetime"],
+                ),
+                properties=feature_dict["stac_discovery"]["properties"],
+            )
+            asset = Asset(href=f"{output_data_dir}/{item.id}.zarr.zip")
+            item.assets = {f"{item.id}.zarr.zip": asset}
+            catalog_client.add_item(collection_name, item)
+    except Exception as e:
+        logger.error(f"Exception in publishing to catalog: {e}")
+        return False
+    # items = [Item(**eopf_feature) for eopf_feature in eopf_features]
+    # for item in items:
+    # for asset in item.assets:
+    #    logger.info(f" asset  : {asset}")
+    #    item.assets[asset].href = f"{output_data_dir}/{item.id}.zarr"
+    #    logger.info(f" Updated Item  : {item.to_dict()}")
+    # catalog_client.add_item(collection_name, item)
+
+    collections = catalog_client.get_collections()
+    logger.info(f"\nCollections response:")
+    for collection in collections:
+        logger.info(f"ID: {collection.id}, Title: {collection.title}")
+
+    logger.info(f"End catalog saving:")
+    return True
+
+
+#######################
+# Dask tasks and flow #
+#######################
+@flow(
+    task_runner=DaskTaskRunner(
+        address=dask_cluster_eopf.scheduler_address,
+        client_kwargs={"security": dask_cluster_eopf.security},
+    ),
+)
+def start_processor_dask_for_aux_search(
+    flow_span_context: SpanContext,
+    module: str,
+    processing_unit: str,
+    cadip_data,  # NOTE: not used for now
+    use_dpr_mockup: bool = False,
+):
+    """
+    Dask flow used to call tasks in dask workers.
+    Used only to retrieve CQL2 filter from processor.
+    """
+    result = eopf_aux_data_search.submit(
+        flow_span_context,
+        module,
+        processing_unit,
+        cadip_data,
+        use_dpr_mockup,
+    )
+    return result
+
+
+@task(name="eopf-aux-data-search")
+async def eopf_aux_data_search(
+    flow_span_context: SpanContext,
+    module: str,
+    processing_unit: str,
+    cadip_data,  # NOTE: not used for now
+    use_dpr_mockup: bool = False,
+):
+    """
+    Retrieve CQL2 filter.
+    See https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/blob/main/docs/source/processor-orchestration-guide/tasktables.rst
+    """
+    logger = get_run_logger()
+
+    # Copy env vars from the caller
+    dask_utils.copy_caller_env(caller_env)
+
+    # Init opentelemetry and record all task in an Opentelemetry span
+    init_opentelemetry.init_traces("rs.client.dask", logger)
+    with init_opentelemetry.start_span(
+        __name__,
+        "eopf_aux_data_search",
+        flow_span_context,
+    ):
+        auxip_cql2 = requests.get("http://rs-dpr-service:8000/processes/s3_l0", data=json.dumps({"use_mockup": True})).json()
+        logger.info(f"Auxip tasktable from eopf triggering: {auxip_cql2}")
+        return auxip_cql2
+
+
+#######################
+@flow(
+    task_runner=DaskTaskRunner(
+        address=dask_cluster_eopf.scheduler_address,
+        client_kwargs={"security": dask_cluster_eopf.security},
+    ),
+)
+def s3l0_demo_processor_dask(
+    flow_span_context: SpanContext,
+    input_config_dir: str,
+    payload_file: str,
+    output_data_dir: str,
+    use_dpr_mockup: bool = False,
+):
+    """
+    Dask flow used to call tasks in dask workers.
+    """
+    return main_dask_task.submit(
+        flow_span_context,
+        input_config_dir,
+        payload_file,
+        output_data_dir,
+        use_dpr_mockup,
+    )
+
+
+@task(name="eopf-dask-task")
+async def main_dask_task(
+    flow_span_context: SpanContext,
+    input_config_dir: str,
+    payload_file: str,
+    output_data_dir: str,
+    use_dpr_mockup: bool = False,
+):
+    logger = get_run_logger()
+
+    # Copy env vars from the caller
+    dask_utils.copy_caller_env(caller_env)
+
+    # Also save the given output dir as an env var
+    os.environ["OUTPUT_DIR"] = output_data_dir
+
+    # Init opentelemetry and record all task in an Opentelemetry span
+    init_opentelemetry.init_traces("rs.client.dask", logger)
+    with init_opentelemetry.start_span(__name__, "main_dask_task", flow_span_context):
+
+        # Output report dir
+        report_dirname = "reports"
+
+        # Payload parent dir and filename
+        payload_dir = osp.dirname(payload_file)
+        payload_name = osp.basename(payload_file)
+
+        logger.info(f"payload_file = {payload_file}")
+        logger.info(f"payload_dir = {payload_dir}")
+        logger.info(f"payload_name = {payload_name}")
+
+        # Download the input config dir locally
+        # NOTE: maybe we should only download the payload file + only necessary config files
+        # rather than the whole directory.
+        local_config_dir = "config"
+        payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
+        logger.info(f"payload_abs_path = {payload_abs_path}")
+        await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
+
+        # Change working directory
+        os.chdir(osp.join(local_config_dir, payload_dir))
+
+        # Create the reports dir
+        os.makedirs(report_dirname, exist_ok=True)
+        with open(payload_abs_path, "r") as payload_data:
+            data = yaml.safe_load(payload_data)
+        data.update({"use_mockup": True})
+        
+        dpr_service_response = requests.post("http://rs-dpr-service:8000/processes/s3_l0/execution", data=json.dumps(data)).json()
+        import re
+        match = re.search(r"'identifier': '([^']+)'", dpr_service_response)
+        dpr_service_job_id = match.group(1) if match else None
+        logger.info(f"DPR service job id {dpr_service_job_id}")
+        status_response = requests.get(f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}").json()
+        status = re.search(r"'status': '([^']+)'", status_response).group(1)
+        while status == "running":
+            time.sleep(1)
+            status_response = requests.get(f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}").json()
+            status = re.search(r"'status': '([^']+)'", status_response).group(1)
+        #
+        result = re.search(r"message'\s*:\s*'([^']+|[^']+\])'", status_response).group(1)
+        logger.info(result)
+        return result
