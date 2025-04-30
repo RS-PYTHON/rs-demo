@@ -16,6 +16,7 @@
 
 import ast
 import copy
+import json
 import os
 import os.path as osp
 import re
@@ -23,19 +24,18 @@ import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
+
 import requests
 import yaml
-import json
 from opentelemetry import trace
 from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
+from resources import dask_utils, prefect_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry
-
-from resources import dask_utils, prefect_utils
 
 # Convert the prefect blocks into environment variables for the S3 bucket and authentication.
 prefect_utils.blocks_to_env_vars(_sync=True)
@@ -356,7 +356,6 @@ def auxip_search(auxip_client, cql2_from_processor: str):
 
     logger.info(f"CQL2 from processor : {cql2_from_processor}")
 
-
     try:
         found = auxip_client.search(
             method="POST",
@@ -651,7 +650,10 @@ async def eopf_aux_data_search(
         "eopf_aux_data_search",
         flow_span_context,
     ):
-        auxip_cql2 = requests.get("http://rs-dpr-service:8000/processes/s3_l0", data=json.dumps({"use_mockup": True})).json()
+        auxip_cql2 = requests.get(
+            "http://rs-dpr-service:8000/processes/s3_l0",
+            data=json.dumps({"use_mockup": True}),
+        ).json()
         logger.info(f"Auxip tasktable from eopf triggering: {auxip_cql2}")
         return auxip_cql2
 
@@ -729,19 +731,29 @@ async def main_dask_task(
         with open(payload_abs_path, "r") as payload_data:
             data = yaml.safe_load(payload_data)
         data.update({"use_mockup": True})
-        
-        dpr_service_response = requests.post("http://rs-dpr-service:8000/processes/s3_l0/execution", data=json.dumps(data)).json()
+
+        dpr_service_response = requests.post(
+            "http://rs-dpr-service:8000/processes/s3_l0/execution",
+            data=json.dumps(data),
+        ).json()
         import re
+
         match = re.search(r"'identifier': '([^']+)'", dpr_service_response)
         dpr_service_job_id = match.group(1) if match else None
         logger.info(f"DPR service job id {dpr_service_job_id}")
-        status_response = requests.get(f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}").json()
+        status_response = requests.get(
+            f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
+        ).json()
         status = re.search(r"'status': '([^']+)'", status_response).group(1)
         while status == "running":
             time.sleep(1)
-            status_response = requests.get(f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}").json()
+            status_response = requests.get(
+                f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
+            ).json()
             status = re.search(r"'status': '([^']+)'", status_response).group(1)
         #
-        result = re.search(r"message'\s*:\s*'([^']+|[^']+\])'", status_response).group(1)
+        result = re.search(r"message'\s*:\s*'([^']+|[^']+\])'", status_response).group(
+            1,
+        )
         logger.info(result)
         return result
