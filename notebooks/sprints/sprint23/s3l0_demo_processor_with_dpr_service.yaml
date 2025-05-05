@@ -1,5 +1,5 @@
 prefect-version: 3
-name: sprint22-s3l0-demo-processor
+name: sprint23-s3l0-demo-processor
 
 pull:
 - prefect.deployments.steps.run_shell_script:

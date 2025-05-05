@@ -733,7 +733,7 @@ async def main_dask_task(
         data.update({"use_mockup": True})
 
         dpr_service_response = requests.post(
-            "http://rs-dpr-service:8000/processes/s3_l0/execution",
+            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/processes/s3_l0/execution",
             data=json.dumps(data),
         ).json()
 
@@ -741,11 +741,11 @@ async def main_dask_task(
         dpr_service_job_id = match.group(1) if match else None
         logger.info(f"DPR service job id {dpr_service_job_id}")
         job_response = requests.get(
-            f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
+            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/jobs/{dpr_service_job_id}",
         ).json()
         while job_response["status"] == "running":
             job_response = requests.get(
-                f"http://rs-dpr-service:8000/jobs/{dpr_service_job_id}",
+                f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/jobs/{dpr_service_job_id}",
             ).json()
         #
         result = ast.literal_eval(job_response["message"])
