@@ -379,7 +379,7 @@ def copy_caller_env(caller_env: dict[str, str]):
         "TEMPO_ENDPOINT",
         "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
         "OTEL_PYTHON_REQUESTS_TRACE_BODY",
-        "RSPY_DPR_SERVICE_ADDRESS"
+        "RSPY_DPR_SERVICE_ADDRESS",
     ] + (
         ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
         if local_mode
