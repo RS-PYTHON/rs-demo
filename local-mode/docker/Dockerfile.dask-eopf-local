@@ -53,10 +53,6 @@ RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install
 
-# add the following 2 lines when the dpr_service will be ready
-#COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-#RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
-
 # Clean everything
 USER root
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
