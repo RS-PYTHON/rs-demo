@@ -355,7 +355,7 @@ def auxip_search(auxip_client, cql2_from_processor: str):
     logger = get_run_logger()
     logger.info("Start auxip search.")
 
-    logger.info(f"CQL2 from processor : {cql2_from_processor}")
+    #logger.info(f"CQL2 from processor : {cql2_from_processor}")
 
     try:
         found = auxip_client.search(
@@ -694,5 +694,5 @@ async def dpr_service(
             ).json()
         #
         result = ast.literal_eval(job_response["message"])
-        logger.info(result)
+        #logger.info(result)
         return result
