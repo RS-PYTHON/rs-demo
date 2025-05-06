@@ -43,8 +43,8 @@ RUN apt update && apt install -y python3-pydot graphviz git gcc libpq-dev
 USER $USER
 
 # install rs-dpr-services dependencies
-COPY ./requirements.dask-eopf-mockup.local.txt /opt/
-RUN pip install -U -r /opt/requirements.dask-eopf-mockup.local.txt
+COPY ./requirements.dpr-service.txt /opt/
+RUN pip install -U -r /opt/requirements.dpr-service.txt
 # install rs-dpr-services wheel
 COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
 RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
@@ -55,6 +55,7 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
 
 # Clean everything
 USER root
+RUN apt autoremove -y gcc git
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
 USER $USER
 

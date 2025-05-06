@@ -40,8 +40,8 @@ RUN apt update && apt install -y python3-pydot graphviz git gcc libpq-dev
 USER $USER
 
 # install rs-dpr-services dependencies
-COPY ./requirements.dask-eopf-mockup.local.txt /opt/
-RUN pip install -U -r /opt/requirements.dask-eopf-mockup.local.txt
+COPY ./requirements.dpr-service.txt /opt/
+RUN pip install -U -r /opt/requirements.dpr-service.txt
 # install rs-dpr-services wheel
 COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
 RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
@@ -64,6 +64,7 @@ RUN poetry install --no-root
 RUN pip install crcmod
 
 USER root
+RUN apt autoremove -y gcc git
 # Give USERNAME rights to write in /src
 RUN chown -R $USER_NAME /src
 
