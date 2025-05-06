@@ -596,6 +596,7 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     logger.info(f"End catalog saving:")
     return True
 
+
 @task(name="eopf-aux-data-search")
 async def eopf_aux_data_search(
     flow_span_context: SpanContext,
