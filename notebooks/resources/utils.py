@@ -376,7 +376,7 @@ def init_demo(owner_id=None):
     if not owner_id:
         owner_id = OWNER_ID
 
-    # Init RsClient instances
+    # Init RsClient instances    
     ret = init_rsclient(owner_id)
 
     # Save the local mode dask authentication in the staging
@@ -388,13 +388,15 @@ def init_demo(owner_id=None):
                 "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
             },
         )
-        # send dask auth to the dpr service
+        # send dask auth to the dpr service        
         http_session.post(
             f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr_service/dask/auth",
             params={
                 "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
                 "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
             },
-        )
+        )        
+    else:
+        os.environ['RSPY_DPR_SERVICE_ADDRESS'] = os.environ["RSPY_WEBSITE"]
 
     return ret

@@ -158,22 +158,22 @@ def s3l0_demo_processor(
             logger.error("No cadip data found")
             raise RuntimeError("No cadip data found")
 
-        # Retrieve cql2 from processor (currently the dpr processor is not working)
-        auxip_cql2_filter = start_processor_dask_for_aux_search(
+        # Retrieve cql2 from the processor (currently the dpr processor is not working)
+        auxip_cql2_filter = eopf_aux_data_search.submit(
             flow_span_context,
             module,
             processing_unit,
-            cadip_data.to_dict(),
+            cadip_data,
             use_dpr_mockup,
-            # Use wait_for to show arrows between tasks in prefect dashboard
             wait_for=[cadip_search_future],
         )
 
-        logger.info(f" ### CQL2 : {auxip_cql2_filter}")
+        logger.info(f" ### CQL2 : {auxip_cql2_filter.result()}")
         # for now, the eopf search is not working, so hard-code it
         auxip_search_future = auxip_search.submit(
             auxip_client,
-            auxip_cql2_filter,
+            auxip_cql2_filter.result(),
+            wait_for=[eopf_aux_data_search],
         )
 
         # wait for results
@@ -243,8 +243,8 @@ def s3l0_demo_processor(
                 "Failed to create the configuration file nedeed by the eopf processor",
             )
 
-        # Run the EOPF task with .submit in a dask node
-        eopf_result = s3l0_demo_processor_dask(
+        # Call the dpr service
+        eopf_result = dpr_service.submit(
             flow_span_context,
             input_config_dir,
             payload_file,
@@ -256,8 +256,9 @@ def s3l0_demo_processor(
         catalog_result = publish_to_catalog.submit(
             catalog_client,
             collection_name,
-            eopf_result,
+            eopf_result.result(),
             output_data_dir,
+            wait_for=[dpr_service],
         )
         if not catalog_result.result():
             raise RuntimeError("Failed to publish to catalog")
@@ -595,37 +596,6 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
     logger.info(f"End catalog saving:")
     return True
 
-
-#######################
-# Dask tasks and flow #
-#######################
-@flow(
-    task_runner=DaskTaskRunner(
-        address=dask_cluster_eopf.scheduler_address,
-        client_kwargs={"security": dask_cluster_eopf.security},
-    ),
-)
-def start_processor_dask_for_aux_search(
-    flow_span_context: SpanContext,
-    module: str,
-    processing_unit: str,
-    cadip_data,  # NOTE: not used for now
-    use_dpr_mockup: bool = False,
-):
-    """
-    Dask flow used to call tasks in dask workers.
-    Used only to retrieve CQL2 filter from processor.
-    """
-    result = eopf_aux_data_search.submit(
-        flow_span_context,
-        module,
-        processing_unit,
-        cadip_data,
-        use_dpr_mockup,
-    )
-    return result
-
-
 @task(name="eopf-aux-data-search")
 async def eopf_aux_data_search(
     flow_span_context: SpanContext,
@@ -658,34 +628,8 @@ async def eopf_aux_data_search(
         return auxip_cql2
 
 
-#######################
-@flow(
-    task_runner=DaskTaskRunner(
-        address=dask_cluster_eopf.scheduler_address,
-        client_kwargs={"security": dask_cluster_eopf.security},
-    ),
-)
-def s3l0_demo_processor_dask(
-    flow_span_context: SpanContext,
-    input_config_dir: str,
-    payload_file: str,
-    output_data_dir: str,
-    use_dpr_mockup: bool = False,
-):
-    """
-    Dask flow used to call tasks in dask workers.
-    """
-    return main_dask_task.submit(
-        flow_span_context,
-        input_config_dir,
-        payload_file,
-        output_data_dir,
-        use_dpr_mockup,
-    )
-
-
-@task(name="eopf-dask-task")
-async def main_dask_task(
+@task(name="dpr-service")
+async def dpr_service(
     flow_span_context: SpanContext,
     input_config_dir: str,
     payload_file: str,
