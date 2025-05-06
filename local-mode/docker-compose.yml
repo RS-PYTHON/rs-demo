@@ -489,7 +489,7 @@ services:
       - 8701:8000
 
   dask-eopf:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:feat-rspy653-dpr-service
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
@@ -501,7 +501,7 @@ services:
       - ~/.s3cfg:/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
 
   dask-eopf-mockup:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:feat-rspy653-dpr-service
+    image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
