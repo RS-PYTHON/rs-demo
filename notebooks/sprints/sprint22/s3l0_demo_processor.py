@@ -31,10 +31,9 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
+from resources import dask_utils, prefect_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry
-
-from resources import dask_utils, prefect_utils
 
 # Convert the prefect blocks into environment variables for the S3 bucket and authentication.
 prefect_utils.blocks_to_env_vars(_sync=True)
