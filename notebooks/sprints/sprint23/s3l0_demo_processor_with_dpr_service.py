@@ -33,9 +33,10 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
-from resources import dask_utils, prefect_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry
+
+from resources import dask_utils, prefect_utils
 
 # Convert the prefect blocks into environment variables for the S3 bucket and authentication.
 prefect_utils.blocks_to_env_vars(_sync=True)
@@ -651,7 +652,7 @@ async def eopf_aux_data_search(
         flow_span_context,
     ):
         auxip_cql2 = requests.get(
-            "http://rs-dpr-service:8000/processes/s3_l0",
+            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/processes/s3_l0",
             data=json.dumps({"use_mockup": True}),
         ).json()
         logger.info(f"Auxip tasktable from eopf triggering: {auxip_cql2}")
@@ -733,19 +734,19 @@ async def main_dask_task(
         data.update({"use_mockup": True})
 
         dpr_service_response = requests.post(
-            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/processes/s3_l0/execution",
+            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/processes/s3_l0/execution",
             data=json.dumps(data),
         ).json()
-
+        logger.info(f"dpr_service_response = {dpr_service_response}")
         match = re.search(r"'identifier': '([^']+)'", dpr_service_response)
         dpr_service_job_id = match.group(1) if match else None
         logger.info(f"DPR service job id {dpr_service_job_id}")
         job_response = requests.get(
-            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/jobs/{dpr_service_job_id}",
+            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/jobs/{dpr_service_job_id}",
         ).json()
         while job_response["status"] == "running":
             job_response = requests.get(
-                f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/jobs/{dpr_service_job_id}",
+                f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/jobs/{dpr_service_job_id}",
             ).json()
         #
         result = ast.literal_eval(job_response["message"])

@@ -1,4 +1,4 @@
-""" This module creates prefect secrets as blocks.
+"""This module creates prefect secrets as blocks.
 These secrets may be accessed later in a prefect configuration deployment yaml file,
 with the following format (example, setting an env var)
 ...
