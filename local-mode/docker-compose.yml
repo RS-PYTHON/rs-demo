@@ -28,7 +28,6 @@ services:
       - 8001:8000
     depends_on:
       - rspy-pre-actions
-      - postgres
       - minio
       - adgs-station
     # variables are set in the .env file
@@ -47,12 +46,6 @@ services:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
-      # postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
@@ -78,7 +71,6 @@ services:
       - 8002:8000
     depends_on:
       - rspy-pre-actions
-      - postgres
       - minio
       - cadip-station
     # variables are set in the .env file
@@ -97,12 +89,6 @@ services:
       RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
-      # postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
@@ -192,6 +178,7 @@ services:
       - adgs-station
       - cadip-station
       - rs-server-catalog
+      - postgres
     # variables are set in the .env file
     environment:
       RSPY_LOCAL_MODE: 1
@@ -214,7 +201,6 @@ services:
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
-      #S3_ENDPOINT: http://127.0.0.1:9100
       S3_REGION: ${S3_REGION}
       RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
       # opentelemetry
@@ -282,6 +268,34 @@ services:
       - 6002:8000
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+
+  rs-dpr-service:
+    image: ghcr.io/rs-python/rs-dpr-service:latest
+    container_name: rs-dpr-service
+    depends_on:
+      - postgres
+    ports:
+      - 6003:8000
+    # variables are set in the .env file
+    environment:
+      RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-eopf
+      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
+      RSPY_DASK_DPR_SERVICE_MOCKUP_CLUSTER_NAME: dask-eopf-mockup
+      DASK_GATEWAY__MOCKUP_ADDRESS: ${DASK_GATEWAY_EOPF_MOCKUP_ADDRESS}
+
+      RSPY_LOCAL_MODE: 1
+      # postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # s3 bucket
+      S3_ACCESSKEY: ${S3_ACCESSKEY}
+      S3_SECRETKEY: ${S3_SECRETKEY}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+
 
   ###############
   # PRE-ACTIONS #
@@ -590,6 +604,7 @@ services:
       RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
       RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
       RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
+      RSPY_DPR_SERVICE_ADDRESS: ${RSPY_DPR_SERVICE_ADDRESS}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
