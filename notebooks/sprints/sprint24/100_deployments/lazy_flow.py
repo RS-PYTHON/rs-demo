@@ -1,6 +1,8 @@
-from prefect import flow, get_run_logger
-import time
 import random
+import time
+
+from prefect import flow, get_run_logger
+
 
 @flow(name="lazy-flow")
 def lazy_flow(flow_id: int, should_raise: bool):

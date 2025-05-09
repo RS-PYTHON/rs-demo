@@ -1,6 +1,8 @@
-from prefect import flow, get_run_logger
 import asyncio
 import random
+
+from prefect import flow, get_run_logger
+
 
 @flow(name="lazy-flow")
 async def lazy_flow(flow_id: int, should_raise: bool):
@@ -13,6 +15,7 @@ async def lazy_flow(flow_id: int, should_raise: bool):
         raise RuntimeError(f"Flow B {flow_id} failed")
     return
 
+
 @flow
 async def main():
     logger = get_run_logger()
@@ -21,7 +24,10 @@ async def main():
     # Launch 100 flows concurrently, each as separate async tasks
     tasks = [
         asyncio.create_task(
-            lazy_flow(flow_id=i, should_raise=random.choice([True, False]))
+            lazy_flow(
+                flow_id=i,
+                should_raise=random.choices([True, False], weights=[5, 95], k=1)[0],
+            ),
         )
         for i in range(100)
     ]

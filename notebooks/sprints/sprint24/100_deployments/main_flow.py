@@ -1,8 +1,10 @@
-from prefect import flow, get_run_logger
-from prefect.deployments.flow_runs import run_deployment
-from prefect.client.schemas.objects import StateType
 import asyncio
 import random
+
+from prefect import flow, get_run_logger
+from prefect.client.schemas.objects import StateType
+from prefect.deployments.flow_runs import run_deployment
+
 
 @flow
 async def main():
@@ -13,12 +15,19 @@ async def main():
     for i in range(10):
         task = run_deployment(
             name="lazy-flow/lazy_flow",
-            parameters={"flow_id": i, "should_raise": random.choice([True, False])},
-            as_subflow = False
+            parameters={
+                "flow_id": i,
+                "should_raise": random.choices([True, False], weights=[5, 95], k=1)[0],
+            },
+            as_subflow=False,
         )
         tasks.append(task)
 
     flows = await asyncio.gather(*tasks)
     logger.info("All deployments triggered")
-    [logger.info(f"Flow B {flow.id} FAILED") for flow in flows if flow.state.type == StateType.FAILED]
+    [
+        logger.info(f"Flow B {flow.id} FAILED")
+        for flow in flows
+        if flow.state.type == StateType.FAILED
+    ]
     return
