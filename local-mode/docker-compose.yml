@@ -597,8 +597,6 @@ services:
       # # In Chrome: in the "Application" tab, in Firefox: in the "Storage" tab.
       # RSPY_OAUTH2_COOKIE: xxx # DON'T SAVE THIS VALUE IN GIT !
 
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
-      RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # rs-server urls
       RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
       RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
@@ -634,7 +632,6 @@ services:
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - ../notebooks:/home/jovyan/notebooks
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # Optional: test the api-key manager.
   # Uncomment these lines and add to the rs-server-xxx services:
