@@ -16,10 +16,11 @@
 # Declare ARG variables before the FROM instruction
 ARG DASK_GATEWAY_TAG=xxx
 
-# Stage 1: Get the contents from the rs-testmeans_dpr-processor-mock image
+# Get the contents from the rs-testmeans_dpr-processor-mock image
 FROM ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest as dpr_mock
-# add this when the dpr_service will be ready
-# FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
+# Get the wheel of the rs-dpr-service, in order to install it later on
+FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
+
 # Use the ARG value in the FROM statement
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 ARG PREFECT_TAG=xxx
@@ -27,25 +28,27 @@ ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
-# add the following 2 lines when the dpr_service will be ready
-# COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-# RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
-
 # Install complete dask subsets + prefect
 RUN pip install \
-    dask[complete] \
+    dask[complete]==2024.5.2 \
+    distributed==2024.5.2 \
     prefect[aws]=="${PREFECT_TAG}" \
     prefect-dask=="${PREFECT_DASK_TAG}"
 
-# Other installations
 USER root
-RUN apt update && apt install -y python3-pydot graphviz
+RUN apt update && apt install -y python3-pydot graphviz git gcc libpq-dev
 USER $USER
+
+# install rs-dpr-services dependencies
+COPY ./requirements.dpr-service.txt /opt/
+RUN pip install -U -r /opt/requirements.dpr-service.txt
+# install rs-dpr-services wheel
+COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
+RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 
 # Install and auto configure opentelemetry
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install
-
 
 # Copy the src folder from the dpr_mock image
 COPY --from=dpr_mock /src /src
@@ -61,6 +64,7 @@ RUN poetry install --no-root
 RUN pip install crcmod
 
 USER root
+RUN apt autoremove -y gcc git
 # Give USERNAME rights to write in /src
 RUN chown -R $USER_NAME /src
 
