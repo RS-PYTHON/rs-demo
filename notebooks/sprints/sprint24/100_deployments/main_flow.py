@@ -4,12 +4,13 @@ import random
 from prefect import flow, get_run_logger
 from prefect.client.schemas.objects import StateType
 from prefect.deployments.flow_runs import run_deployment
+from resources.prefect_utils import get_ip_address
 
 
 @flow
 async def main():
     logger = get_run_logger()
-    logger.info("Launching 100 deployed flows...")
+    logger.info(f"Launching 100 deployed flows... {get_ip_address()!r}")
 
     tasks = []
     for i in range(10):
@@ -17,7 +18,7 @@ async def main():
             name="lazy-flow/lazy_flow",
             parameters={
                 "flow_id": i,
-                "should_raise": random.choices([True, False], weights=[5, 95], k=1)[0],
+                "should_raise": random.choices([True, False], weights=[30, 70], k=1)[0],
             },
             as_subflow=False,
         )
