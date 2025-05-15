@@ -15,17 +15,17 @@
 # We will add eopf to the dask-gateway-server image for local mode
 # Declare ARG variables before the FROM instruction
 ARG DASK_GATEWAY_TAG=xxx
-
-# Get the wheel of the rs-dpr-service, in order to install it later on
-FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
-
-# Use the ARG value in the FROM statement
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
+ARG DASK_GATEWAY_TAG=xxx
+
+# Default user from parent image
 ARG USER=dask:dask
-ARG USER_NAME=dask
 
 # Install EOPF
 COPY ./requirements.dask-eopf-local.txt /opt/
+# NOTE, with older docker versions, use:
+# RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
+# GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U -r /opt/requirements.dask-eopf-local.txt
 
@@ -34,15 +34,8 @@ RUN pip install dask[complete]
 
 # Other installations
 USER root
-RUN apt update && apt install -y python3-pydot graphviz git gcc libpq-dev
+RUN apt update && apt install -y python3-pydot graphviz
 USER $USER
-
-# install rs-dpr-services dependencies
-COPY ./requirements.dpr-service.txt /opt/
-RUN pip install -U -r /opt/requirements.dpr-service.txt
-# install rs-dpr-services wheel
-COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 
 # Install and auto configure opentelemetry
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
@@ -50,7 +43,6 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
 
 # Clean everything
 USER root
-RUN apt autoremove -y gcc git
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
 USER $USER
 
