@@ -21,8 +21,6 @@ FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
 
 # Use the ARG value in the FROM statement
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
-ARG PREFECT_TAG=xxx
-ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
@@ -31,11 +29,8 @@ COPY ./requirements.dask-eopf-local.txt /opt/
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U -r /opt/requirements.dask-eopf-local.txt
 
-# Install complete dask subsets + prefect
-RUN pip install \
-    dask[complete] \
-    prefect[aws]=="${PREFECT_TAG}" \
-    prefect-dask=="${PREFECT_DASK_TAG}"
+# Install complete dask subsets
+RUN pip install dask[complete]
 
 # Other installations
 USER root

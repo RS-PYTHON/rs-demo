@@ -37,6 +37,8 @@ from resources import dask_utils, prefect_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry
 
+THIS_DIR = osp.realpath(osp.dirname(__file__))
+
 # Convert the prefect blocks into environment variables for the S3 bucket and authentication.
 prefect_utils.blocks_to_env_vars(_sync=True)
 
@@ -268,7 +270,7 @@ def extract_module_and_processing_unit(payload_file: str):
     """Extract module and processing unit from the payload file."""
     logger = get_run_logger()
 
-    with open(os.path.join("l0", "config", payload_file), "r") as file:
+    with open(os.path.join(THIS_DIR, "l0", "config", payload_file), "r") as file:
         payload = yaml.safe_load(file)
 
     workflow = payload.get("workflow", [])
@@ -407,7 +409,7 @@ async def config_file(
     logger.info("Start config file")
 
     # Read the payload file from the local config directory
-    local_payload_path = os.path.join("l0", "config", payload_file)
+    local_payload_path = os.path.join(THIS_DIR, "l0", "config", payload_file)
     try:
         with open(local_payload_path, "r", encoding="utf-8") as f:
             try:
@@ -663,8 +665,8 @@ async def dpr_service(
         # Download the input config dir locally
         # NOTE: maybe we should only download the payload file + only necessary config files
         # rather than the whole directory.
-        local_config_dir = "config"
-        payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
+        local_config_dir = osp.join(THIS_DIR, "config")
+        payload_abs_path = osp.join(local_config_dir, payload_file)
         logger.info(f"payload_abs_path = {payload_abs_path}")
         await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
 

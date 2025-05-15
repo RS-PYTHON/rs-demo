@@ -307,8 +307,9 @@ def shutdown_dask_clusters(gateway: Gateway, name: str | None):
 def upload_util_modules(clients: list[DaskClient]):
     """
     Upload utility modules from the caller (=prefect or jupyter) environment to dask clients.
-    These modules should not import other modules that are not installed in the dask environment
-    or you'll have import errors.
+
+    WARNING: These modules should not import other modules that are not installed in the dask
+    environment or you'll have import errors.
 
     Args:
         clients: list of dask clients to which upload the modules.
@@ -322,7 +323,7 @@ def upload_util_modules(clients: list[DaskClient]):
 
     rs_common_dir = Path(rs_common.__path__[0])
 
-    # Files and archive names to upload
+    # Files to upload and associated name in the zip archive
     files = {
         root / "resources/__init__.py": "resources/__init__.py",
         root / "resources/dask_utils.py": "resources/dask_utils.py",
@@ -337,7 +338,7 @@ def upload_util_modules(clients: list[DaskClient]):
     with tempfile.TemporaryDirectory() as tmpdir:
 
         # Create a zip with our files
-        zip_path = f"{tmpdir}/for-dask.zip"
+        zip_path = f"{tmpdir}/rs-demo-resources.zip"
         with zipfile.ZipFile(zip_path, "w") as zipped:
 
             # Zip all files

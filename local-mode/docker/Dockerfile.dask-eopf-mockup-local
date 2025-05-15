@@ -23,17 +23,11 @@ FROM ghcr.io/rs-python/rs-dpr-service:latest as dpr_service
 
 # Use the ARG value in the FROM statement
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
-ARG PREFECT_TAG=xxx
-ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
-# Install complete dask subsets + prefect
-RUN pip install \
-    dask[complete]==2024.5.2 \
-    distributed==2024.5.2 \
-    prefect[aws]=="${PREFECT_TAG}" \
-    prefect-dask=="${PREFECT_DASK_TAG}"
+# Install complete dask subsets
+RUN pip install dask[complete]
 
 USER root
 RUN apt update && apt install -y python3-pydot graphviz git gcc libpq-dev
@@ -44,7 +38,7 @@ COPY ./requirements.dpr-service.txt /opt/
 RUN pip install -U -r /opt/requirements.dpr-service.txt
 # install rs-dpr-services wheel
 COPY --from=dpr_service /rs-dpr-service/whl /tmp/whl
-RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
+# RUN pip install --no-cache-dir /tmp/whl/rs_dpr_service-*.whl
 
 # Install and auto configure opentelemetry
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
