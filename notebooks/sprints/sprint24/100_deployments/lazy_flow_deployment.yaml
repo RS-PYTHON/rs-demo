@@ -1,5 +1,5 @@
 prefect-version: 3
-name: lazy_flow
+name: lazy_flow_deployment
 
 pull:
 - prefect.deployments.steps.run_shell_script:
@@ -10,9 +10,9 @@ pull:
         python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('$S3_CODE_FOLDER', '.')"
 
 deployments:
-- name: lazy_flow
+- name: lazy_flow_deployment
   tags: ["demo"]
-  entrypoint: ./lazy_flow.py:lazy_flow
+  entrypoint: ./lazy_flow.py:lazy_flow_deployment
   work_pool:
     name: "{{ PREFECT_WORK_POOL_EOPF }}"
     job_variables:

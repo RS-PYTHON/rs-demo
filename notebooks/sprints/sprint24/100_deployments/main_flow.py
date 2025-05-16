@@ -7,15 +7,15 @@ from prefect.deployments.flow_runs import run_deployment
 from resources.prefect_utils import get_ip_address
 
 
-@flow
-async def main():
+@flow(name="main-flow-deployment")
+async def main_flow_deployment():
     logger = get_run_logger()
     logger.info(f"Launching 100 deployed flows... {get_ip_address()!r}")
 
     tasks = []
     for i in range(10):
         task = run_deployment(
-            name="lazy-flow/lazy_flow",
+            name="lazy-flow-deployment/lazy_flow_deployment",
             parameters={
                 "flow_id": i,
                 "should_raise": random.choices([True, False], weights=[30, 70], k=1)[0],

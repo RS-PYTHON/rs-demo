@@ -5,7 +5,7 @@ from prefect import flow, get_run_logger
 from resources.prefect_utils import get_ip_address
 
 
-@flow(name="lazy-flow")
+@flow(name="lazy-flow-asyncio")
 async def lazy_flow(flow_id: int, should_raise: bool):
     logger = get_run_logger()
     logger.info(f"Hello from flow B {flow_id} {get_ip_address()!r}")
@@ -17,8 +17,8 @@ async def lazy_flow(flow_id: int, should_raise: bool):
     return
 
 
-@flow
-async def main():
+@flow(name="main-flow-asyncio")
+async def main_flow_asyncio():
     logger = get_run_logger()
     logger.info(f"Hello from main flow A {get_ip_address()!r}")
 
