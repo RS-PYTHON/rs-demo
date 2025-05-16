@@ -260,19 +260,6 @@ services:
   # SIMULATORS #
   ##############
 
-  # dpr-simulator:
-  #   image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest
-  #   container_name: dpr-simulator
-  #   environment:
-  #     S3_ACCESSKEY: ${S3_ACCESSKEY}
-  #     S3_SECRETKEY: ${S3_SECRETKEY}
-  #     S3_ENDPOINT: ${S3_ENDPOINT}
-  #     S3_REGION: ${S3_REGION}
-  #   ports:
-  #     - 6002:8000
-  #   volumes:
-  #     - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
