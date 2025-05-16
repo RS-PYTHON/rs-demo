@@ -42,13 +42,13 @@ USER root
 RUN chown -R $USER_NAME /src
 USER $USER
 
-# Install poetry
-RUN pip install --upgrade pip && pip install --no-cache-dir poetry
-
 # Export the poetry dependencies into a requirements.txt file then install it with pip
 RUN \
+    pip install -U pip && \
+    pip install --no-cache-dir poetry pip-autoremove && \
     poetry self add poetry-plugin-export && \
     poetry export --without-hashes --format=requirements.txt > requirements.txt && \
+    pip-autoremove -y poetry && \
     pip install -r requirements.txt && \
     rm -f requirements.txt
 
