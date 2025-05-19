@@ -621,6 +621,8 @@ services:
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
+      # to import resources/ from the mounted volume below
+      PYTHONPATH: /home/jovyan/notebooks
     volumes:
       - ../notebooks:/home/jovyan/notebooks
 

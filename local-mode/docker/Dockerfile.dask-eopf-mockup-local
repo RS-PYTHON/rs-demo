@@ -29,9 +29,9 @@ ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
-##########################
-# Install the DPR mockup #
-##########################
+############################################
+# Install the DPR mockup (=fake processor) #
+############################################
 
 # Copy the src folder from the dpr_mock image
 COPY --from=dpr_mock /src /src
