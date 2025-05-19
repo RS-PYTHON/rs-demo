@@ -21,6 +21,7 @@ import json
 import logging
 import os
 import pprint
+import secrets
 import time
 from datetime import datetime
 from typing import Optional
@@ -346,6 +347,28 @@ def temporary_fix_adgs_feature(items_collection):
     return items_collection
 
 
+def init_dask_auth():
+    if not local_mode:  # only in local mode
+        return
+
+    # Generate a random password for dask.
+    # Maybe this is overkill and we could just use a hardcoded password.
+    password = secrets.token_urlsafe(32)
+
+    # Save the local mode dask authentication in the staging and dpr-service
+    for url in (
+        f"{staging_client.href_service}/staging/dask/auth",
+        f"{dpr_service_client}/dpr_service/dask/auth",
+    ):
+        http_session.post(
+            url,
+            params={
+                "local_dask_username": OWNER_ID,
+                "local_dask_password": password,
+            },
+        )
+
+
 ########
 # Init #
 ########
@@ -379,24 +402,7 @@ def init_demo(owner_id=None):
     # Init RsClient instances
     ret = init_rsclient(owner_id)
 
-    # Save the local mode dask authentication in the staging
-    if local_mode:
-        http_session.post(
-            f"{staging_client.href_service}/staging/dask/auth",
-            params={
-                "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
-                "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
-            },
-        )
-        # send dask auth to the dpr service
-        http_session.post(
-            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr_service/dask/auth",
-            params={
-                "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
-                "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
-            },
-        )
-    else:
-        os.environ["RSPY_DPR_SERVICE_ADDRESS"] = os.environ["RSPY_WEBSITE"]
+    # Init dask authentication
+    init_dask_auth()
 
     return ret
