@@ -63,15 +63,10 @@ def get_dask_gateway(
             ) from error
 
     else:  # local mode
-        try:
-            auth = BasicAuth(
-                os.environ["LOCAL_DASK_USERNAME"],
-                os.environ["LOCAL_DASK_PASSWORD"],
-            )
-        except KeyError as error:
-            raise KeyError(
-                "You must call init_prefect_blocks() before this function.",
-            ) from error
+        auth = BasicAuth(
+            os.environ["LOCAL_DASK_USERNAME"],
+            os.environ["LOCAL_DASK_PASSWORD"],
+        )
 
     return Gateway(address=address, auth=auth)
 
@@ -327,11 +322,11 @@ def upload_util_modules(clients: list[DaskClient]):
     files = {
         root / "resources/__init__.py": "resources/__init__.py",
         root / "resources/dask_utils.py": "resources/dask_utils.py",
-        root / "resources/prefect_utils.py": "resources/prefect_utils.py",
         rs_common_dir / "__init__.py": "rs_common/__init__.py",
-        rs_common_dir / "logging.py": "rs_common/logging.py",
-        rs_common_dir / "utils.py": "rs_common/utils.py",
         rs_common_dir / "init_opentelemetry.py": "rs_common/init_opentelemetry.py",
+        rs_common_dir / "logging.py": "rs_common/logging.py",
+        rs_common_dir / "prefect_utils.py": "rs_common/prefect_utils.py",
+        rs_common_dir / "utils.py": "rs_common/utils.py",
     }
 
     # From a temp dir

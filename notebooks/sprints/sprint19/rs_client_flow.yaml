@@ -8,7 +8,7 @@ pull:
     # NOTE: we cannot use comments or break long lines, most of bash features don't work...
     expand_env_vars: true
     script: |
-        python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_BLOCK_S3').get_directory('$S3_CODE_FOLDER', '.')"
+        python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_SHARE_BUCKET').get_directory('$S3_CODE_FOLDER', '.')"
 
 deployments:
 - name: sprint19-rs-client
@@ -25,7 +25,7 @@ deployments:
         env:
             # Copy env vars from client environment
             S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
-            PREFECT_BLOCK_S3: "{{ PREFECT_BLOCK_S3 }}"
+            PREFECT_SHARE_BUCKET: "{{ PREFECT_SHARE_BUCKET }}"
             RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
             RS_SERVER_STAGING_ADDRESS: "{{ RS_SERVER_STAGING_ADDRESS }}"
             RS_API_KEY: "{{ RS_API_KEY }}"

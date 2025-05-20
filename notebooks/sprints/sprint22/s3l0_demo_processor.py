@@ -22,6 +22,7 @@ import re
 import subprocess
 import time
 from datetime import datetime
+from importlib import reload
 from pathlib import Path
 
 import yaml
@@ -31,12 +32,13 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
-from resources import dask_utils, prefect_utils
+from resources import dask_utils
 from rs_client.rs_client import RsClient
-from rs_common import init_opentelemetry
+from rs_common import init_opentelemetry, prefect_utils
 
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
+# Read prefect blocks from the prefect flow and tasks into env vars and global vars.
+reload(prefect_utils)
+prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
 dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
@@ -50,7 +52,7 @@ dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
 # Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
 # These lines of code is not called by the dask workers.
 caller_env = os.environ
-local_mode = prefect_utils.local_mode
+local_mode = prefect_utils.LOCAL_MODE
 cluster_mode = not local_mode
 
 # In local mode, the service URLs are hardcoded in the docker-compose file

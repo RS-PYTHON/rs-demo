@@ -84,21 +84,31 @@ Run this Python code from any Jupyter notebook:
 import os
 from prefect.blocks.system import Secret
 
-# S3 bucket name and subfolder that the Jupyter user,
-# Prefect and EOPF dask workers will have access to.
-PREFECT_SHARE_BUCKET="rs-dev-cluster-temp"
-PREFECT_SHARE_FOLDER="prefect-share"
+# S3 bucket name and subfolder for sharing data.
+# The Jupyter user, Prefect and EOPF dask workers will have access to it.
+PREFECT_BUCKET_NAME="rs-dev-cluster-temp"
+PREFECT_BUCKET_FOLDER="prefect-share"
 
 Secret(
   value={
-    "PREFECT_SHARE_BUCKET": PREFECT_SHARE_BUCKET,
-    "PREFECT_SHARE_FOLDER": PREFECT_SHARE_FOLDER,
+    "PREFECT_BUCKET_NAME": PREFECT_BUCKET_NAME,
+    "PREFECT_BUCKET_FOLDER": PREFECT_BUCKET_FOLDER,
     "S3_ACCESSKEY": "...", # access_key from ~/.s3cfg
     "S3_SECRETKEY": "...", # secret_key from ~/.s3cfg
     "S3_REGION": "...",   # bucket_location from ~/.s3cfg
     "S3_ENDPOINT": "..."  # host_bucket from ~/.s3cfg
   }
 ).save("s3-share", overwrite=True)
+
+# Token that was used to setup the Dask clusters.
+# See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
+# NOTE: this is used only to use dask clusters from prefect flows, for testing.
+block_auth = Secret(
+    value={
+        "JUPYTERHUB_API_TOKEN": "<your-token-value>",
+    },
+)
+await block_auth.save("dask-auth", overwrite=True)
 ```
 
 From a bash Terminal in Jupyter, check your values with:

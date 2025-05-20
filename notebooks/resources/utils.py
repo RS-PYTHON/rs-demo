@@ -21,7 +21,6 @@ import json
 import logging
 import os
 import pprint
-import secrets
 import time
 from datetime import datetime
 from typing import Optional
@@ -40,12 +39,13 @@ from pystac import (
 )
 from pystac_client import CollectionClient
 from pystac_client.item_search import DatetimeLike
-from resources.prefect_utils import init_prefect_blocks
-from rs_client.auxip_client import AuxipClient
-from rs_client.cadip_client import CadipClient
-from rs_client.catalog_client import CatalogClient
+from rs_client.ogcapi.dpr_client import DprClient
+from rs_client.ogcapi.staging_client import StagingClient
 from rs_client.rs_client import RsClient
-from rs_client.staging_client import StagingClient
+from rs_client.stac.auxip_client import AuxipClient
+from rs_client.stac.cadip_client import CadipClient
+from rs_client.stac.catalog_client import CatalogClient
+from rs_common.prefect_utils import init_prefect_blocks
 
 # Variables
 # Set logger level to info
@@ -68,6 +68,7 @@ auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 catalog_client: CatalogClient = None
 staging_client: StagingClient = None
+dpr_client: DprClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -133,7 +134,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, catalog_client, staging_client
+    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -156,24 +157,20 @@ def init_rsclient(owner_id=None):
         logger=None,
     )
 
-    # From this generic instance, get an Auxip client instance
+    # From this generic instance, get child instances
     auxip_client = generic_client.get_auxip_client()
-
-    # Or get a Cadip client instance
     cadip_client = generic_client.get_cadip_client()
-
-    # Or get a Stac client to access the catalog
     catalog_client = generic_client.get_catalog_client()
-
-    # Create a client to launch staging
     staging_client = generic_client.get_staging_client()
+    dpr_client = generic_client.get_dpr_client()
 
     print(f"Auxip service: {auxip_client.href_service}")
     print(f"CADIP service: {cadip_client.href_service}")
     print(f"Catalog service: {catalog_client.href_service}")
     print(f"Staging service: {staging_client.href_service}")
+    print(f"DPR service: {dpr_client.href_service}")
 
-    return auxip_client, cadip_client, catalog_client, staging_client
+    return auxip_client, cadip_client, catalog_client, staging_client, dpr_client
 
 
 def get_or_create_test_collection(
@@ -347,28 +344,6 @@ def temporary_fix_adgs_feature(items_collection):
     return items_collection
 
 
-def init_dask_auth():
-    if not local_mode:  # only in local mode
-        return
-
-    # Generate a random password for dask.
-    # Maybe this is overkill and we could just use a hardcoded password.
-    password = secrets.token_urlsafe(32)
-
-    # Save the local mode dask authentication in the staging and dpr-service
-    for url in (
-        f"{staging_client.href_service}/staging/dask/auth",
-        f"{dpr_service_client}/dpr_service/dask/auth",
-    ):
-        http_session.post(
-            url,
-            params={
-                "local_dask_username": OWNER_ID,
-                "local_dask_password": password,
-            },
-        )
-
-
 ########
 # Init #
 ########
@@ -387,8 +362,7 @@ def init_demo(owner_id=None):
     if local_mode:
         create_s3_buckets()
 
-    # Init the prefect blocks.
-    # In local mode: create them. In cluster mode: read them.
+    # Init the prefect blocks
     init_prefect_blocks(_sync=True)
 
     # Set OAuth2 authentication in the http request session
@@ -402,7 +376,17 @@ def init_demo(owner_id=None):
     # Init RsClient instances
     ret = init_rsclient(owner_id)
 
-    # Init dask authentication
-    init_dask_auth()
+    # Save the local mode dask authentication in the staging and dpr-service
+    for url in (
+        f"{staging_client.href_service}/staging/dask/auth",
+        f"{dpr_client.href_service}/dpr_service/dask/auth",
+    ):
+        http_session.post(
+            url,
+            params={
+                "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
+                "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
+            },
+        )
 
     return ret
