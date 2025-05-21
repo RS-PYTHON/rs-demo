@@ -7,7 +7,7 @@ pull:
     # NOTE: we cannot use comments or break long lines, most of bash features don't work...
     expand_env_vars: true
     script: |
-        python -c "from prefect_aws import S3Bucket; S3Bucket.load('$PREFECT_SHARE_BUCKET').get_directory('$S3_CODE_FOLDER', '.')"
+        python -c "from prefect_aws import S3Bucket; S3Bucket.load('share-bucket').get_directory('$S3_CODE_FOLDER', '.')"
 
 deployments:
 - name: sprint22-s3l0-demo-processor
@@ -19,5 +19,6 @@ deployments:
         env:
             # Copy env vars from client environment
             S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
+            RSPY_LOCAL_MODE: "{{ RSPY_LOCAL_MODE }}"
             DASK_GATEWAY_EOPF_ADDRESS: "{{ DASK_GATEWAY_EOPF_ADDRESS }}"
             DASK_CLUSTER_EOPF_NAME: "{{ DASK_CLUSTER_EOPF_NAME }}"

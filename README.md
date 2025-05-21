@@ -83,8 +83,7 @@ Run this Python code from any Jupyter notebook:
 import os
 from prefect.blocks.system import Secret
 
-# S3 bucket name and subfolder for sharing data.
-# The Jupyter user, Prefect and EOPF dask workers will have access to it.
+# S3 bucket name and subfolder to share temporary data between Jupyter, Prefect and Dask.
 PREFECT_BUCKET_NAME="rs-dev-cluster-temp"
 PREFECT_BUCKET_FOLDER="prefect-share"
 
