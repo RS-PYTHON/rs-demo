@@ -23,26 +23,27 @@ import resources.test_localhost
 """
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Read the .env file that contains env vars
+load_dotenv(Path(__file__).parent.parent.parent / "local-mode" / ".env")
 
 os.environ["RSPY_HOST_USER"] = "localhost-user"
 os.environ["RSPY_LOCAL_MODE"] = "1"
+# rs-server urls
 os.environ["RSPY_HOST_ADGS"] = "http://localhost:8001"
 os.environ["RSPY_HOST_CADIP"] = "http://localhost:8002"
 os.environ["RSPY_HOST_CATALOG"] = "http://localhost:8003"
 os.environ["RSPY_HOST_STAGING"] = "http://localhost:8004"
 os.environ["RSPY_HOST_DPR_SERVICE"] = "http://localhost:6003"
-os.environ["S3_ACCESSKEY"] = "minio"
-os.environ["S3_SECRETKEY"] = "Strong#Pass#1234"
+# s3 bucket
 os.environ["S3_ENDPOINT"] = "http://localhost:9100"
-os.environ["S3_REGION"] = "sbg"
-os.environ["RSPY_TEMP_BUCKET"] = "rs-cluster-temp"
-os.environ["RSPY_CATALOG_BUCKET"] = "rs-cluster-catalog"
-
+# prefect
 os.environ["PREFECT_URL"] = os.environ["RSPY_PREFECT_URL"] = "http://localhost:4200"
 os.environ["PREFECT_API_URL"] = os.environ["PREFECT_URL"] + "/api"
-os.environ["PREFECT_WORK_POOL_STAGING"] = "pefect-pool-staging"
-os.environ["PREFECT_WORK_POOL_EOPF"] = "pefect-pool-eopf"
-
+# dask
 os.environ["DASK_GATEWAY_STAGING_ADDRESS"] = os.environ[
     "DASK_GATEWAY_STAGING_PUBLIC"
 ] = "http://localhost:8701"
@@ -52,5 +53,8 @@ os.environ["DASK_GATEWAY_EOPF_ADDRESS"] = os.environ["DASK_GATEWAY_EOPF_PUBLIC"]
 os.environ["DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"] = os.environ[
     "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
 ] = "http://localhost:8703"
+# opentelemetry
+os.environ["LOKI_ENDPOINT"] = "http://localhost:3100/loki/api/v1/push"
+os.environ["TEMPO_ENDPOINT"] = "http://localhost:4317"
 
 os.environ["RSPY_OAUTH2_COOKIE"] = "dummy-cookie"

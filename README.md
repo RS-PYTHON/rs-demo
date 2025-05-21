@@ -75,8 +75,7 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 
 ### Initialize the Prefect blocks
 
-Before the first use, you need to initialize the Prefect blocks that contain the bucket information to share
-data with Prefect.
+Before the first use, you need to initialize the Prefect blocks that contain the dask and S3 authentication.
 
 Run this Python code from any Jupyter notebook:
 
@@ -96,19 +95,12 @@ Secret(
     "S3_ACCESSKEY": "...", # access_key from ~/.s3cfg
     "S3_SECRETKEY": "...", # secret_key from ~/.s3cfg
     "S3_REGION": "...",   # bucket_location from ~/.s3cfg
-    "S3_ENDPOINT": "..."  # host_bucket from ~/.s3cfg
+    "S3_ENDPOINT": "...",  # host_bucket from ~/.s3cfg
+    # Token that was used to setup the Dask clusters.
+    # See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
+    "JUPYTERHUB_API_TOKEN": "<your-token-value>",
   }
-).save("s3-share", overwrite=True)
-
-# Token that was used to setup the Dask clusters.
-# See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
-# NOTE: this is used only to use dask clusters from prefect flows, for testing.
-block_auth = Secret(
-    value={
-        "JUPYTERHUB_API_TOKEN": "<your-token-value>",
-    },
-)
-await block_auth.save("dask-auth", overwrite=True)
+).save("auth", overwrite=True)
 ```
 
 From a bash Terminal in Jupyter, check your values with:
