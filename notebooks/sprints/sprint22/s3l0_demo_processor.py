@@ -22,6 +22,7 @@ import re
 import subprocess
 import time
 from datetime import datetime
+from importlib import reload
 from pathlib import Path
 
 import yaml
@@ -39,6 +40,7 @@ from rs_common import init_opentelemetry, prefect_utils
 prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
+reload(dask_utils)  # reload global vars from env vars
 dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
     dask_utils.get_existing_cluster(
