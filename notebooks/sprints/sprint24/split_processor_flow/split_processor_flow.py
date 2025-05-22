@@ -39,8 +39,8 @@ from rs_common import init_opentelemetry
 
 THIS_DIR = osp.realpath(osp.dirname(__file__))
 
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
+# Read prefect blocks from the prefect flow and tasks into env vars
+prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
 dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
