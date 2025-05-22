@@ -36,11 +36,11 @@ from resources import dask_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry, prefect_utils
 
-# Read prefect blocks from the prefect flow and tasks into env vars
+# Read prefect blocks into env vars
 prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
-reload(dask_utils)  # reload global vars from env
+reload(dask_utils)  # reload global vars from env vars
 dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
     dask_utils.get_existing_cluster(
@@ -108,7 +108,7 @@ async def s3l0_demo_processor(
     """
     global caller_env, rs_server_href, rs_server_api_key
 
-    # Read prefect blocks from the prefect flow and tasks into env vars
+    # Read prefect blocks into env vars
     await prefect_utils.read_prefect_blocks(owner_id)
 
     # Record all flow in an Opentelemetry span

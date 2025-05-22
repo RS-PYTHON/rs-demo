@@ -49,7 +49,6 @@ rs_server_api_key = None  # rspy api key
 
 @flow
 async def s3l0_demo_processor(
-    dask_eopf_name: str,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -70,7 +69,6 @@ async def s3l0_demo_processor(
         - Publishing results back to a STAC catalog
 
     Args:
-        dask_eopf_name (str): Name of the eopf dask cluster
         input_config_dir (str): Directory containing base configuration templates.
         payload_file (str): File path to the payload file specifying the processor module and unit.
         output_data_dir (str): Directory where processed outputs will be written.
@@ -92,7 +90,7 @@ async def s3l0_demo_processor(
     """
     global caller_env, rs_server_href, rs_server_api_key
 
-    # Read prefect blocks from the prefect flow and tasks into env vars and global vars.
+    # Read prefect blocks into env vars
     await prefect_utils.read_prefect_blocks(owner_id)
 
     # Record all flow in an Opentelemetry span
@@ -107,18 +105,6 @@ async def s3l0_demo_processor(
         caller_env = os.environ
         rs_server_href = os.getenv("RSPY_WEBSITE")
         rs_server_api_key = os.environ.get("RSPY_APIKEY")
-
-        # # Get the existing dask cluster info from the env vars passed by the client.
-        # reload(dask_utils) # reload global vars from env
-        # _, _, dask_client_eopf = (
-        #     dask_utils.get_existing_cluster(
-        #         os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
-        #         dask_eopf_name,
-        #     )
-        # )
-
-        # # Upload utility modules to dask clients
-        # dask_utils.upload_util_modules([dask_client_eopf])
 
         module, processing_unit = extract_module_and_processing_unit(payload_file)
         if not module or not processing_unit:

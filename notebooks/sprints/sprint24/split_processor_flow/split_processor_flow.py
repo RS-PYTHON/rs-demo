@@ -39,7 +39,7 @@ from rs_common import init_opentelemetry
 
 THIS_DIR = osp.realpath(osp.dirname(__file__))
 
-# Read prefect blocks from the prefect flow and tasks into env vars
+# Read prefect blocks into env vars
 prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.

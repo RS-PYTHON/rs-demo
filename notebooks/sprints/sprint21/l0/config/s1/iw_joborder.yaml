@@ -27,7 +27,7 @@ I/O:
   input_products:
 
   - id: S1ACADU
-    path: s3://${S3_BUCKET_NAME}/stations/CADIP/S1A_20240410083700053369
+    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/S1A_20240410083700053369
     store_type: cadu
     store_params:
       storage_options:

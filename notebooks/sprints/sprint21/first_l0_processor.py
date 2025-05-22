@@ -19,6 +19,7 @@ import os.path as osp
 import re
 import subprocess
 import time
+from importlib import reload
 from pathlib import Path
 
 import requests
@@ -30,10 +31,12 @@ from prefect_dask import DaskTaskRunner
 from resources import dask_utils
 from rs_common import init_opentelemetry, prefect_utils
 
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
+# Read prefect blocks into env vars
+prefect_utils.read_prefect_blocks(_sync=True)
+local_mode = prefect_utils.local_mode
 
 # Get the existing dask cluster info from the env vars passed by the client.
+reload(dask_utils)  # reload global vars from env
 dask_cluster_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
@@ -56,6 +59,7 @@ rs_server_href = None  # rspy service urls
 
 @flow
 async def first_l0_processor(
+    owner_id: str,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -64,6 +68,7 @@ async def first_l0_processor(
     Trigger an EOPF L0 processing.
 
     Args:
+        owner_id: user/owner id
         input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
         It will be downloaded locally.
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
@@ -71,7 +76,7 @@ async def first_l0_processor(
     """
     global caller_env, rs_server_href
 
-    # Read prefect blocks from the prefect flow and tasks into env vars and global vars.
+    # Read prefect blocks into env vars
     await prefect_utils.read_prefect_blocks(owner_id)
 
     # Record all flow in an Opentelemetry span

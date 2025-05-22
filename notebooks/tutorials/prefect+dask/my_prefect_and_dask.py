@@ -25,7 +25,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 
 import logging
 import os
-import sys
+from importlib import reload
 from pathlib import Path
 
 import dask
@@ -35,12 +35,14 @@ from distributed.client import Future
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
 from resources import dask_utils
+from resources.dask_utils import get_ip_address
 from rs_common import prefect_utils
 
-# Read prefect blocks from the prefect flow and tasks into env vars
+# Read prefect blocks into env vars
 prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
+reload(dask_utils)  # reload global vars from env vars
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_GATEWAY_ADDRESS"],
     os.environ["DASK_CLUSTER_NAME"],
