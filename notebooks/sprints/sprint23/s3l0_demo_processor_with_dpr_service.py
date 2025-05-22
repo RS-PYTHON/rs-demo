@@ -20,9 +20,7 @@ import json
 import os
 import os.path as osp
 import re
-import time
 from datetime import datetime
-from importlib import reload
 
 import requests
 import yaml
@@ -30,7 +28,6 @@ from opentelemetry import trace
 from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
 from pystac import Asset, Item, ItemCollection
-from resources import dask_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry, prefect_utils
 
@@ -295,33 +292,13 @@ def job_staging_monitor(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-
-    try:
-        status_type, job_identifier = job_status["status"], job_status["jobID"]
-        if not job_identifier:
-            logger.error("Job identifier is missing.")
-            return False
-
-        while timeout > 0 and status_type not in {"successful", "failed", "dismissed"}:
-            job_status = staging_client.get_job_info(job_identifier)
-            logger.info(f"job_status = {job_status}")
-            status_type = job_status.get("status")
-            logger.info(
-                f"----- Staging job for {job_identifier}: {status_type.upper()} \n",
-            )
-            time.sleep(poll_interval)
-            timeout -= poll_interval
-
-    except Exception as e:
-        logger.exception(f"Exception while monitoring job: {e}")
-        return False
-
-    if status_type == "successful":
-        logger.info(f"----- Staging job for {job_identifier}: COMPLETED \n")
-        return True
-    else:
-        logger.info(f"----- Staging job for {job_identifier}: FAILED \n")
-        return False
+    return staging_client.wait_for_job(
+        job_status,
+        logger,
+        "Staging",
+        timeout,
+        poll_interval,
+    )
 
 
 @task(name="auxip-search")
@@ -652,22 +629,5 @@ async def dpr_service(
             data = yaml.safe_load(payload_data)
         data.update({"use_mockup": True})
 
-        dpr_service_response = requests.post(
-            f"{dpr_client.href_service}/dpr/processes/s3_l0/execution",
-            data=json.dumps(data),
-        ).json()
-        logger.info(f"dpr_service_response = {dpr_service_response}")
-        match = re.search(r"'identifier': '([^']+)'", dpr_service_response)
-        dpr_service_job_id = match.group(1) if match else None
-        logger.info(f"DPR service job id {dpr_service_job_id}")
-        job_response = requests.get(
-            f"{dpr_client.href_service}/dpr/jobs/{dpr_service_job_id}",
-        ).json()
-        while job_response["status"] == "running":
-            job_response = requests.get(
-                f"{dpr_client.href_service}/dpr/jobs/{dpr_service_job_id}",
-            ).json()
-        #
-        result = ast.literal_eval(job_response["message"])
-        # logger.info(result)
-        return result
+        job_status = dpr_client.run_process("s3_l0", data)
+        return dpr_client.wait_for_job(job_status, logger, "'S3 L0 processor'")
