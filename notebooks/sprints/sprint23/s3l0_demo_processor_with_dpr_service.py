@@ -185,12 +185,12 @@ async def s3l0_demo_processor(
         )
 
         # wait for results
-        staging_cadip_res = cadip_job_staging_monitor_task.result()
-        staging_auxip_res = auxip_job_staging_monitor_task.result()
+        try:
+            cadip_job_staging_monitor_task.result()
+            auxip_job_staging_monitor_task.result()
+        except Exception as e:
+            raise RuntimeError("Failed to stage all the needed files. Exiting") from e
 
-        if not staging_cadip_res or not staging_auxip_res:
-            logger.error("Failed to stage all the needed files. Exiting")
-            raise RuntimeError("Failed to stage all the needed files. Exiting")
         # get the staged files from the catalog
         catalog_res = ItemCollection(
             list(catalog_client.get_items(collection_name, catalog_item_ids)),
@@ -292,7 +292,7 @@ def job_staging_monitor(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-    return staging_client.wait_for_job(
+    staging_client.wait_for_job(
         job_status,
         logger,
         "Staging",
@@ -627,7 +627,7 @@ async def dpr_service(
         os.makedirs(report_dirname, exist_ok=True)
         with open(payload_abs_path, "r") as payload_data:
             data = yaml.safe_load(payload_data)
-        data.update({"use_mockup": True})
+        data.update({"use_mockup": use_dpr_mockup})
 
         job_status = dpr_client.run_process("s3_l0", data)
         return dpr_client.wait_for_job(job_status, logger, "'S3 L0 processor'")

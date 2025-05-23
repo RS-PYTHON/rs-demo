@@ -1,39 +1,121 @@
 general_configuration:
   logging:
     level: DEBUG
-  # setup a basic logging configuration
   triggering__use_basic_logging: true
-  # Wait before stopping the dask cluster, usefull for localCluster to access the dashboard
   triggering__wait_before_exit: 10
-  # Export the dask graph for variables at writing time
   dask__export_graphs: ./reports/graphs
-   # breakpoints: activate intermediate data dump
-   # WRITE mode : write the entire outputs EOProducts of the ProcessingUnit in the zarr associated storage
-   # FORCE_WRITE mode : Same as WRITE but overload existing breakpoint
-   # RETRIEVE mode: replace the computed output of the ProcessingUnit by a disc read product
-   # SKIP mode: do nothing
-
 workflow:
 - name: s3_l0_processor
-  # Activate or not this unit, if not active its outputs will not be available
-  active : true
-  # python module to import from
+  active: true
   module: l0.s3.s3_l0_processor
   processing_unit: S3L0Processor
-  # input products IDs
   inputs:
-    CADUS: S3ACADUS
-
+    AUX1: S1A_OPER_AUX_PREORB_OPOD_20240527T062732_V20240527T062732_20240527T062732
+    AUX2: S1A_OPER_MPL_ORBSCT_20240514T150704_99999999T999999_0025
+    AUX3: S1A_OPER_AUX_RESORB_OPOD_20240214T110702_V20240214T071044_20240214T102814
+    AUX4: S1A_OPER_AUX_RESORB_OPOD_20240204T110702_V20240204T071044_20240204T102814
+    AUX5: S1A_OPER_AUX_RESORB_OPOD_20240129T110702_V20240129T071044_20240129T102814
+    AUX6: S1A_OPER_MPL_ORBSCT_20240115T150704_99999999T999999_0025
+    AUX7: S1A_OPER_AUX_OBMEMC_PDMC_20240106T000000
+    AUX8: S1A_OPER_AUX_RESORB_OPOD_20231218T110702_V20231218T071044_20231218T102814
+    AUX9: S1A_OPER_AUX_PREORB_OPOD_20231013T062732_V20231013T062732_20231013T062732
+    AUX10: S1A_OPER_AUX_PREORB_OPOD_20231007T062732_V20231007T062732_20231007T062732
+    AUX11: S1A_AUX_PP2_V20230818T080000_G20230818T080000
+    AUX12: S1A_OPER_AUX_PREORB_OPOD_20230807T062732_V20230807T053140_20230807T120640
+    AUX13: S1A_OPER_AUX_RESORB_OPOD_20230718T110702_V20230718T071044_20230718T102814
+    AUX14: S1A_OPER_MPL_ORBSCT_20230710T150704_99999999T999999_0025
+    AUX15: S1A_OPER_AUX_OBMEMC_PDMC_20230705T000000
+    AUX16: S1A_AUX_PP2_V20230704T080000_G20230704T080000
+    AUX17: S1A_OPER_AUX_PREORB_OPOD_20230628T062732_V20230628T062732_20230628T062732
+    AUX18: S1A_AUX_PP2_V20230517T080000_G20230517T080000
+    AUX19: S1A_OPER_AUX_PREORB_OPOD_20230428T062732_V20230428T053140_20230428T120640
+    AUX20: S1A_OPER_AUX_PREORB_OPOD_20230423T062732_V20230423T062732_20230423T062732
+    AUX21: S1A_OPER_MPL_ORBPRE_20230421T021411_20230428T021411_0001
+    AUX22: S1A_OPER_AUX_RESORB_OPOD_20230405T110702_V20230405T071044_20230405T102814
+    AUX23: S1A_AUX_PP2_V20230403T080000_G20230403T080000
+    AUX24: S1A_OPER_AUX_PREORB_OPOD_20230320T062732_V20230320T062732_20230320T062732
+    AUX25: S1A_OPER_AUX_PREORB_OPOD_20230314T062732_V20230314T062732_20230314T062732
+    AUX26: S1A_OPER_AUX_PREORB_OPOD_20230312T062732_V20230312T062732_20230312T062732
+    AUX27: S1A_OPER_AUX_PREORB_OPOD_20230219T062732_V20230219T062732_20230219T062732
+    AUX28: S2__OPER_AUX_ECMWFD_PDMC_20230216T120000_V20190217T090000_20190217T210000
+    AUX29: S1A_OPER_AUX_OBMEMC_PDMC_20230216T000000
+    AUX30: S1A_OPER_MPL_ORBSCT_20230206T150704_99999999T999999_0025
+    AUX31: S1A_OPER_AUX_PREORB_OPOD_20230122T062732_V20230122T062732_20230122T062732
+    AUX32: S1A_OPER_AUX_OBMEMC_PDMC_20230103T000000
+    AUX33: S1A_OPER_MPL_ORBSCT_20220426T150704_99999999T999999_0025
+    AUX34: S1A_OPER_MPL_ORBPRE_20220306T021411_20220313T021411_0001
+    AUX35: S1A_OPER_MPL_ORBPRE_20220126T021411_20220202T021411_0001
+    AUX36: S1A_OPER_AUX_OBMEMC_PDMC_20220115T000000
+    AUX37: S1A_OPER_MPL_ORBPRE_20211125T021411_20211202T021411_0001
+    AUX38: S1A_OPER_MPL_ORBSCT_20211115T150704_99999999T999999_0025
+    AUX39: S1A_OPER_AUX_OBMEMC_PDMC_20210924T000000
+    AUX40: S1A_OPER_AUX_RESORB_OPOD_20210916T110702_V20210916T071044_20210916T102814
+    AUX41: S1A_OPER_AUX_RESORB_OPOD_20210911T110702_V20210911T071044_20210911T102814
+    AUX42: S1A_OPER_MPL_ORBSCT_20210902T150704_99999999T999999_0025
+    AUX43: S1A_OPER_AUX_RESORB_OPOD_20210716T110702_V20210716T071044_20210716T102814
+    AUX44: S1A_OPER_AUX_RESORB_OPOD_20210705T110702_V20210705T071044_20210705T102814
+    AUX45: S1A_OPER_MPL_ORBSCT_20210701T150704_99999999T999999_0025
+    AUX46: S1A_OPER_AUX_RESORB_OPOD_20210529T110702_V20210529T071044_20210529T102814
+    AUX47: S1A_OPER_AUX_RESORB_OPOD_20210501T110702_V20210501T071044_20210501T102814
+    AUX48: S1A_OPER_AUX_RESORB_OPOD_20210415T110702_V20210415T071044_20210415T102814
+    AUX49: S1A_OPER_AUX_OBMEMC_PDMC_20210329T000000
+    AUX50: S1A_OPER_MPL_ORBPRE_20210225T021411_20210303T021411_0001
+    AUX51: S1A_OPER_MPL_ORBPRE_20210214T021411_20210221T021411_0001
+    AUX52: S1A_OPER_AUX_OBMEMC_PDMC_20210211T000000
+    AUX53: S1A_OPER_MPL_ORBSCT_20210123T150704_99999999T999999_0025
+    AUX54: S1A_OPER_AUX_OBMEMC_PDMC_20210123T000000
+    AUX55: S1A_OPER_AUX_PREORB_OPOD_20210106T062732_V20210106T053140_20210106T120640
+    AUX56: S1A_OPER_AUX_RESORB_OPOD_20201228T110702_V20201228T071044_20201228T102814
+    AUX57: S1A_OPER_AUX_RESORB_OPOD_20201127T110702_V20201127T071044_20201127T102814
+    AUX58: S1A_OPER_AUX_RESORB_OPOD_20201116T110702_V20201116T071044_20201116T102814
+    AUX59: S1A_OPER_MPL_ORBPRE_20201028T021411_20201104T021411_0001
+    AUX60: S1A_OPER_AUX_RESORB_OPOD_20201012T110702_V20201012T071044_20201012T102814
+    AUX61: S1A_OPER_AUX_PREORB_OPOD_20201002T062732_V20201002T053140_20201002T120640
+    AUX62: S1A_AUX_PP2_V20200920T080000_G20200920T080000
+    AUX63: S1A_OPER_AUX_OBMEMC_PDMC_20200919T000000
+    AUX64: S1A_OPER_AUX_PREORB_OPOD_20200903T062732_V20200903T053140_20200903T120640
+    AUX65: S1A_OPER_MPL_ORBSCT_20200829T150704_99999999T999999_0025
+    AUX66: S1A_OPER_AUX_PREORB_OPOD_20200822T062732_V20200822T053140_20200822T120640
+    AUX67: S1A_AUX_PP2_V20200806T080000_G20200806T080000
+    AUX68: S1A_OPER_AUX_PREORB_OPOD_20200729T062732_V20200729T053140_20200729T120640
+    AUX69: S1A_AUX_PP2_V20200708T080000_G20200708T080000
+    AUX70: S1A_AUX_PP2_V20200630T080000_G20200630T080000
+    AUX71: S1A_AUX_PP2_V20200623T080000_G20200623T080000
+    AUX72: S1A_AUX_PP2_V20200524T080000_G20200524T080000
+    AUX73: S1A_OPER_AUX_PREORB_OPOD_20200524T062732_V20200524T053140_20200524T120640
+    AUX74: S1A_AUX_PP2_V20200516T080000_G20200516T080000
+    AUX75: S1A_AUX_PP2_V20200509T080000_G20200509T080000
+    AUX76: S1A_OPER_AUX_PREORB_OPOD_20200418T062732_V20200418T053140_20200418T120640
+    AUX77: S1A_AUX_PP2_V20200413T080000_G20200413T080000
+    AUX78: S1A_OPER_MPL_ORBPRE_20200409T021411_20200416T021411_0001
+    AUX79: S1A_AUX_PP2_V20200406T080000_G20200406T080000
+    AUX80: S1A_OPER_MPL_ORBPRE_20200402T021411_20200409T021411_0001
+    AUX81: S1A_OPER_AUX_PREORB_OPOD_20200325T062732_V20200325T053140_20200325T120640
+    AUX82: S1A_OPER_MPL_ORBPRE_20200315T021411_20200322T021411_0001
+    AUX83: S1A_AUX_PP2_V20200228T080000_G20200228T080000
+    AUX84: S1A_AUX_PP2_V20200221T080000_G20200221T080000
+    AUX85: S1A_AUX_PP2_V20200218T080000_G20200218T080000
+    AUX86: S2__OPER_AUX_ECMWFD_PDMC_20200216T120000_V20190217T090000_20190217T210000
+    AUX87: S1A_OPER_AUX_RESORB_OPOD_20200211T110702_V20200211T071044_20200211T102814
+    AUX88: S1A_AUX_PP2_V20200203T080000_G20200203T080000
+    AUX89: S1A_OPER_AUX_OBMEMC_PDMC_20200127T000000
+    AUX90: S1A_OPER_AUX_RESORB_OPOD_20200123T110702_V20200123T071044_20200123T102814
+    AUX91: S1A_AUX_PP2_V20200121T080000_G20200121T080000
+    AUX92: S1A_AUX_PP2_V20200106T080000_G20200106T080000
+    CADU1: S1A_20200105072204051312
+    AUX93: S2__OPER_AUX_ECMWFD_PDMC_20190216T120000_V20190217T090000_20190217T210000
+    AUX94: S3B_AX___OSF_AX_20180425T191855_99991231T235959_20240507T090659___________________EUM_O_AL_001.SEN3
+    AUX95: S3B_AX___OSF_AX_20180425T191855_99991231T235959_20221110T110324___________________EUM_O_AL_001.SEN3
+    AUX96: S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3
+    AUX97: S3A_AX___OSF_AX_20160216T192404_99991231T235959_20220330T090651___________________EUM_O_AL_001.SEN3
   outputs:
     out1: S3MWRL0_
     out2: S3OLCL0_
-
 I/O:
-  # input products descriptions and access parameters
   input_products:
-  - id: S3ACADUS
-    path: s3://path
-    store_type: cadu
+  - id: S1A_OPER_AUX_PREORB_OPOD_20240527T062732_V20240527T062732_20240527T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20240527T062732_V20240527T062732_20240527T062732
+    store_type: safe
     store_params:
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -41,10 +123,979 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
-
+  - id: S1A_OPER_MPL_ORBSCT_20240514T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20240514T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20240214T110702_V20240214T071044_20240214T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20240214T110702_V20240214T071044_20240214T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20240204T110702_V20240204T071044_20240204T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20240204T110702_V20240204T071044_20240204T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20240129T110702_V20240129T071044_20240129T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20240129T110702_V20240129T071044_20240129T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20240115T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20240115T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20240106T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20240106T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20231218T110702_V20231218T071044_20231218T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20231218T110702_V20231218T071044_20231218T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20231013T062732_V20231013T062732_20231013T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20231013T062732_V20231013T062732_20231013T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20231007T062732_V20231007T062732_20231007T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20231007T062732_V20231007T062732_20231007T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20230818T080000_G20230818T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20230818T080000_G20230818T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230807T062732_V20230807T053140_20230807T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230807T062732_V20230807T053140_20230807T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20230718T110702_V20230718T071044_20230718T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20230718T110702_V20230718T071044_20230718T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20230710T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20230710T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20230705T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20230705T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20230704T080000_G20230704T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20230704T080000_G20230704T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230628T062732_V20230628T062732_20230628T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230628T062732_V20230628T062732_20230628T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20230517T080000_G20230517T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20230517T080000_G20230517T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230428T062732_V20230428T053140_20230428T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230428T062732_V20230428T053140_20230428T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230423T062732_V20230423T062732_20230423T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230423T062732_V20230423T062732_20230423T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20230421T021411_20230428T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20230421T021411_20230428T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20230405T110702_V20230405T071044_20230405T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20230405T110702_V20230405T071044_20230405T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20230403T080000_G20230403T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20230403T080000_G20230403T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230320T062732_V20230320T062732_20230320T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230320T062732_V20230320T062732_20230320T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230314T062732_V20230314T062732_20230314T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230314T062732_V20230314T062732_20230314T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230312T062732_V20230312T062732_20230312T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230312T062732_V20230312T062732_20230312T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230219T062732_V20230219T062732_20230219T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230219T062732_V20230219T062732_20230219T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S2__OPER_AUX_ECMWFD_PDMC_20230216T120000_V20190217T090000_20190217T210000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S2__OPER_AUX_ECMWFD_PDMC_20230216T120000_V20190217T090000_20190217T210000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20230216T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20230216T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20230206T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20230206T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20230122T062732_V20230122T062732_20230122T062732
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20230122T062732_V20230122T062732_20230122T062732
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20230103T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20230103T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20220426T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20220426T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20220306T021411_20220313T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20220306T021411_20220313T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20220126T021411_20220202T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20220126T021411_20220202T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20220115T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20220115T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20211125T021411_20211202T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20211125T021411_20211202T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20211115T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20211115T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20210924T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20210924T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210916T110702_V20210916T071044_20210916T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210916T110702_V20210916T071044_20210916T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210911T110702_V20210911T071044_20210911T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210911T110702_V20210911T071044_20210911T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20210902T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20210902T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210716T110702_V20210716T071044_20210716T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210716T110702_V20210716T071044_20210716T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210705T110702_V20210705T071044_20210705T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210705T110702_V20210705T071044_20210705T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20210701T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20210701T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210529T110702_V20210529T071044_20210529T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210529T110702_V20210529T071044_20210529T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210501T110702_V20210501T071044_20210501T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210501T110702_V20210501T071044_20210501T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20210415T110702_V20210415T071044_20210415T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20210415T110702_V20210415T071044_20210415T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20210329T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20210329T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20210225T021411_20210303T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20210225T021411_20210303T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20210214T021411_20210221T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20210214T021411_20210221T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20210211T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20210211T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20210123T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20210123T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20210123T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20210123T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20210106T062732_V20210106T053140_20210106T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20210106T062732_V20210106T053140_20210106T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20201228T110702_V20201228T071044_20201228T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20201228T110702_V20201228T071044_20201228T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20201127T110702_V20201127T071044_20201127T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20201127T110702_V20201127T071044_20201127T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20201116T110702_V20201116T071044_20201116T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20201116T110702_V20201116T071044_20201116T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20201028T021411_20201104T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20201028T021411_20201104T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20201012T110702_V20201012T071044_20201012T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20201012T110702_V20201012T071044_20201012T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20201002T062732_V20201002T053140_20201002T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20201002T062732_V20201002T053140_20201002T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200920T080000_G20200920T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200920T080000_G20200920T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20200919T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20200919T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20200903T062732_V20200903T053140_20200903T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20200903T062732_V20200903T053140_20200903T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBSCT_20200829T150704_99999999T999999_0025
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBSCT_20200829T150704_99999999T999999_0025
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20200822T062732_V20200822T053140_20200822T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20200822T062732_V20200822T053140_20200822T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200806T080000_G20200806T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200806T080000_G20200806T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20200729T062732_V20200729T053140_20200729T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20200729T062732_V20200729T053140_20200729T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200708T080000_G20200708T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200708T080000_G20200708T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200630T080000_G20200630T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200630T080000_G20200630T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200623T080000_G20200623T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200623T080000_G20200623T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200524T080000_G20200524T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200524T080000_G20200524T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20200524T062732_V20200524T053140_20200524T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20200524T062732_V20200524T053140_20200524T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200516T080000_G20200516T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200516T080000_G20200516T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200509T080000_G20200509T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200509T080000_G20200509T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20200418T062732_V20200418T053140_20200418T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20200418T062732_V20200418T053140_20200418T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200413T080000_G20200413T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200413T080000_G20200413T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20200409T021411_20200416T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20200409T021411_20200416T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200406T080000_G20200406T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200406T080000_G20200406T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20200402T021411_20200409T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20200402T021411_20200409T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_PREORB_OPOD_20200325T062732_V20200325T053140_20200325T120640
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_PREORB_OPOD_20200325T062732_V20200325T053140_20200325T120640
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_MPL_ORBPRE_20200315T021411_20200322T021411_0001
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_MPL_ORBPRE_20200315T021411_20200322T021411_0001
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200228T080000_G20200228T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200228T080000_G20200228T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200221T080000_G20200221T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200221T080000_G20200221T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200218T080000_G20200218T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200218T080000_G20200218T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S2__OPER_AUX_ECMWFD_PDMC_20200216T120000_V20190217T090000_20190217T210000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S2__OPER_AUX_ECMWFD_PDMC_20200216T120000_V20190217T090000_20190217T210000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20200211T110702_V20200211T071044_20200211T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20200211T110702_V20200211T071044_20200211T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200203T080000_G20200203T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200203T080000_G20200203T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_OBMEMC_PDMC_20200127T000000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_OBMEMC_PDMC_20200127T000000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_OPER_AUX_RESORB_OPOD_20200123T110702_V20200123T071044_20200123T102814
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_OPER_AUX_RESORB_OPOD_20200123T110702_V20200123T071044_20200123T102814
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200121T080000_G20200121T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200121T080000_G20200121T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_AUX_PP2_V20200106T080000_G20200106T080000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_AUX_PP2_V20200106T080000_G20200106T080000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S1A_20200105072204051312
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S1A_20200105072204051312
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S2__OPER_AUX_ECMWFD_PDMC_20190216T120000_V20190217T090000_20190217T210000
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S2__OPER_AUX_ECMWFD_PDMC_20190216T120000_V20190217T090000_20190217T210000
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S3B_AX___OSF_AX_20180425T191855_99991231T235959_20240507T090659___________________EUM_O_AL_001.SEN3
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S3B_AX___OSF_AX_20180425T191855_99991231T235959_20240507T090659___________________EUM_O_AL_001.SEN3
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S3B_AX___OSF_AX_20180425T191855_99991231T235959_20221110T110324___________________EUM_O_AL_001.SEN3
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S3B_AX___OSF_AX_20180425T191855_99991231T235959_20221110T110324___________________EUM_O_AL_001.SEN3
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+  - id: S3A_AX___OSF_AX_20160216T192404_99991231T235959_20220330T090651___________________EUM_O_AL_001.SEN3
+    path: s3://rs-dev-cluster-catalog/RSPY_643_TEST_COLLECTION/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20220330T090651___________________EUM_O_AL_001.SEN3
+    store_type: safe
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
   output_products:
-  - id: S3ALTL0_
-    path: ${OUTPUT_DIR}
+  - id: S3MWRL0_
+    path: s3://rs-dev-cluster-temp/prefect-share/users/jgaucher/l0/output/s3
     type: folder
     store_type: zarr
     opening_mode: CREATE_OVERWRITE
@@ -55,8 +1106,18 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
-
-# Dask context configuration, see eopf.daskconfig.dask_context_manager
+  - id: S3OLCL0_
+    path: s3://rs-dev-cluster-temp/prefect-share/users/jgaucher/l0/output/s3
+    type: folder
+    store_type: zarr
+    opening_mode: CREATE_OVERWRITE
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
 dask_context:
   cluster_type: gateway
   cluster_config:
@@ -65,16 +1126,11 @@ dask_context:
     auth:
       type: jupyterhub
       api_token: ${JUPYTERHUB_API_TOKEN}
-    auth_local_mode: # auth for local mode
+    auth_local_mode:
       type: basic
       username: ${LOCAL_DASK_USERNAME}
       password: ${LOCAL_DASK_PASSWORD}
-
-  # Activate the report file writing in this file
   performance_report_file: ./reports/report.html
-
-# Any logging file(s) to load to the EOLogging facility
-logging: "../logging_config.yaml"
-# Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
+logging: ../logging_config.yaml
 config:
-  - "./l0_processor_configuration_dpr_mockup.yaml"
+- ./l0_processor_configuration_dpr_mockup.yaml
