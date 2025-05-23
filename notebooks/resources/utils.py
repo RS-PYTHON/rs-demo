@@ -170,7 +170,7 @@ def init_rsclient(owner_id=None):
     print(f"Staging service: {staging_client.href_service}")
     print(f"DPR service: {dpr_client.href_service}")
 
-    return auxip_client, cadip_client, catalog_client, staging_client, dpr_client
+    return auxip_client, cadip_client, catalog_client, staging_client
 
 
 def get_or_create_test_collection(
