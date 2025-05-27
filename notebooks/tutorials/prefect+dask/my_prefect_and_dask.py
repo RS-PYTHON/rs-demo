@@ -49,7 +49,7 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
 )
 
 # Now I need to upload my local utility module to the dask workers
-dask_client.upload_file("./resources/dask_utils.py")
+dask_client.upload_file(dask_utils.__file__)
 
 # NOTE: the main code outside the functions is run by both the client and prefect workers,
 # but NOT by the dask workers.

@@ -4,7 +4,7 @@ import random
 from prefect import flow, get_run_logger
 from prefect.client.schemas.objects import StateType
 from prefect.deployments.flow_runs import run_deployment
-from resources.prefect_utils import get_ip_address
+from resources.dask_utils import get_ip_address
 
 
 @flow(name="main-flow-deployment")
