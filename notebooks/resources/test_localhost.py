@@ -22,6 +22,7 @@ sys.path.insert(0, "/path/to/parent/of/resources/dir")
 import resources.test_localhost
 """
 
+import getpass
 import os
 from pathlib import Path
 
@@ -30,7 +31,8 @@ from dotenv import load_dotenv
 # Read the .env file that contains env vars
 load_dotenv(Path(__file__).parent.parent.parent / "local-mode" / ".env")
 
-os.environ["RSPY_HOST_USER"] = "localhost-user"
+os.environ["RSPY_HOST_USER"] = getpass.getuser()
+
 os.environ["RSPY_LOCAL_MODE"] = "1"
 # rs-server urls
 os.environ["RSPY_HOST_ADGS"] = "http://localhost:8001"
