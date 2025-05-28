@@ -86,7 +86,6 @@ from prefect.blocks.system import Secret
 
 await Secret(
   value={
-
     # S3 bucket name and subfolder to share temporary data between Jupyter,
     # Prefect and Dask.
     # NOTE: the "share-bucket" block will be created automatically from these
