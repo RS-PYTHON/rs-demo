@@ -84,7 +84,7 @@ Run this Python code from any Jupyter notebook:
 import os
 from prefect.blocks.system import Secret
 
-Secret(
+await Secret(
   value={
 
     # S3 bucket name and subfolder to share temporary data between Jupyter,
