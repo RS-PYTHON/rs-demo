@@ -17,6 +17,7 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
+import csv
 import json
 import logging
 import os
@@ -76,7 +77,7 @@ http_session: requests.Session = requests.Session()
 # Except in local mode, where we use a local MinIO object storage instance.
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
-RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
+BUCKET_CONFIG_FILE_PATH = os.environ["BUCKET_CONFIG_FILE_PATH"]
 
 # For local mode only
 if local_mode:
@@ -100,6 +101,16 @@ def pretty_print(any_dict: dict, indent=2):
     print(json.dumps(any_dict, indent=2))
 
 
+def get_buckets_from_config_file() -> list:
+    """Returns a list of the buckets names in the configuration file."""
+    data = []
+    with open(BUCKET_CONFIG_FILE_PATH, newline="", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+        for line in reader:
+            data.append(line)
+    return [row[4] for row in data]
+
+
 def get_s3_client():
     """
     Return a boto3 s3 client from the
@@ -120,7 +131,9 @@ def create_s3_buckets():
     if not local_mode:
         return
     s3_client = get_s3_client()
-    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET:
+    rspy_catalog_buckets = get_buckets_from_config_file()
+    rspy_catalog_buckets.append(RSPY_TEMP_BUCKET)
+    for bucket in rspy_catalog_buckets:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
