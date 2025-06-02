@@ -190,6 +190,8 @@ services:
 
       RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
+      LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
@@ -260,19 +262,6 @@ services:
   # SIMULATORS #
   ##############
 
-  dpr-simulator:
-    image: ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest
-    container_name: dpr-simulator
-    environment:
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-    ports:
-      - 6002:8000
-    volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
@@ -286,6 +275,8 @@ services:
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
       RSPY_DASK_DPR_SERVICE_MOCKUP_CLUSTER_NAME: dask-eopf-mockup
       DASK_GATEWAY__MOCKUP_ADDRESS: ${DASK_GATEWAY_EOPF_MOCKUP_ADDRESS}
+      LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
+      LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
 
       RSPY_LOCAL_MODE: 1
       # postgres
@@ -469,6 +460,7 @@ services:
       RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
       RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
       RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
+      RSPY_HOST_DPR_SERVICE: ${RSPY_HOST_DPR_SERVICE}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
@@ -601,14 +593,12 @@ services:
       # # In Chrome: in the "Application" tab, in Firefox: in the "Storage" tab.
       # RSPY_OAUTH2_COOKIE: xxx # DON'T SAVE THIS VALUE IN GIT !
 
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
-      RSPY_WHL_DIR: ${RSPY_WHL_DIR}
       # rs-server urls
       RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
       RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
       RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
       RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
-      RSPY_DPR_SERVICE_ADDRESS: ${RSPY_DPR_SERVICE_ADDRESS}
+      RSPY_HOST_DPR_SERVICE: ${RSPY_HOST_DPR_SERVICE}
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
       S3_SECRETKEY: ${S3_SECRETKEY}
@@ -622,8 +612,6 @@ services:
       RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
       PREFECT_WORK_POOL_STAGING: ${PREFECT_WORK_POOL_STAGING}
       PREFECT_WORK_POOL_EOPF: ${PREFECT_WORK_POOL_EOPF}
-      PREFECT_BLOCK_AUTH: ${PREFECT_BLOCK_AUTH}
-      PREFECT_BLOCK_S3: ${PREFECT_BLOCK_S3}
       # dask
       DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
@@ -631,14 +619,17 @@ services:
       DASK_GATEWAY_STAGING_PUBLIC: ${DASK_GATEWAY_STAGING_PUBLIC}
       DASK_GATEWAY_EOPF_PUBLIC: ${DASK_GATEWAY_EOPF_PUBLIC}
       DASK_GATEWAY_EOPF_MOCKUP_PUBLIC: ${DASK_GATEWAY_EOPF_MOCKUP_PUBLIC}
+      LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
+      LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
+      # to import resources/ from the mounted volume below
+      PYTHONPATH: /home/jovyan/notebooks
     volumes:
       - ../notebooks:/home/jovyan/notebooks
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # Optional: test the api-key manager.
   # Uncomment these lines and add to the rs-server-xxx services:
