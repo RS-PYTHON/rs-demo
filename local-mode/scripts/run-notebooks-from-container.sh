@@ -16,6 +16,9 @@ export RSPY_FROM_CICD=1
 # Read environment variables from the .env file
 source ${ROOT_DIR}/local-mode/.env
 
+# Update env var for CSV config file
+export BUCKET_CONFIG_FILE_PATH=${ROOT_DIR}/local-mode/config/expiration_bucket.csv
+
 all_ok=
 all_errors=
 all_ignored=
