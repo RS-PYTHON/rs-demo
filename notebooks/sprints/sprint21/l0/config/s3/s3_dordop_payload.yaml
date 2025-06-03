@@ -32,7 +32,7 @@ I/O:
   # input products descriptions and access parameters
   input_products:
   - id: S3ACADUS
-    path: s3://${S3_BUCKET_NAME}/stations/CADIP/S3B_20240411142312031054
+    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/S3B_20240411142312031054
     store_type: cadu
     store_params:
       storage_options:

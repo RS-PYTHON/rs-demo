@@ -22,6 +22,7 @@ import re
 import subprocess
 import time
 from datetime import datetime
+from importlib import reload
 from pathlib import Path
 
 import yaml
@@ -31,14 +32,15 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
-from resources import dask_utils, prefect_utils
+from resources import dask_utils
 from rs_client.rs_client import RsClient
-from rs_common import init_opentelemetry
+from rs_common import init_opentelemetry, prefect_utils
 
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
+# Read prefect blocks into env vars
+prefect_utils.read_prefect_blocks(_sync=True)
 
 # Get the existing dask cluster info from the env vars passed by the client.
+reload(dask_utils)  # reload global vars from env vars
 dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
     dask_utils.get_existing_cluster(
@@ -47,30 +49,14 @@ dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
     )
 )
 
-# Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
-# These lines of code is not called by the dask workers.
-caller_env = os.environ
-local_mode = prefect_utils.local_mode
-cluster_mode = not local_mode
-
-# In local mode, the service URLs are hardcoded in the docker-compose file
-if local_mode:
-    rs_server_href = None  # not used
-# In cluster mode, they are set in an environment variables
-else:
-    rs_server_href = os.environ["RSPY_WEBSITE"]
-
-# In cluster mode, read the API key or OAuth2 token to authenticate to rs-server
-rs_server_api_key = None
-if cluster_mode:
-    rs_server_api_key = os.environ.get("RSPY_APIKEY")
-    if (not rs_server_api_key) and (not os.environ.get("RSPY_OAUTH2_COOKIE")):
-        raise Exception("You need an API key or OAuth2 token to run this flow")
-
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client_eopf.scheduler_info()["workers"])
 
+# Global vars
+caller_env: dict = None  # prefect env vars, will be copied into dask env
+rs_server_href = None  # rspy service urls
+rs_server_api_key = None  # rspy api key
 
 ##########################
 # Prefect tasks and flow #
@@ -78,7 +64,7 @@ worker_count = len(dask_client_eopf.scheduler_info()["workers"])
 
 
 @flow
-def s3l0_demo_processor(
+async def s3l0_demo_processor(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -120,6 +106,11 @@ def s3l0_demo_processor(
             - Configuration file creation fails
             - Publishing to the catalog fails
     """
+    global caller_env, rs_server_href, rs_server_api_key
+
+    # Read prefect blocks into env vars
+    await prefect_utils.read_prefect_blocks(owner_id)
+
     # Record all flow in an Opentelemetry span
     with init_opentelemetry.start_span(__name__, "s3l0_demo_processor"):
 
@@ -127,6 +118,11 @@ def s3l0_demo_processor(
         flow_span_context = trace.get_current_span().get_span_context()
 
         logger = get_run_logger()
+
+        # Update global vars after reading the env from the prefect block
+        caller_env = os.environ
+        rs_server_href = os.getenv("RSPY_WEBSITE")
+        rs_server_api_key = os.environ.get("RSPY_APIKEY")
 
         # Upload utility modules to dask clients
         dask_utils.upload_util_modules([dask_client_eopf])

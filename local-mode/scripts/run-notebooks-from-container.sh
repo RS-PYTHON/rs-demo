@@ -13,6 +13,9 @@ export RSPY_LOCAL_MODE=1
 # This script is run from the ci/cd
 export RSPY_FROM_CICD=1
 
+# To import the resources/ folder
+export PYTHONPATH="${ROOT_DIR}/notebooks:${PYTHONPATH:-}"
+
 # Read environment variables from the .env file
 source ${ROOT_DIR}/local-mode/.env
 

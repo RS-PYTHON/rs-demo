@@ -20,58 +20,23 @@ import json
 import os
 import os.path as osp
 import re
-import subprocess
-import time
 from datetime import datetime
-from pathlib import Path
 
 import requests
 import yaml
 from opentelemetry import trace
 from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
-from prefect.artifacts import create_markdown_artifact
-from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
-from resources import dask_utils, prefect_utils
 from rs_client.rs_client import RsClient
-from rs_common import init_opentelemetry
+from rs_common import init_opentelemetry, prefect_utils
 
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
+THIS_DIR = osp.realpath(osp.dirname(__file__))
 
-# Get the existing dask cluster info from the env vars passed by the client.
-dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
-dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
-    dask_utils.get_existing_cluster(
-        os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
-        dask_cluster_eopf_name,
-    )
-)
-
-# Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
-# These lines of code is not called by the dask workers.
-caller_env = os.environ
-local_mode = prefect_utils.local_mode
-cluster_mode = not local_mode
-
-# In local mode, the service URLs are hardcoded in the docker-compose file
-if local_mode:
-    rs_server_href = None  # not used
-# In cluster mode, they are set in an environment variables
-else:
-    rs_server_href = os.environ["RSPY_WEBSITE"]
-
-# In cluster mode, read the API key or OAuth2 token to authenticate to rs-server
-rs_server_api_key = None
-if cluster_mode:
-    rs_server_api_key = os.environ.get("RSPY_APIKEY")
-    if (not rs_server_api_key) and (not os.environ.get("RSPY_OAUTH2_COOKIE")):
-        raise Exception("You need an API key or OAuth2 token to run this flow")
-
-# TEMP: EOPF changes the number of dask workers but we want to keep the current number
-# See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
-worker_count = len(dask_client_eopf.scheduler_info()["workers"])
+# Global vars
+caller_env: dict = None  # prefect env vars, will be copied into dask env
+rs_server_href = None  # rspy service urls
+rs_server_api_key = None  # rspy api key
 
 
 ##########################
@@ -80,7 +45,7 @@ worker_count = len(dask_client_eopf.scheduler_info()["workers"])
 
 
 @flow
-def s3l0_demo_processor(
+async def s3l0_demo_processor(
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -120,6 +85,11 @@ def s3l0_demo_processor(
             - Configuration file creation fails
             - Publishing to the catalog fails
     """
+    global caller_env, rs_server_href, rs_server_api_key
+
+    # Read prefect blocks into env vars
+    await prefect_utils.read_prefect_blocks(owner_id)
+
     # Record all flow in an Opentelemetry span
     with init_opentelemetry.start_span(__name__, "s3l0_demo_processor"):
 
@@ -128,8 +98,10 @@ def s3l0_demo_processor(
 
         logger = get_run_logger()
 
-        # Upload utility modules to dask clients
-        dask_utils.upload_util_modules([dask_client_eopf])
+        # Update global vars after reading the env from the prefect block
+        caller_env = os.environ
+        rs_server_href = os.getenv("RSPY_WEBSITE")
+        rs_server_api_key = os.environ.get("RSPY_APIKEY")
 
         module, processing_unit = extract_module_and_processing_unit(payload_file)
         if not module or not processing_unit:
@@ -213,12 +185,12 @@ def s3l0_demo_processor(
         )
 
         # wait for results
-        staging_cadip_res = cadip_job_staging_monitor_task.result()
-        staging_auxip_res = auxip_job_staging_monitor_task.result()
+        try:
+            cadip_job_staging_monitor_task.result()
+            auxip_job_staging_monitor_task.result()
+        except Exception as e:
+            raise RuntimeError("Failed to stage all the needed files. Exiting") from e
 
-        if not staging_cadip_res or not staging_auxip_res:
-            logger.error("Failed to stage all the needed files. Exiting")
-            raise RuntimeError("Failed to stage all the needed files. Exiting")
         # get the staged files from the catalog
         catalog_res = ItemCollection(
             list(catalog_client.get_items(collection_name, catalog_item_ids)),
@@ -268,7 +240,7 @@ def extract_module_and_processing_unit(payload_file: str):
     """Extract module and processing unit from the payload file."""
     logger = get_run_logger()
 
-    with open(os.path.join("l0", "config", payload_file), "r") as file:
+    with open(os.path.join(THIS_DIR, "l0", "config", payload_file), "r") as file:
         payload = yaml.safe_load(file)
 
     workflow = payload.get("workflow", [])
@@ -320,33 +292,13 @@ def job_staging_monitor(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-
-    try:
-        status_type, job_identifier = job_status["status"], job_status["jobID"]
-        if not job_identifier:
-            logger.error("Job identifier is missing.")
-            return False
-
-        while timeout > 0 and status_type not in {"successful", "failed", "dismissed"}:
-            job_status = staging_client.get_job_info(job_identifier)
-            logger.info(f"job_status = {job_status}")
-            status_type = job_status.get("status")
-            logger.info(
-                f"----- Staging job for {job_identifier}: {status_type.upper()} \n",
-            )
-            time.sleep(poll_interval)
-            timeout -= poll_interval
-
-    except Exception as e:
-        logger.exception(f"Exception while monitoring job: {e}")
-        return False
-
-    if status_type == "successful":
-        logger.info(f"----- Staging job for {job_identifier}: COMPLETED \n")
-        return True
-    else:
-        logger.info(f"----- Staging job for {job_identifier}: FAILED \n")
-        return False
+    staging_client.wait_for_job(
+        job_status,
+        logger,
+        "Staging",
+        timeout,
+        poll_interval,
+    )
 
 
 @task(name="auxip-search")
@@ -407,7 +359,7 @@ async def config_file(
     logger.info("Start config file")
 
     # Read the payload file from the local config directory
-    local_payload_path = os.path.join("l0", "config", payload_file)
+    local_payload_path = os.path.join(THIS_DIR, "l0", "config", payload_file)
     try:
         with open(local_payload_path, "r", encoding="utf-8") as f:
             try:
@@ -611,8 +563,8 @@ async def eopf_aux_data_search(
     """
     logger = get_run_logger()
 
-    # Copy env vars from the caller
-    dask_utils.copy_caller_env(caller_env)
+    # Get DPR client
+    dpr_client = RsClient(rs_server_href).get_dpr_client()
 
     # Init opentelemetry and record all task in an Opentelemetry span
     init_opentelemetry.init_traces("rs.client.dask", logger)
@@ -622,7 +574,7 @@ async def eopf_aux_data_search(
         flow_span_context,
     ):
         auxip_cql2 = requests.get(
-            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/processes/s3_l0",
+            f"{dpr_client.href_service}/dpr/processes/s3_l0",
             data=json.dumps({"use_mockup": True}),
         ).json()
         logger.info(f"Auxip tasktable from eopf triggering: {auxip_cql2}")
@@ -639,8 +591,8 @@ async def dpr_service(
 ):
     logger = get_run_logger()
 
-    # Copy env vars from the caller
-    dask_utils.copy_caller_env(caller_env)
+    # Get DPR client
+    dpr_client = RsClient(rs_server_href).get_dpr_client()
 
     # Also save the given output dir as an env var
     os.environ["OUTPUT_DIR"] = output_data_dir
@@ -663,8 +615,8 @@ async def dpr_service(
         # Download the input config dir locally
         # NOTE: maybe we should only download the payload file + only necessary config files
         # rather than the whole directory.
-        local_config_dir = "config"
-        payload_abs_path = osp.join("/", os.getcwd(), local_config_dir, payload_file)
+        local_config_dir = osp.join(THIS_DIR, "config")
+        payload_abs_path = osp.join(local_config_dir, payload_file)
         logger.info(f"payload_abs_path = {payload_abs_path}")
         await prefect_utils.s3_download_dir(input_config_dir, local_config_dir)
 
@@ -675,24 +627,7 @@ async def dpr_service(
         os.makedirs(report_dirname, exist_ok=True)
         with open(payload_abs_path, "r") as payload_data:
             data = yaml.safe_load(payload_data)
-        data.update({"use_mockup": True})
+        data.update({"use_mockup": use_dpr_mockup})
 
-        dpr_service_response = requests.post(
-            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/processes/s3_l0/execution",
-            data=json.dumps(data),
-        ).json()
-        logger.info(f"dpr_service_response = {dpr_service_response}")
-        match = re.search(r"'identifier': '([^']+)'", dpr_service_response)
-        dpr_service_job_id = match.group(1) if match else None
-        logger.info(f"DPR service job id {dpr_service_job_id}")
-        job_response = requests.get(
-            f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/jobs/{dpr_service_job_id}",
-        ).json()
-        while job_response["status"] == "running":
-            job_response = requests.get(
-                f"{os.environ['RSPY_DPR_SERVICE_ADDRESS']}/dpr/jobs/{dpr_service_job_id}",
-            ).json()
-        #
-        result = ast.literal_eval(job_response["message"])
-        # logger.info(result)
-        return result
+        job_status = dpr_client.run_process("s3_l0", data)
+        return dpr_client.wait_for_job(job_status, logger, "'S3 L0 processor'")
