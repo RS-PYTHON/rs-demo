@@ -23,10 +23,9 @@ from pathlib import Path
 from distributed import worker_client
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
+from resources import dask_utils
 from resources.dask_utils import get_ip_address
 from rs_common import prefect_utils
-
-from resources import dask_utils
 
 # Read prefect blocks into env vars
 prefect_utils.read_prefect_blocks(_sync=True)
