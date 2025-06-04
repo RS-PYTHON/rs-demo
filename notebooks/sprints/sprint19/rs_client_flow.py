@@ -19,7 +19,7 @@ import os
 import sys
 
 from prefect import flow, get_run_logger, task
-from rs_client.staging_client import StagingClient
+from rs_client.ogcapi.staging_client import StagingClient
 
 
 @task

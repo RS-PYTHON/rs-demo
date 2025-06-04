@@ -18,46 +18,38 @@ import os
 import os.path as osp
 import re
 import subprocess
-import sys
 import time
+from importlib import reload
 from pathlib import Path
 
 import requests
-import rs_common
 from opentelemetry import trace
 from opentelemetry.trace.span import SpanContext
 from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
-from rs_common import init_opentelemetry
+from resources import dask_utils
+from rs_common import init_opentelemetry, prefect_utils
 
-from resources import dask_utils, prefect_utils
-
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
+# Read prefect blocks into env vars
+prefect_utils.read_prefect_blocks(_sync=True)
+local_mode = prefect_utils.local_mode
 
 # Get the existing dask cluster info from the env vars passed by the client.
+reload(dask_utils)  # reload global vars from env
 dask_cluster_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
     os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     dask_cluster_name,
 )
 
-# Save the caller (=the prefect) env vars and variables, to be used by the dask tasks.
-# These lines of code is not called by the dask workers.
-caller_env = os.environ
-local_mode = prefect_utils.local_mode
-
-# In local mode, the service URLs are hardcoded in the docker-compose file
-if local_mode:
-    rs_server_href = None  # not used
-# In cluster mode, they are set in an environment variables
-else:
-    rs_server_href = os.environ["RSPY_WEBSITE"]
-
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
 worker_count = len(dask_client.scheduler_info()["workers"])
+
+# Global vars
+caller_env: dict = None  # prefect env vars, will be copied into dask env
+rs_server_href = None  # rspy service urls
 
 
 ##########################
@@ -66,7 +58,8 @@ worker_count = len(dask_client.scheduler_info()["workers"])
 
 
 @flow
-def first_l0_processor(
+async def first_l0_processor(
+    owner_id: str,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -75,17 +68,27 @@ def first_l0_processor(
     Trigger an EOPF L0 processing.
 
     Args:
+        owner_id: user/owner id
         input_config_dir: s3 bucket directory that contains the configuration files (NOT THE VOLUMINOUS DATA !).
         It will be downloaded locally.
         payload_file: input yaml configuration file to pass to the triggering. Local to the 'input_config_dir'.
         output_data_dir: s3 bucket directory that will contain the generated data.
     """
+    global caller_env, rs_server_href
+
+    # Read prefect blocks into env vars
+    await prefect_utils.read_prefect_blocks(owner_id)
+
     # Record all flow in an Opentelemetry span
     init_opentelemetry.init_traces("rs.client.prefect")
     with init_opentelemetry.start_span(__name__, "first_l0_processor_flow"):
 
         # Extract span infos to send to Dask
         flow_span_context = trace.get_current_span().get_span_context()
+
+        # Update global vars after reading the env from the prefect block
+        caller_env = os.environ
+        rs_server_href = os.getenv("RSPY_WEBSITE")
 
         # Upload utility modules to dask clients
         dask_utils.upload_util_modules([dask_client])

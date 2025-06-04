@@ -2,7 +2,7 @@ import asyncio
 import random
 
 from prefect import flow, get_run_logger
-from resources.prefect_utils import get_ip_address
+from resources.dask_utils import get_ip_address
 
 
 @flow(name="lazy-flow-asyncio")

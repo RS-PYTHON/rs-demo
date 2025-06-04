@@ -27,7 +27,7 @@ import random
 from pathlib import Path
 
 from prefect import flow, get_run_logger, task
-from resources.prefect_utils import get_ip_address
+from rs_common.prefect_utils import get_ip_address
 
 # NOTE: the main code outside the functions is run by both the client and prefect workers.
 # But this log won't show when run from a prefect worker because get_run_logger() is not available yet.

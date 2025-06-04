@@ -63,15 +63,10 @@ def get_dask_gateway(
             ) from error
 
     else:  # local mode
-        try:
-            auth = BasicAuth(
-                os.environ["LOCAL_DASK_USERNAME"],
-                os.environ["LOCAL_DASK_PASSWORD"],
-            )
-        except KeyError as error:
-            raise KeyError(
-                "You must call init_prefect_blocks() before this function.",
-            ) from error
+        auth = BasicAuth(
+            os.environ["LOCAL_DASK_USERNAME"],
+            os.environ["LOCAL_DASK_PASSWORD"],
+        )
 
     return Gateway(address=address, auth=auth)
 
@@ -307,8 +302,9 @@ def shutdown_dask_clusters(gateway: Gateway, name: str | None):
 def upload_util_modules(clients: list[DaskClient]):
     """
     Upload utility modules from the caller (=prefect or jupyter) environment to dask clients.
-    These modules should not import other modules that are not installed in the dask environment
-    or you'll have import errors.
+
+    WARNING: These modules should not import other modules that are not installed in the dask
+    environment or you'll have import errors.
 
     Args:
         clients: list of dask clients to which upload the modules.
@@ -322,22 +318,22 @@ def upload_util_modules(clients: list[DaskClient]):
 
     rs_common_dir = Path(rs_common.__path__[0])
 
-    # Files and archive names to upload
+    # Files to upload and associated name in the zip archive
     files = {
         root / "resources/__init__.py": "resources/__init__.py",
         root / "resources/dask_utils.py": "resources/dask_utils.py",
-        root / "resources/prefect_utils.py": "resources/prefect_utils.py",
         rs_common_dir / "__init__.py": "rs_common/__init__.py",
-        rs_common_dir / "logging.py": "rs_common/logging.py",
-        rs_common_dir / "utils.py": "rs_common/utils.py",
         rs_common_dir / "init_opentelemetry.py": "rs_common/init_opentelemetry.py",
+        rs_common_dir / "logging.py": "rs_common/logging.py",
+        rs_common_dir / "prefect_utils.py": "rs_common/prefect_utils.py",
+        rs_common_dir / "utils.py": "rs_common/utils.py",
     }
 
     # From a temp dir
     with tempfile.TemporaryDirectory() as tmpdir:
 
         # Create a zip with our files
-        zip_path = f"{tmpdir}/for-dask.zip"
+        zip_path = f"{tmpdir}/rs-demo-resources.zip"
         with zipfile.ZipFile(zip_path, "w") as zipped:
 
             # Zip all files
@@ -370,8 +366,8 @@ def copy_caller_env(caller_env: dict[str, str]):
         "S3_SECRETKEY",
         "S3_ENDPOINT",
         "S3_REGION",
-        "S3_BUCKET_NAME",
-        "S3_BUCKET_FOLDER",
+        "PREFECT_BUCKET_NAME",
+        "PREFECT_BUCKET_FOLDER",
         "DASK_GATEWAY_EOPF_ADDRESS",
         "DASK_CLUSTER_EOPF_NAME",
         "AWS_REQUEST_CHECKSUM_CALCULATION",
@@ -379,7 +375,6 @@ def copy_caller_env(caller_env: dict[str, str]):
         "TEMPO_ENDPOINT",
         "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
         "OTEL_PYTHON_REQUESTS_TRACE_BODY",
-        "RSPY_DPR_SERVICE_ADDRESS",
     ] + (
         ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
         if local_mode
