@@ -18,9 +18,8 @@ from importlib import reload
 
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
-from rs_common import prefect_utils
-
 from resources import dask_utils
+from rs_common import prefect_utils
 
 # Read prefect blocks into env vars
 prefect_utils.read_prefect_blocks(_sync=True)
