@@ -22,3 +22,4 @@ notebooks/demos/stac2025/stac_2025.ipynb
 # Notebooks that tests parallel flows
 notebooks/sprints/sprint24/100_python_flows/test_parallel_flows.ipynb
 notebooks/sprints/sprint24/100_deployments/100_flows_with_deployments.ipynb
+notebooks/sprints/sprint24/604_s3_rights.ipynb
