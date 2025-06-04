@@ -32,19 +32,13 @@ from prefect import flow, get_run_logger, task
 from prefect.artifacts import create_markdown_artifact
 from prefect_dask import DaskTaskRunner
 from pystac import Asset, Item, ItemCollection
-from resources import dask_utils
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry, prefect_utils
 
-<<<<<<< HEAD
-from resources import dask_utils, prefect_utils
+from resources import dask_utils
 
-# Convert the prefect blocks into environment variables for the S3 bucket and authentication.
-prefect_utils.blocks_to_env_vars(_sync=True)
-=======
 # Read prefect blocks into env vars
 prefect_utils.read_prefect_blocks(_sync=True)
->>>>>>> origin/develop
 
 # Get the existing dask cluster info from the env vars passed by the client.
 reload(dask_utils)  # reload global vars from env vars
