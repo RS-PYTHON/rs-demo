@@ -157,8 +157,7 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
-      RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
-      BUCKET_CONFIG_FILE_PATH: /home/user/.config/expiration_bucket.csv
+      BUCKET_CONFIG_FILE_PATH: ${BUCKET_CONFIG_FILE_PATH}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
@@ -166,7 +165,7 @@ services:
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      - ./config/expiration_bucket.csv:/home/user/.config/expiration_bucket.csv
+      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
@@ -206,8 +205,7 @@ services:
       S3_SECRETKEY: ${S3_SECRETKEY}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
-      RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
-      BUCKET_CONFIG_FILE_PATH: /home/user/.config/expiration_bucket.csv
+      BUCKET_CONFIG_FILE_PATH: ${BUCKET_CONFIG_FILE_PATH}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
@@ -218,7 +216,7 @@ services:
       - ./config/openapi.json:/etc/openapi.json
       #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./config/expiration_bucket.csv:/home/user/.config/expiration_bucket.csv
+      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   ############
   # STATIONS #
@@ -605,7 +603,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION}
       RSPY_TEMP_BUCKET: ${RSPY_TEMP_BUCKET}
-      RSPY_CATALOG_BUCKET: ${RSPY_CATALOG_BUCKET}
+      BUCKET_CONFIG_FILE_PATH: ${BUCKET_CONFIG_FILE_PATH}
       # prefect
       PREFECT_URL: ${PREFECT_URL}
       PREFECT_API_URL: ${PREFECT_API_URL}
@@ -630,6 +628,8 @@ services:
       PYTHONPATH: /home/jovyan/notebooks
     volumes:
       - ../notebooks:/home/jovyan/notebooks
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   # Optional: test the api-key manager.
   # Uncomment these lines and add to the rs-server-xxx services:

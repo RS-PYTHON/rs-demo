@@ -1,4 +1,4 @@
-*, *, *, 30, rspython-ops-catalog-all-production
+*, *, *, 30, rs-dev-cluster-catalog
 copernicus, s1-l1, *, 10, rspython-ops-catalog-copernicus-s1-l1
 copernicus, s1-aux, *, 40, rspython-ops-catalog-copernicus-s1-aux
 copernicus, s1-aux, orbsct, 7300, rspython-ops-catalog-copernicus-s1-aux-infinite
@@ -6,7 +6,3 @@ copernicus, s1-aux, obmemc, 7300, rspython-ops-catalog-copernicus-s1-aux-infinit
 copernicus, s3-l1-nrt, *, 10, rspython-ops-catalog-copernicus-s3-l1-nrt
 copernicus, s3-l1-ntc, *, 10, rspython-ops-catalog-copernicus-s3-l1-ntc
 copernicus, s3-l1-stc, *, 10, rspython-ops-catalog-copernicus-s3-l1-stc
-jules, *, *, 10, rspython-ops-catalog-jules-production
-jules, s2-l2, *, 30, rspython-ops-catalog-jules-s2-l2
-antoine, *, *, 60, rspython-ops-catalog-antoine-production
-antoine, *, TM_0_HKM___, 100, rspython-ops-catalog-antoine-s3-hkm
