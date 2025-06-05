@@ -79,10 +79,10 @@ http_session: requests.Session = requests.Session()
 # Except in local mode, where we use a local MinIO object storage instance.
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
-BUCKET_CONFIG_FILE_PATH = os.environ["BUCKET_CONFIG_FILE_PATH"]
 
 # For local mode only
 if local_mode:
+    BUCKET_CONFIG_FILE_PATH = os.environ["BUCKET_CONFIG_FILE_PATH"]
     RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]  # username
 
 OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
@@ -106,6 +106,9 @@ def pretty_print(any_dict: dict, indent=2):
 def get_buckets_from_config_file() -> list:
     """Returns a list of the buckets names in the configuration file."""
     data = []
+    # This function is not called in cluster mode but this is an extra check just in case
+    if not local_mode:
+        return data
     with open(BUCKET_CONFIG_FILE_PATH, newline="", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile, skipinitialspace=True)
         for line in reader:
