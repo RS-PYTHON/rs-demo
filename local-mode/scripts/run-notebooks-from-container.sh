@@ -7,6 +7,9 @@ set -euo pipefail
 # This script is run from the ci/cd
 export RSPY_FROM_CICD=1
 
+# Update env var for CSV config file
+export BUCKET_CONFIG_FILE_PATH=${ROOT_DIR}/local-mode/config/expiration_bucket.csv
+
 all_ok=
 all_errors=
 all_ignored=
