@@ -106,6 +106,7 @@ def pretty_print(any_dict: dict, indent=2):
 def get_buckets_from_config_file() -> list:
     """Returns a list of the buckets names in the configuration file."""
     data = []
+    # This function is not called in cluster mode but this is an extra check just in case
     if not local_mode:
         return data
     with open(BUCKET_CONFIG_FILE_PATH, newline="", encoding="utf-8") as csvfile:
