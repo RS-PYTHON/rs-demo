@@ -630,6 +630,7 @@ services:
       PYTHONPATH: /home/jovyan/notebooks
     volumes:
       - ../notebooks:/home/jovyan/notebooks
+      - ./scripts:/scripts
 
   # Optional: test the api-key manager.
   # Uncomment these lines and add to the rs-server-xxx services:
