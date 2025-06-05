@@ -20,15 +20,12 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 import json
 import logging
 import os
-import pprint
 import time
 from datetime import datetime
 from typing import Optional
 
 import boto3
 import requests
-import rs_common
-import rs_common.logging
 from pystac import (
     Collection,
     Extent,
@@ -45,11 +42,13 @@ from rs_client.rs_client import RsClient
 from rs_client.stac.auxip_client import AuxipClient
 from rs_client.stac.cadip_client import CadipClient
 from rs_client.stac.catalog_client import CatalogClient
+from rs_common.logging import Logging
 from rs_common.prefect_utils import init_prefect_blocks
 
 # Variables
 # Set logger level to info
-rs_common.logging.Logging.level = logging.INFO
+Logging.level = logging.INFO
+logger = Logging.default(__name__)
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -291,26 +290,19 @@ def stage_data(
     """Stage an item collection into the STAC catalog and return it."""
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
-    started_job = staging_client.run_staging(staging_input, catalog_collection_name)
-    while timeout > 0:
-        if "running" not in started_job["status"]:
-            break
-        job_info = staging_client.get_job_info(started_job["jobID"])
-        pprint.PrettyPrinter(indent=4).pprint(job_info)
-        print("\n")
-        if "successful" in job_info["status"]:
-            print(" ----- Job COMPLETED \n")
-            time.sleep(0.5)
-            return ItemCollection(
-                list(catalog_client.get_items(catalog_collection_name, items_id)),
-            )
-        if "failed" in job_info["status"]:
-            print("-----Job FAILED \n")
-            break
-        time.sleep(2)
-        timeout -= 2
-
-    return None
+    all_job_status = staging_client.run_staging(staging_input, catalog_collection_name)
+    for hostname, job_status in all_job_status.items():
+        staging_client.wait_for_job(
+            job_status,
+            logger,
+            f"Staging from {hostname!r}",
+            timeout,
+            2,
+        )
+    time.sleep(0.5)
+    return ItemCollection(
+        list(catalog_client.get_items(catalog_collection_name, items_id)),
+    )
 
 
 def stage_single_item(

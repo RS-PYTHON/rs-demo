@@ -3,8 +3,9 @@
 # We have random errors with eopf
 notebooks/sprints/sprint20/dpr_processor_example.ipynb
 
-# UAC notebook, works only on cluster mode
+# Notebooks that work only on cluster mode
 notebooks/sprints/sprint21/350-staging-roles.ipynb
+notebooks/sprints/sprint24/604_s3_rights.ipynb
 
 # Old versions of the on-demand processing flow
 notebooks/sprints/sprint21/first_l0_processor.ipynb
@@ -22,4 +23,3 @@ notebooks/demos/stac2025/stac_2025.ipynb
 # Notebooks that tests parallel flows
 notebooks/sprints/sprint24/100_python_flows/test_parallel_flows.ipynb
 notebooks/sprints/sprint24/100_deployments/100_flows_with_deployments.ipynb
-notebooks/sprints/sprint24/604_s3_rights.ipynb

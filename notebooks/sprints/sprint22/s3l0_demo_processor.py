@@ -312,37 +312,18 @@ def job_staging_monitor(
     )
 
     staging_client = generic_client.get_staging_client()
-    job_status = staging_client.run_staging(
+    all_job_status = staging_client.run_staging(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-
-    try:
-        status_type, job_identifier = job_status["status"], job_status["jobID"]
-        if not job_identifier:
-            logger.error("Job identifier is missing.")
-            return False
-
-        while timeout > 0 and status_type not in {"successful", "failed", "dismissed"}:
-            job_status = staging_client.get_job_info(job_identifier)
-            logger.info(f"job_status = {job_status}")
-            status_type = job_status.get("status")
-            logger.info(
-                f"----- Staging job for {job_identifier}: {status_type.upper()} \n",
-            )
-            time.sleep(poll_interval)
-            timeout -= poll_interval
-
-    except Exception as e:
-        logger.exception(f"Exception while monitoring job: {e}")
-        return False
-
-    if status_type == "successful":
-        logger.info(f"----- Staging job for {job_identifier}: COMPLETED \n")
-        return True
-    else:
-        logger.info(f"----- Staging job for {job_identifier}: FAILED \n")
-        return False
+    for hostname, job_status in all_job_status.items():
+        staging_client.wait_for_job(
+            job_status,
+            logger,
+            f"Staging from {hostname!r}",
+            timeout,
+            poll_interval,
+        )
 
 
 @task(name="auxip-search")
