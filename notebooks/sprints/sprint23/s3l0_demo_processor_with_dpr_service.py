@@ -288,18 +288,11 @@ def job_staging_monitor(
     )
 
     staging_client = generic_client.get_staging_client()
-    all_job_status = staging_client.run_staging(
+    job_status = staging_client.run_staging(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-    for hostname, job_status in all_job_status.items():
-        staging_client.wait_for_job(
-            job_status,
-            logger,
-            f"Staging from {hostname!r}",
-            timeout,
-            poll_interval,
-        )
+    staging_client.wait_for_jobs(job_status, logger, timeout, poll_interval)
 
 
 @task(name="auxip-search")

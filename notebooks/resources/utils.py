@@ -306,15 +306,8 @@ def stage_data(
     """Stage an item collection into the STAC catalog and return it."""
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
-    all_job_status = staging_client.run_staging(staging_input, catalog_collection_name)
-    for hostname, job_status in all_job_status.items():
-        staging_client.wait_for_job(
-            job_status,
-            logger,
-            f"Staging from {hostname!r}",
-            timeout,
-            2,
-        )
+    job_status = staging_client.run_staging(staging_input, catalog_collection_name)
+    staging_client.wait_for_jobs(job_status, logger, timeout, 2)
     time.sleep(0.5)
     return ItemCollection(
         list(catalog_client.get_items(catalog_collection_name, items_id)),
