@@ -4,43 +4,6 @@
 
 set -euo pipefail
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-ROOT_DIR="$(realpath $SCRIPT_DIR/..)"
-
-#
-# Find the docker image:tag to use
-
-docker_image="ghcr.io/rs-python/jupyter/rs-client-libraries/local"
-
-# Docker tag to use = 1st parameter passed to the script, or latest by default.
-docker_tag=${1:-latest}
-
-set +e # allow errors here
-
-# Check if the docker image exists in the registry
-error_message=$(set -x; docker manifest inspect "${docker_image}:${docker_tag}" 2>&1)
-error=$?
-
-# If yes, use it to run the notebooks
-if [[ "$error" == 0 ]]; then
-    docker_image_tag="${docker_image}:${docker_tag}"
-
-# If not found, use the default tag
-elif [[ "$error_message" == "manifest unknown" ]]; then
-    docker_image_tag="${docker_image}:latest"
-
-# For any other error, exit the script
-else
-    >&2 echo "$error_message"
-    exit 1
-fi
-
-set -e # restore checking errors
-echo "docker_image_tag=$docker_image_tag"
-
-#
-# Run services
-
 # Call the health endpoint until it returns a status code OK
 wait_for_service() {
 
@@ -58,17 +21,8 @@ wait_for_service() {
 wait_for_service 8001 "health" # adgs
 wait_for_service 8002 "health" # cadip
 wait_for_service 8003 "_mgmt/ping" # catalog
+wait_for_service 8888 "login" # jupyter
 
-# Run the notebooks from a container, in the same network than the docker-compose,
-# with the same options than the jupyter service in the docker-compose.
-(
-    set -x;
-    docker run --rm \
-        --user=root \
-        --network rspy-network \
-        -v "$ROOT_DIR:$ROOT_DIR" \
-        -v rspy-demo_rspy_working_dir:/rspy/working/dir \
-        -e RSPY_HOST_USER="$USER" \
-        "${docker_image_tag}" \
-        "${SCRIPT_DIR}/scripts/run-notebooks-from-container.sh"
-)
+# Run the notebooks from the jupyter service from the docker-compose.
+set -x;
+docker exec jupyter /scripts/run-notebooks-from-container.sh
