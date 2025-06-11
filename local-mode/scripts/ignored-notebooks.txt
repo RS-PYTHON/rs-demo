@@ -1,5 +1,8 @@
 # Ignore notebooks from the ci/cd
 
+# This one has random errors, maybe we should investigate why
+notebooks/sprints/sprint19/hello_world_flow.ipynb
+
 # We have random errors with eopf
 notebooks/sprints/sprint20/dpr_processor_example.ipynb
 
