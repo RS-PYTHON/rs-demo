@@ -22,6 +22,18 @@ workflow:
   outputs:
     datatakeid_.*: output_folder
 
+  adfs:
+    osf: OSF
+    fro: FRO
+    # session_info: SSI
+
+  # TODO: check if these have contents
+  parameters:
+    acquisition_report_output_path: ./output_params/s1
+    streaming_mode: false
+    temporary_path: ./output_params/tmp
+
+
 I/O:
   # input products descriptions and access parameters
   input_products:
@@ -42,6 +54,32 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT_K8S}
           region_name: ${S3_REGION_K8S}
+
+  adfs:
+
+  - id: OSF
+    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0027.EOF.zip
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+
+  - id: FRO
+    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/S1A_OPER_MPL_ORBPRE_20250612T021934_20250619T021933_0001.EOF.zip
+    store_params:
+      storage_options:
+        key: ${S3_ACCESSKEY}
+        secret: ${S3_SECRETKEY}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT}
+          region_name: ${S3_REGION}
+
+  # - id: SSI
+  #   path : ./DCS_01_S1C_20221108193130000004_dat/ch_1/DCS_01_S1C_20221108193130000004_ch1_DSIB.xml
+
 
   output_products:
   - id: output_folder
@@ -83,4 +121,5 @@ dask_context:
 logging: ../logging_config.yaml
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
-- "./iw_configuration.yaml"
+- ./iw_configuration.yaml
+- ../l0_dask_configuration.yaml
