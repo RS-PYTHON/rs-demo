@@ -388,7 +388,7 @@ async def hack_payload(filename: str):
             },
         )
     # Change the bucket accees
-    for input_product in payload["I/O"]["input_products"]:
+    for input_product in payload["I/O"]["input_products"] + payload["I/O"]["adfs"]:
         store_params = input_product["store_params"]
         if local_mode:
             store_params["storage_options"] = store_params["storage_options_local_mode"]

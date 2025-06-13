@@ -39,7 +39,7 @@ I/O:
   input_products:
 
   - id: S1ACADU
-    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/S1A_20240410083700053369.short
+    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594.short
     store_type: cadu
     store_params:
       storage_options:
@@ -58,7 +58,7 @@ I/O:
   adfs:
 
   - id: OSF
-    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0027.EOF.zip
+    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0027.EOF
     store_params:
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -66,9 +66,15 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
+      storage_options_local_mode: # in local mode, use the cluster s3 bucket
+        key: ${S3_ACCESSKEY_K8S}
+        secret: ${S3_SECRETKEY_K8S}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT_K8S}
+          region_name: ${S3_REGION_K8S}
 
   - id: FRO
-    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/S1A_OPER_MPL_ORBPRE_20250612T021934_20250619T021933_0001.EOF.zip
+    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBPRE_20250612T021934_20250619T021933_0001.EOF
     store_params:
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -76,9 +82,28 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
+      storage_options_local_mode: # in local mode, use the cluster s3 bucket
+        key: ${S3_ACCESSKEY_K8S}
+        secret: ${S3_SECRETKEY_K8S}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT_K8S}
+          region_name: ${S3_REGION_K8S}
 
   # - id: SSI
-  #   path : ./DCS_01_S1C_20221108193130000004_dat/ch_1/DCS_01_S1C_20221108193130000004_ch1_DSIB.xml
+  #   path : s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594.short/DCS_04_S1A_20250611050700059594_ch1_DSIB.xml
+  #   store_params:
+  #     storage_options:
+  #       key: ${S3_ACCESSKEY}
+  #       secret: ${S3_SECRETKEY}
+  #       client_kwargs:
+  #         endpoint_url: ${S3_ENDPOINT}
+  #         region_name: ${S3_REGION}
+  #     storage_options_local_mode: # in local mode, use the cluster s3 bucket
+  #       key: ${S3_ACCESSKEY_K8S}
+  #       secret: ${S3_SECRETKEY_K8S}
+  #       client_kwargs:
+  #         endpoint_url: ${S3_ENDPOINT_K8S}
+  #         region_name: ${S3_REGION_K8S}
 
 
   output_products:
