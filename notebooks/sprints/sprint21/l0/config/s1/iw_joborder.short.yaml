@@ -27,7 +27,6 @@ workflow:
     fro: FRO
     # session_info: SSI
 
-  # TODO: check if these have contents
   parameters:
     acquisition_report_output_path: ./output_params/s1
     streaming_mode: false
