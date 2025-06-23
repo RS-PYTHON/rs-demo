@@ -381,18 +381,22 @@ async def hack_payload(filename: str):
             )
         os.environ.update(
             {
-                "S3_ACCESSKEY_K8S": k8s_access["access_key"],
-                "S3_SECRETKEY_K8S": k8s_access["secret_key"],
-                "S3_ENDPOINT_K8S": k8s_access["host_bucket"],
-                "S3_REGION_K8S": k8s_access["bucket_location"],
+                "S3_ACCESSKEY_CLUSTER": k8s_access["access_key"],
+                "S3_SECRETKEY_CLUSTER": k8s_access["secret_key"],
+                "S3_ENDPOINT_CLUSTER": k8s_access["host_bucket"],
+                "S3_REGION_CLUSTER": k8s_access["bucket_location"],
             },
         )
-    # Change the bucket accees
-    for input_product in payload["I/O"]["input_products"] + payload["I/O"]["adfs"]:
-        store_params = input_product["store_params"]
-        if local_mode:
-            store_params["storage_options"] = store_params["storage_options_local_mode"]
-        del store_params["storage_options_local_mode"]
+    # In cluster mode, just use the regular cluster access
+    else:
+        os.environ.update(
+            {
+                "S3_ACCESSKEY_CLUSTER": os.environ["S3_ACCESSKEY"],
+                "S3_SECRETKEY_CLUSTER": os.environ["S3_SECRETKEY"],
+                "S3_ENDPOINT_CLUSTER": os.environ["S3_ENDPOINT"],
+                "S3_REGION_CLUSTER": os.environ["S3_REGION"],
+            },
+        )
 
     # Write back the payload contents
     with open(filename, "w", encoding="utf-8") as opened:
