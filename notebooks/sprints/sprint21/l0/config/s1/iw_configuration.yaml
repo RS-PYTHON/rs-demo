@@ -604,171 +604,143 @@ S1:
       signal_type:
         type: allowed
         values: [0, 1, 8, 9, 10, 11, 12, 15]
-
       packet_version:
-        bit_offset: 0
-        bit_length: 3
-
+        type: range
+        min: 0
+        max: 7
       packet_type:
-        bit_offset: 3
-        bit_length: 1
-
+        type: range
+        min: 0
+        max: 1
       header_flag:
-        bit_offset: 4
-        bit_length: 1
-
+        type: range
+        min: 0
+        max: 1
       application_process_identifier:
-        bit_offset: 5
-        bit_length: 11
-
+        type: range
+        min: 0
+        max: 2047
       packet_category:
-        bit_offset: 12
-        bit_length: 4
-
+        type: range
+        min: 0
+        max: 15
       sequence_flag:
-        bit_offset: 16
-        bit_length: 2
-
+        type: range
+        min: 0
+        max: 3
       packet_sequence_count:
-        bit_offset: 18
-        bit_length: 14
-
+        type: range
+        min: 0
+        max: 16383
       packet_data_length:
-        bit_offset: 32
-        bit_length: 16
+        type: range
+        min: 0
+        max: 65535
 
-      # Datation Service
       coarse_time:
-
-        bit_offset: 48
-        bit_length: 32
-
+        type: range
+        min: 0
+        max: 4294967295
       fine_time:
-
-        bit_offset: 80
-        bit_length: 16
-
-      datatake_id:
-
-        bit_offset: 128
-        bit_length: 32
-
+        type: range
+        min: 0
+        max: 65535
       test_mode:
-
-        bit_offset: 169
-        bit_length: 3
-
-      # Counters Service
+        type: range
+        min: 0
+        max: 7
+      instrument_configuration_id:
+        type: range
+        min: 0
+        max: 4294967295
       space_packet_count:
-
-        bit_offset: 232
-        bit_length: 32
-
+        type: range
+        min: 0
+        max: 4294967295
       mode_pri_count:
-
-        bit_offset: 264
-        bit_length: 32
-
-      # Radar Configuration Support Service
+        type: range
+        min: 0
+        max: 4294967295
       error_flag:
-
-        bit_offset: 296
-        bit_length: 1
-
+        type: range
+        min: 0
+        max: 1
       baq_block_length:
-
-        bit_offset: 304
-        bit_length: 8
-
+        type: range
+        min: 0
+        max: 255
       range_decimation:
-
-        bit_offset: 320
-        bit_length: 8
-
+        type: range
+        min: 0
+        max: 255
       rx_gain:
-
-        bit_offset: 328
-        bit_length: 8
-
+        type: range
+        min: 0
+        max: 255
       tx_pulse_ramp_rate:
-
-        bit_offset: 336
-        bit_length: 16
-
+        type: range
+        min: 0
+        max: 65535
       tx_pulse_start_frequency:
-
-        bit_offset: 352
-        bit_length: 16
-
+        type: range
+        min: 0
+        max: 65535
       tx_pulse_length:
-
-        bit_offset: 368
-        bit_length: 24
-
+        type: range
+        min: 0
+        max: 16777215
       rank:
-        bit_offset: 395
-        bit_length: 5
-
+        type: range
+        min: 0
+        max: 31
       pulse_repetition_interval:
-
-        bit_offset: 400
-        bit_length: 24
-
+        type: range
+        min: 0
+        max: 16777215
       sampling_window_start_time:
-
-        bit_offset: 424
-        bit_length: 24
-
+        type: range
+        min: 0
+        max: 16777215
       sampling_window_length:
-
-        bit_offset: 448
-        bit_length: 24
-
+        type: range
+        min: 0
+        max: 16777215
       sas_ssb_data_field:
-
-        bit_offset: 472
-        bit_length: 1
-
+        type: range
+        min: 0
+        max: 1
       temperature_compensation:
-
-        bit_offset: 476
-        bit_length: 2
-
+        type: range
+        min: 0
+        max: 3
       elevation_beam_address:
-
-        bit_offset: 480
-        bit_length: 4
-
+        type: range
+        min: 0
+        max: 15
       azimuth_beam_address:
-
-        bit_offset: 486
-        bit_length: 10
-
+        type: range
+        min: 0
+        max: 1023
       calibration_mode:
-
-        bit_offset: 496
-        bit_length: 2
-
+        type: range
+        min: 0
+        max: 3
       tx_pulse_number:
-
-        bit_offset: 499
-        bit_length: 5
-
+        type: range
+        min: 0
+        max: 31
       swap_flag:
-
-        bit_offset: 511
-        bit_length: 1
-
+        type: range
+        min: 0
+        max: 1
       swath_number:
-
-        bit_offset: 512
-        bit_length: 8
-
+        type: range
+        min: 0
+        max: 255
       radar_sample_count_service:
-
-        bit_offset: 520
-        bit_length: 16
-
+        type: range
+        min: 0
+        max: 65535
     ais:
       discard_packets: true
       packet_version:
