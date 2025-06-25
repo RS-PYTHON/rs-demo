@@ -93,7 +93,7 @@ async def first_l0_processor(
         # Upload utility modules to dask clients
         dask_utils.upload_util_modules([dask_client])
 
-        # test_req = requests.get("https://fr.wikipedia.org/wiki/Topinambour")
+        test_req = requests.get("https://fr.wikipedia.org/wiki/Topinambour")
 
         # TODO: should be passed as user-given parameter
         rs_server_api_key = "my_api_key"
@@ -150,7 +150,7 @@ def dummy_auxip_search(
     logger = get_run_logger()
     logger.info("Start (dummy) auxip search")
     time.sleep(1)  # this task should run in parallel with cadip
-    # test_req = requests.get("https://fr.wikipedia.org/wiki/Val_Kilmer")
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Val_Kilmer")
     # AuxipClient(rs_server_href, rs_server_api_key, None, station)
     logger.info(f"End (dummy) auxip search")
     return {}
@@ -165,7 +165,7 @@ def dummy_cadip_search(
     logger = get_run_logger()
     logger.info("Start (dummy) cadip search")
     time.sleep(1)  # this task should run in parallel with auxip
-    # test_req = requests.get("https://fr.wikipedia.org/wiki/Copernicus_(programme)")
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Copernicus_(programme)")
     # CadipClient(rs_server_href, rs_server_api_key, None, station)
     logger.info(f"End (dummy) cadip search")
     return {}
@@ -177,7 +177,7 @@ def dummy_staging(rs_server_api_key: str, *_):
     logger = get_run_logger()
     logger.info("Start (dummy) staging")
     time.sleep(1)
-    # test_req = requests.get("https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne")
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne")
     # StagingClient(rs_server_href, rs_server_api_key, None)
     logger.info(f"End (dummy) staging search")
     return {}
@@ -199,7 +199,7 @@ def dummy_catalog_save(eopf_result, rs_server_api_key: str, owner_id: str):
     logger = get_run_logger()
     logger.info("Start catalog saving")
     time.sleep(1)
-    # test_req = requests.get("https://fr.wikipedia.org/wiki/Sid_(L%27%C3%82ge_de_glace)")
+    test_req = requests.get("https://fr.wikipedia.org/wiki/Sid_(L%27%C3%82ge_de_glace)")
     # CatalogClient(rs_server_href, rs_server_api_key, owner_id)
     logger.info(f"End (dummy) catalog saving:")
     return {}
@@ -255,9 +255,9 @@ async def main_dask_task(
     with init_opentelemetry.start_span(__name__, "main_dask_flow", flow_span_context):
 
         # # Basic request to use as test tracker
-        # wiki_result = requests.get(
-        #     "https://fr.wikipedia.org/wiki/Patrick_Balkany#Affaires_judiciaires",
-        # )
+        wiki_result = requests.get(
+            "https://fr.wikipedia.org/wiki/Patrick_Balkany#Affaires_judiciaires",
+        )
 
         # Output report dir
         report_dirname = "reports"
@@ -375,16 +375,12 @@ async def hack_payload(filename: str):
     # In local mode, open the user's s3cmd config file to use the cluster s3 bucket access.
     # It is mounted by the docker-compose.yml
     if local_mode:
-        if not (k8s_access := dotenv_values("/.s3cfg")):
-            raise Exception(
-                "You must have a s3cmd config file under '~/.s3cfg' to use this flow",
-            )
         os.environ.update(
             {
-                "S3_ACCESSKEY_CLUSTER": k8s_access["access_key"],
-                "S3_SECRETKEY_CLUSTER": k8s_access["secret_key"],
-                "S3_ENDPOINT_CLUSTER": k8s_access["host_bucket"],
-                "S3_REGION_CLUSTER": k8s_access["bucket_location"],
+                "S3_ACCESSKEY_CLUSTER": os.environ["access_key"],
+                "S3_SECRETKEY_CLUSTER": os.environ["secret_key"],
+                "S3_ENDPOINT_CLUSTER": os.environ["host_bucket"],
+                "S3_REGION_CLUSTER": os.environ["bucket_location"],
             },
         )
     # In cluster mode, just use the regular cluster access
