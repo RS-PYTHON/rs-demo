@@ -360,7 +360,7 @@ def copy_caller_env(caller_env: dict[str, str]):
     cluster_mode = not local_mode
 
     # Copy env vars from the caller
-    for key in [
+    keys = [
         "RSPY_LOCAL_MODE",
         "S3_ACCESSKEY",
         "S3_SECRETKEY",
@@ -375,10 +375,21 @@ def copy_caller_env(caller_env: dict[str, str]):
         "TEMPO_ENDPOINT",
         "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
         "OTEL_PYTHON_REQUESTS_TRACE_BODY",
-    ] + (
-        ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
-        if local_mode
-        else ["JUPYTERHUB_API_TOKEN"]
-    ):
+    ]
+    if local_mode:
+        keys.extend(
+            [
+                "LOCAL_DASK_USERNAME",
+                "LOCAL_DASK_PASSWORD",
+                "access_key",
+                "bucket_location",
+                "host_base",
+                "host_bucket",
+                "secret_key",
+            ],
+        )
+    else:
+        keys.extend(["JUPYTERHUB_API_TOKEN"])
+    for key in keys:
         if value := caller_env.get(key):
             os.environ[key] = value

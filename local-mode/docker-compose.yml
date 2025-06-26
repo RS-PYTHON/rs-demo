@@ -485,8 +485,6 @@ services:
       --ClusterConfig.worker_threads="${DASK_THREADS_EOPF}"
     ports:
       - 8702:8000
-    env_file: # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-      - ~/.s3cfg
 
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
