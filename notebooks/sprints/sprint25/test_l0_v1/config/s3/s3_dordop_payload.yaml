@@ -113,6 +113,7 @@ dask_context:
   cluster_config:
     address: ${DASK_GATEWAY_EOPF_ADDRESS}
     reuse_cluster: ${DASK_CLUSTER_EOPF_NAME}
+    workers: ${N_WORKERS}
     auth:
       type: jupyterhub
       api_token: ${JUPYTERHUB_API_TOKEN}
