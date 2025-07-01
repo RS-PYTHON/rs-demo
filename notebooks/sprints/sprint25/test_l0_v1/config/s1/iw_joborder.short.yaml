@@ -112,7 +112,6 @@ dask_context:
     address: ${DASK_GATEWAY_EOPF_ADDRESS}
     reuse_cluster: ${DASK_CLUSTER_EOPF_NAME}
     workers: ${N_WORKERS}
-    timeout: 60
     auth:
       type: jupyterhub
       api_token: ${JUPYTERHUB_API_TOKEN}
