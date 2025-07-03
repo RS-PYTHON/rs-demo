@@ -25,4 +25,4 @@ wait_for_service 8888 "login" # jupyter
 
 # Run the notebooks from the jupyter service from the docker-compose.
 set -x;
-docker exec --privileged jupyter /scripts/run-notebooks-from-container.sh
+docker exec --user=root jupyter /scripts/run-notebooks-from-container.sh
