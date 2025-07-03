@@ -19,7 +19,7 @@ for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*
     _relative="$(realpath $notebook --relative-to $HOME)"
 
     # For testing. Keep this line commented in git.
-    # if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
+    if [[ "$_relative" != "notebooks/sprints/sprint25/test_l0_v1/test_l0_v1.ipynb" ]]; then continue; fi
 
     # Ignore these notebooks
     if grep -q "$_relative" "/scripts/ignored-notebooks.txt"; then
@@ -33,6 +33,7 @@ for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*
     (set -x && cd "$_dirname" && time papermill "$_filename" /tmp/out.ipynb) && \
     all_ok="${all_ok:-}  - '$_relative'\n" || \
     all_errors="${all_errors:-}  - '$_relative'\n"
+    if [[ $all_errors ]]; then exit 2; fi
 done
 
 if [[ -n "$all_ok" ]]; then
