@@ -254,7 +254,7 @@ async def main_dask_task(
     init_opentelemetry.init_traces("rs.client.dask", logger)
     with init_opentelemetry.start_span(__name__, "main_dask_flow", flow_span_context):
 
-        # # Basic request to use as test tracker
+        # Basic request to use as test tracker
         wiki_result = requests.get(
             "https://fr.wikipedia.org/wiki/Patrick_Balkany#Affaires_judiciaires",
         )
