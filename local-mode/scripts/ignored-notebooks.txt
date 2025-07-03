@@ -28,3 +28,7 @@ notebooks/sprints/sprint25/675_convert_safe_to_zarr.ipynb
 # Notebooks that tests parallel flows
 notebooks/sprints/sprint24/100_python_flows/test_parallel_flows.ipynb
 notebooks/sprints/sprint24/100_deployments/100_flows_with_deployments.ipynb
+
+# Ignore those for osam, which run only in cluster mode
+notebooks/sprints/sprint24/604_s3_rights.ipynb
+notebooks/sprints/sprint25/605_606_osam_s3_user_access_policy.ipynb

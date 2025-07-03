@@ -211,6 +211,8 @@ services:
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
+    env_file:
+      - ~/.s3cfg
     volumes:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
