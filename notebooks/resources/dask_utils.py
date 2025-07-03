@@ -186,6 +186,64 @@ def init_dask_cluster_staging(
 ):
     """Init existing staging dask cluster or create one"""
     global dask_gateway_staging, dask_cluster_staging, dask_client_staging
+
+    # Additional arguments to pass to the DPR cluster.
+    # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
+    dpr_tuning = {
+        "worker_extra_pod_config": {
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "node-role.kubernetes.io/access_csc",
+                                        "operator": "Exists",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            "tolerations": [
+                {
+                    "key": "role",
+                    "operator": "Equal",
+                    "value": "access_csc",
+                    "effect": "NoSchedule",
+                },
+            ],
+        },
+        "scheduler_extra_pod_config": {
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "node-role.kubernetes.io/access_csc",
+                                        "operator": "Exists",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            "tolerations": [
+                {
+                    "key": "role",
+                    "operator": "Equal",
+                    "value": "access_csc",
+                    "effect": "NoSchedule",
+                },
+            ],
+        },
+    }
+
     dask_gateway_staging, dask_cluster_staging, dask_client_staging = init_dask_cluster(
         (
             os.environ["DASK_GATEWAY_ADDRESS"]
@@ -201,7 +259,7 @@ def init_dask_cluster_staging(
         image=image,
         cluster_tag="dask-staging",
         *args,
-        **kwargs,
+        **(dpr_tuning | kwargs),  # set default DPR tuning
     )
 
 
@@ -225,7 +283,8 @@ def init_dask_cluster_eopf(
         cluster_tag = "dask-eopf-mockup"
         dpr_tuning = {}
 
-    # Additional arguments to pass to the DPR cluster
+    # Additional arguments to pass to the DPR cluster.
+    # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
     else:
         dpr_tuning = {
             "scheduler_memory_limit": 60,  # In GB
