@@ -3,7 +3,7 @@ prefect-version: 3
 pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/RS-PYTHON/rs-client-libraries.git
-    branch: feat-609/latest-l0-version # should be 'develop' in git
+    branch: develop # should be 'develop' in git
 
 definitions:
     work_pools:
