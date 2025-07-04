@@ -81,6 +81,7 @@ def init_dask_cluster(
     worker_memory: float = 2.0,
     scheduler_memory_limit: int = 2,
     namespace="dask-gateway",
+    **kwargs,
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
     """
     Return existing dask cluster or create one.
@@ -94,8 +95,8 @@ def init_dask_cluster(
         worker_cores: number of worker cores
         worker_memory: worker memory in GB
         namespace: dask gateway namespace
+        kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
     """
-
     print(f"Connecting to dask gateway for {cluster_tag!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
@@ -150,6 +151,7 @@ def init_dask_cluster(
             image=image,
             cluster_name=cluster_tag,
             scheduler_extra_pod_labels={"cluster_name": cluster_tag},
+            **kwargs,
         )
 
     print(
@@ -184,6 +186,64 @@ def init_dask_cluster_staging(
 ):
     """Init existing staging dask cluster or create one"""
     global dask_gateway_staging, dask_cluster_staging, dask_client_staging
+
+    # Additional arguments to pass to the DPR cluster.
+    # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
+    dpr_tuning = {
+        "worker_extra_pod_config": {
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "node-role.kubernetes.io/access_csc",
+                                        "operator": "Exists",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            "tolerations": [
+                {
+                    "key": "role",
+                    "operator": "Equal",
+                    "value": "access_csc",
+                    "effect": "NoSchedule",
+                },
+            ],
+        },
+        "scheduler_extra_pod_config": {
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "node-role.kubernetes.io/access_csc",
+                                        "operator": "Exists",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            "tolerations": [
+                {
+                    "key": "role",
+                    "operator": "Equal",
+                    "value": "access_csc",
+                    "effect": "NoSchedule",
+                },
+            ],
+        },
+    }
+
     dask_gateway_staging, dask_cluster_staging, dask_client_staging = init_dask_cluster(
         (
             os.environ["DASK_GATEWAY_ADDRESS"]
@@ -199,7 +259,7 @@ def init_dask_cluster_staging(
         image=image,
         cluster_tag="dask-staging",
         *args,
-        **kwargs,
+        **(dpr_tuning | kwargs),  # set default DPR tuning
     )
 
 
@@ -215,11 +275,72 @@ def init_dask_cluster_eopf(
     local_environ_eopf_address = "DASK_GATEWAY_EOPF_ADDRESS"
     local_environ_eopf_public = "DASK_GATEWAY_EOPF_PUBLIC"
     cluster_tag = "dask-eopf"
+
     if use_mockup:
         image = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest"
         local_environ_eopf_address = "DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"
         local_environ_eopf_public = "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
         cluster_tag = "dask-eopf-mockup"
+        dpr_tuning = {}
+
+    # Additional arguments to pass to the DPR cluster.
+    # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
+    else:
+        dpr_tuning = {
+            "scheduler_memory_limit": 60,  # In GB
+            "worker_extra_pod_config": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-role.kubernetes.io/dask_worker_on_demand",
+                                            "operator": "Exists",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                "tolerations": [
+                    {
+                        "key": "role",
+                        "operator": "Equal",
+                        "value": "dask_worker_on_demand",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            },
+            "scheduler_extra_pod_config": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-role.kubernetes.io/dask_scheduler",
+                                            "operator": "Exists",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                "tolerations": [
+                    {
+                        "key": "role",
+                        "operator": "Equal",
+                        "value": "dask_scheduler",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            },
+        }
 
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
         (
@@ -236,7 +357,7 @@ def init_dask_cluster_eopf(
         image=image,
         cluster_tag=cluster_tag,
         *args,
-        **kwargs,
+        **(dpr_tuning | kwargs),  # set default DPR tuning
     )
 
 
@@ -360,7 +481,7 @@ def copy_caller_env(caller_env: dict[str, str]):
     cluster_mode = not local_mode
 
     # Copy env vars from the caller
-    for key in [
+    keys = [
         "RSPY_LOCAL_MODE",
         "S3_ACCESSKEY",
         "S3_SECRETKEY",
@@ -375,10 +496,21 @@ def copy_caller_env(caller_env: dict[str, str]):
         "TEMPO_ENDPOINT",
         "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
         "OTEL_PYTHON_REQUESTS_TRACE_BODY",
-    ] + (
-        ["LOCAL_DASK_USERNAME", "LOCAL_DASK_PASSWORD"]
-        if local_mode
-        else ["JUPYTERHUB_API_TOKEN"]
-    ):
+    ]
+    if local_mode:
+        keys.extend(
+            [
+                "LOCAL_DASK_USERNAME",
+                "LOCAL_DASK_PASSWORD",
+                "access_key",
+                "bucket_location",
+                "host_base",
+                "host_bucket",
+                "secret_key",
+            ],
+        )
+    else:
+        keys.extend(["JUPYTERHUB_API_TOKEN"])
+    for key in keys:
         if value := caller_env.get(key):
             os.environ[key] = value

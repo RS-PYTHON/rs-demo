@@ -28,6 +28,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+THIS_DIR = Path(__file__).parent
+
 # Read the .env file that contains env vars
 load_dotenv(Path(__file__).parent.parent.parent / "local-mode" / ".env")
 
@@ -42,6 +44,9 @@ os.environ["RSPY_HOST_STAGING"] = "http://localhost:8004"
 os.environ["RSPY_HOST_DPR_SERVICE"] = "http://localhost:6003"
 # s3 bucket
 os.environ["S3_ENDPOINT"] = "http://localhost:9100"
+os.environ["BUCKET_CONFIG_FILE_PATH"] = str(
+    THIS_DIR.parent.parent / "local-mode/config/expiration_bucket.csv",
+)
 # prefect
 os.environ["PREFECT_URL"] = os.environ["RSPY_PREFECT_URL"] = "http://localhost:4200"
 os.environ["PREFECT_API_URL"] = os.environ["PREFECT_URL"] + "/api"
