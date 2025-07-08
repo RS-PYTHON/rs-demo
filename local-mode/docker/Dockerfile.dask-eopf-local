@@ -23,6 +23,11 @@ ARG PREFECT_DASK_TAG=xxx
 # Default user from parent image
 ARG USER=dask:dask
 
+# System installations
+USER root
+RUN apt update && apt install -y git
+USER $USER
+
 # Install EOPF
 COPY ./requirements.dask-eopf-local.txt /opt/
 # NOTE, with older docker versions, use:
@@ -49,6 +54,7 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
 
 # Clean everything
 USER root
+RUN apt autoremove -y git
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
 USER $USER
 

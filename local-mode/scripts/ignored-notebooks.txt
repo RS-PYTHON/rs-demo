@@ -14,6 +14,7 @@ notebooks/sprints/sprint24/604_s3_rights.ipynb
 notebooks/sprints/sprint21/first_l0_processor.ipynb
 notebooks/sprints/sprint22/s3l0_demo_processor.ipynb
 notebooks/sprints/sprint23/s3l0_demo_processor.ipynb
+notebooks/sprints/sprint25/test_l0_v1/test_l0_v1.ipynb
 
 # Ignore dask and prefect tutorials, they take time and their functionnalities should be covered by demos
 notebooks/tutorials/prefect+dask/dask.ipynb

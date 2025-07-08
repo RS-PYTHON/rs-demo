@@ -375,24 +375,24 @@ async def hack_payload(filename: str):
     # In local mode, open the user's s3cmd config file to use the cluster s3 bucket access.
     # It is mounted by the docker-compose.yml
     if local_mode:
-        if not (k8s_access := dotenv_values("/.s3cfg")):
-            raise Exception(
-                "You must have a s3cmd config file under '~/.s3cfg' to use this flow",
-            )
         os.environ.update(
             {
-                "S3_ACCESSKEY_K8S": k8s_access["access_key"],
-                "S3_SECRETKEY_K8S": k8s_access["secret_key"],
-                "S3_ENDPOINT_K8S": k8s_access["host_bucket"],
-                "S3_REGION_K8S": k8s_access["bucket_location"],
+                "S3_ACCESSKEY_CLUSTER": os.environ["access_key"],
+                "S3_SECRETKEY_CLUSTER": os.environ["secret_key"],
+                "S3_ENDPOINT_CLUSTER": os.environ["host_bucket"],
+                "S3_REGION_CLUSTER": os.environ["bucket_location"],
             },
         )
-    # Change the bucket accees
-    for input_product in payload["I/O"]["input_products"]:
-        store_params = input_product["store_params"]
-        if local_mode:
-            store_params["storage_options"] = store_params["storage_options_local_mode"]
-        del store_params["storage_options_local_mode"]
+    # In cluster mode, just use the regular cluster access
+    else:
+        os.environ.update(
+            {
+                "S3_ACCESSKEY_CLUSTER": os.environ["S3_ACCESSKEY"],
+                "S3_SECRETKEY_CLUSTER": os.environ["S3_SECRETKEY"],
+                "S3_ENDPOINT_CLUSTER": os.environ["S3_ENDPOINT"],
+                "S3_REGION_CLUSTER": os.environ["S3_REGION"],
+            },
+        )
 
     # Write back the payload contents
     with open(filename, "w", encoding="utf-8") as opened:

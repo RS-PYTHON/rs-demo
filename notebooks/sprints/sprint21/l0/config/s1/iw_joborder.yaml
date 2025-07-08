@@ -22,26 +22,68 @@ workflow:
   outputs:
     datatakeid_.*: output_folder
 
+  adfs:
+    osf: OSF
+    fro: FRO
+    # session_info: SSI
+
+  parameters:
+    acquisition_report_output_path: ./output_params/s1
+    streaming_mode: false
+    temporary_path: ./output_params/tmp
+
+
 I/O:
   # input products descriptions and access parameters
   input_products:
 
   - id: S1ACADU
-    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/S1A_20240410083700053369
+    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594
     store_type: cadu
     store_params:
+      # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
-        key: ${S3_ACCESSKEY}
-        secret: ${S3_SECRETKEY}
+        key: ${S3_ACCESSKEY_CLUSTER}
+        secret: ${S3_SECRETKEY_CLUSTER}
         client_kwargs:
-          endpoint_url: ${S3_ENDPOINT}
-          region_name: ${S3_REGION}
-      storage_options_local_mode: # in local mode, use the cluster s3 bucket
-        key: ${S3_ACCESSKEY_K8S}
-        secret: ${S3_SECRETKEY_K8S}
+          endpoint_url: ${S3_ENDPOINT_CLUSTER}
+          region_name: ${S3_REGION_CLUSTER}
+
+  adfs:
+
+  - id: OSF
+    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0027.EOF
+    store_params:
+      # s3_secret_alias: s3_cluster # see secrets.json
+      storage_options:
+        key: ${S3_ACCESSKEY_CLUSTER}
+        secret: ${S3_SECRETKEY_CLUSTER}
         client_kwargs:
-          endpoint_url: ${S3_ENDPOINT_K8S}
-          region_name: ${S3_REGION_K8S}
+          endpoint_url: ${S3_ENDPOINT_CLUSTER}
+          region_name: ${S3_REGION_CLUSTER}
+
+  - id: FRO
+    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBPRE_20250612T021934_20250619T021933_0001.EOF
+    store_params:
+      # s3_secret_alias: s3_cluster # see secrets.json
+      storage_options:
+        key: ${S3_ACCESSKEY_CLUSTER}
+        secret: ${S3_SECRETKEY_CLUSTER}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT_CLUSTER}
+          region_name: ${S3_REGION_CLUSTER}
+
+  # - id: SSI
+  #   path : s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594.short/DCS_04_S1A_20250611050700059594_ch1_DSIB.xml
+  #   store_params:
+  #     # s3_secret_alias: s3_cluster # see secrets.json
+  #     storage_options:
+  #       key: ${S3_ACCESSKEY_CLUSTER}
+  #       secret: ${S3_SECRETKEY_CLUSTER}
+  #       client_kwargs:
+  #         endpoint_url: ${S3_ENDPOINT_CLUSTER}
+  #         region_name: ${S3_REGION_CLUSTER}
+
 
   output_products:
   - id: output_folder
@@ -53,6 +95,7 @@ I/O:
     # Any access parameters
     opening_mode: "CREATE_OVERWRITE"
     store_params:
+      # s3_secret_alias: s3_local_or_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY}
         secret: ${S3_SECRETKEY}
@@ -79,8 +122,14 @@ dask_context:
   # Activate the report file writing in this file
   performance_report_file: ./reports/report.html
 
+# Any secret files to be loaded in the secrets dictionary of EOConfiguration
+secret:
+  - ../secrets.json
+
 # Any logging file(s) to load to the EOLogging facility
 logging: ../logging_config.yaml
+
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
-- "./iw_configuration.yaml"
+- ./iw_configuration.yaml
+- ../l0_dask_configuration.yaml
