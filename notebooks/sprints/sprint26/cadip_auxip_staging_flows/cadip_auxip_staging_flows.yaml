@@ -3,7 +3,7 @@ prefect-version: 3
 pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/RS-PYTHON/rs-client-libraries.git
-    branch: feat/rspy-715-718-demo-flows # should be 'develop' in git
+    branch: develop # should be 'develop' in git
 
 definitions:
     work_pools:
