@@ -280,7 +280,7 @@ def stage_test_objects(
     collection_id=None,
     objects_are_files=True,
     timestamp: Optional[DatetimeLike] = None,
-):
+) -> ItemCollection:
     """Stage several files from cadip or auxip into the STAC catalog and return it."""
 
     catalog_collection_name = collection_id if collection_id else TEST_COLLECTION
