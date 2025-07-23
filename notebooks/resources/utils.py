@@ -228,7 +228,7 @@ def create_test_collection(
     catalog_client.remove_collection(collection_id)
 
     # Add new collection
-    response = catalog_client.add_collection(
+    catalog_client.add_collection(
         Collection(
             id=collection_id,
             description=description,  # if None, rs-client will provide a default description for us
@@ -240,7 +240,6 @@ def create_test_collection(
             stac_extensions=stac_extensions,
         ),
     )
-    response.raise_for_status()
 
     # Return the inserted collection
     inserted_collection = catalog_client.get_collection(collection_id=collection_id)
