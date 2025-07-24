@@ -331,7 +331,7 @@ services:
       SB_authConfig: |
             {
               "type": "openIdConnect",
-              "openIdConnectUrl": "https://iam.dev-rspy.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "openIdConnectUrl": "https://iam.dev-rspy-ovh.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
               "oidcConfig": {
                 "client_id": "fastapi_public"
               }
@@ -354,7 +354,7 @@ services:
       SB_authConfig: |
             {
               "type": "openIdConnect",
-              "openIdConnectUrl": "https://iam.dev-rspy.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "openIdConnectUrl": "https://iam.dev-rspy-ovh.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
               "oidcConfig": {
                 "client_id": "fastapi_public"
               }
@@ -377,7 +377,7 @@ services:
       SB_authConfig: |
             {
               "type": "openIdConnect",
-              "openIdConnectUrl": "https://iam.dev-rspy.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "openIdConnectUrl": "https://iam.dev-rspy-ovh.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
               "oidcConfig": {
                 "client_id": "fastapi_public"
               }
