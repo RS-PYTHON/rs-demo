@@ -1,8 +1,6 @@
 # -------------------------------------------------------------
 # S3 Processor Configuration
 # -------------------------------------------------------------
-
-dask_utils__compute__step: 1
 S3:
    # ==========================================================
   # Window Time
@@ -26,19 +24,10 @@ S3:
     use_dual_basis: true
 
   isp_primary_header_size: 6
-  isp_secondary_header_size:
-    navatt: 176
-    olci: 14
-    slstr: 19
-    sral: 16
-    mwr: 12
-    gnss: 12
-    doris: 12
-    hktm: 12
   packet_stores:
     navatt:
     - 0
-    - 4
+    # - 4
     olci:
     - 1
     slstr:
@@ -671,6 +660,65 @@ S3:
   # Quality Checks Configuration
   # -------------------------------------------------------------
   quality_checks_configuration:
+    # Allowed range for each field
+    isp_field_allowed_range:
+      common:
+        discard_packets: true
+        # Primary Header
+        packet_version:
+          type: range
+          min: 0
+          max: 7           # (2^3 - 1)
+        packet_type:
+          type: range
+          min: 0
+          max: 1           # (2^1 - 1)
+        header_flag:
+          type: range
+          min: 0
+          max: 1           # (2^1 - 1)
+        application_process_identifier:
+          type: range
+          min: 0
+          max: 2047        # (2^11 - 1)
+        packet_category:
+          type: range
+          min: 0
+          max: 15          # (2^4 - 1)
+        sequence_flag:
+          type: range
+          min: 0
+          max: 3           # (2^2 - 1)
+        packet_sequence_count:
+          type: range
+          min: 0
+          max: 16383       # (2^14 - 1)
+        packet_data_length:
+          type: range
+          min: 14          # (Secondary Header(12b) + CRC (2b))
+          max: 65535       # (2^16 - 1)
+        # Secondary Header
+        packet_service_type:
+          type: range
+          min: 0
+          max: 255         # (2^8 - 1)
+        packet_subtype:
+          type: range
+          min: 0
+          max: 255         # (2^8 - 1)
+        coarse_time:
+          type: range
+          min: 0
+          max: 4294967295  # (2^32 - 1)
+        fine_time:
+          type: range
+          min: 0
+          max: 16777215    # (2^24 - 1)
+        time_status:
+          type: range
+          min: 0
+          max: 255         # (2^8 - 1)
+
     # Check CRC
     check_crc:
       S03NAT_IG: true
