@@ -287,7 +287,7 @@ def init_dask_cluster_eopf(
     # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
     else:
         dpr_tuning = {
-            "worker_cores": 2,
+            "worker_cores": 3,
             "worker_memory": 12,  # In GB
             "scheduler_memory_limit": 60,  # In GB
             "worker_extra_pod_config": {

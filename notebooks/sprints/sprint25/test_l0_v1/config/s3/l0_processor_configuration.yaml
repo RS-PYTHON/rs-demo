@@ -22,6 +22,11 @@ S3:
     mpdu_packet_zone_size: 1902
     rs_check_symbols_size: 128
     use_dual_basis: true
+    spacecraft_id:
+      a: 67
+      b: 68
+      c: 240
+      d: 113
 
   isp_primary_header_size: 6
   packet_stores:
