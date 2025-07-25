@@ -437,7 +437,7 @@ async def config_file(
             first_asset = list(item.assets.items())[0][1]
             logger.info(f"first_asset = {first_asset}")
             full_s3_href = (
-                first_asset.extra_fields.get("alternate", {}).get("s3", {}).get("href")
+                first_asset.extra_fields.get("href")
             )
             if full_s3_href:
                 session_s3_href = "/".join(full_s3_href.split("/")[:-1])
