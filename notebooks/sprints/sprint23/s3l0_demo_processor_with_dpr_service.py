@@ -409,8 +409,8 @@ async def config_file(
             return False
         try:
             first_asset = list(item.assets.items())[0][1]
-            logger.info(f"first_asset = {first_asset}")
-            full_s3_href = first_asset.extra_fields.get("href")
+            logger.info(f"s3l0_demo with dpr first_asset = {first_asset}")
+            full_s3_href = first_asset.href
             if full_s3_href:
                 session_s3_href = "/".join(full_s3_href.split("/")[:-1])
                 logger.info(f"Session {item.id} has S3_HREF: {session_s3_href}")
