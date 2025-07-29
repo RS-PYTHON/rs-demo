@@ -167,6 +167,9 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
+  # NOTE: to debug using a dask LocalCluster, comment the lines:
+  # RSPY_DASK_STAGING_CLUSTER_NAME: ...
+  # DASK_GATEWAY__ADDRESS: ...
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
@@ -262,6 +265,13 @@ services:
   # SIMULATORS #
   ##############
 
+  # NOTE: to debug using a dask LocalCluster, use image:
+  # image: ghcr.io/rs-python/dask-gateway-server/eopf/localcluster
+  # And comment the lines:
+  # RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: ...
+  # DASK_GATEWAY__ADDRESS: ...
+  # RSPY_DASK_DPR_SERVICE_MOCKUP_CLUSTER_NAME: ...
+  # DASK_GATEWAY__MOCKUP_ADDRESS: ...
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
