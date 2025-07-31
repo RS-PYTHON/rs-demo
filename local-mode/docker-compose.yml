@@ -258,6 +258,16 @@ services:
     ports:
       - 5003:5000
 
+  prip-station:
+    image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:feat-rspy402
+    container_name: prip-station
+    environment:
+      # Token expiration settings
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
+      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
+    ports:
+      - 5004:5000
+
   ##############
   # SIMULATORS #
   ##############
