@@ -259,7 +259,7 @@ services:
       - 5003:5000
 
   prip-station:
-    image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:feat-rspy402
+    image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
     container_name: prip-station
     environment:
       # Token expiration settings
