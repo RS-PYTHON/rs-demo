@@ -34,7 +34,13 @@ RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U -r /opt/requirements.dask-eopf-local.txt
 
 # Other installations
-RUN apt update && apt install -y python3-pydot graphviz
+RUN \
+    apt update && \
+    apt install -y \
+        python3-pydot graphviz && \
+    pip install \
+        bokeh">=3.1.0" \
+        jupyter-server-proxy
 
 # Auto configure opentelemetry
 RUN opentelemetry-bootstrap -a install
