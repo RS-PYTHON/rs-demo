@@ -29,13 +29,13 @@ RUN apt update && apt install -y git
 USER $USER
 
 # Install EOPF
-COPY ./requirements.dask-eopf-local.txt /opt/
+COPY ./l0/requirements.dask-l0-local.txt /opt/
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/requirements.dask-eopf-local.txt
+    pip install -U -r /opt/requirements.dask-l0-local.txt
 
 # Install complete dask subsets + prefect
 RUN pip install \
@@ -55,10 +55,10 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
 # Clean everything
 USER root
 RUN apt autoremove -y git
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-l0-local.txt
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
-LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/l0/Dockerfile.dask-l0-local"

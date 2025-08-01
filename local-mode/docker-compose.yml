@@ -271,7 +271,7 @@ services:
       - 6003:8000
     # variables are set in the .env file
     environment:
-      RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-eopf
+      RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-l0
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
       RSPY_DASK_DPR_SERVICE_MOCKUP_CLUSTER_NAME: dask-eopf-mockup
       DASK_GATEWAY__MOCKUP_ADDRESS: ${DASK_GATEWAY_EOPF_MOCKUP_ADDRESS}
@@ -478,8 +478,8 @@ services:
     ports:
       - 8701:8000
 
-  dask-eopf:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+  dask-l0:
+    image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
