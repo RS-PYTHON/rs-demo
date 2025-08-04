@@ -1,4 +1,7 @@
 S1:
+  streaming_mode : false
+  nb_files_in_parallel : 8
+
   # CADU Output Zarr Chunk Size
   cadu_chunk_size :
     sar: 1000
@@ -36,6 +39,9 @@ S1:
     hktm_tf: 1000
 
 S3:
+  streaming_mode: false
+  nb_files_in_parallel: 4
+
   # CADU Output Zarr Chunk Size
   cadu_chunk_size:
     navatt: 30000
@@ -71,16 +77,12 @@ S3:
     S03OLCCR0: 30000
     S03OLCCR1: 30000
     S03OLCL0_: 30000
-    S03OLCCR0: 30000
     S03SLSL0_: 30000
     S03SRCRL0: 30000
     S03ALTL0_: 30000
-    S03SRCRL0: 30000
     S03MWRL0_: 30000
     S03GNSL0_: 30000
     S03DORNAV: 30000
     S03DORDOP: 30000
     S03HKML0_: 30000
     S03HKM2L0: 30000
-
-    hktm_tf: 30000
