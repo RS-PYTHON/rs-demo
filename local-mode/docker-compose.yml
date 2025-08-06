@@ -43,7 +43,6 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
       # s3 bucket
@@ -59,7 +58,6 @@ services:
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
 
@@ -86,7 +84,6 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
       STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
 
       # s3 bucket
@@ -102,7 +99,6 @@ services:
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
