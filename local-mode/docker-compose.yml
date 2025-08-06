@@ -390,7 +390,7 @@ services:
 
   catalog-db:
     container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.9.7
+    image: ghcr.io/stac-utils/pgstac:v0.9.8
     environment:
       POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
@@ -410,7 +410,7 @@ services:
 
   pgstac-post-actions: # post actions for catalog-db
     container_name: pgstac-post-actions
-    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.7
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.8
     depends_on:
       - catalog-db
     environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
