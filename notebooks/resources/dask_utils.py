@@ -170,7 +170,7 @@ def init_dask_cluster(
         if scaled >= scale:
             break
         tries += 1
-        if tries >= 60:
+        if tries >= float("inf"):  # deactivate timeout
             raise TimeoutError(
                 f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
             )
