@@ -651,9 +651,9 @@ services:
   # Uncomment these lines and add to the rs-server-xxx services:
   #   RSPY_LOCAL_MODE: 0
   #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key
-  #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+  #   OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
   #   OIDC_REALM: rspy
-  #   OIDC_CLIENT_ID: fastapi_test
+  #   OIDC_CLIENT_ID: apikeymanager
   #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
   #   RSPY_COOKIE_SECRET: secret
   # apikey-manager:
@@ -664,10 +664,10 @@ services:
   #   depends_on:
   #     - postgres
   #   environment:
-  #    APIKM_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-  #     APIKM_OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+  #     APIKM_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+  #     APIKM_OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
   #     APIKM_OIDC_REALM: rspy
-  #     APIKM_OIDC_CLIENT_ID: fastapi_test
+  #     APIKM_OIDC_CLIENT_ID: apikeymanager
   #     APIKM_OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
   #     APIKM_USE_AUTHLIB_OAUTH: true
 
