@@ -18,7 +18,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
@@ -43,8 +43,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
@@ -59,7 +58,6 @@ services:
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
 
@@ -86,8 +84,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
-      RSPY_WORKING_DIR: ${RSPY_WORKING_DIR}
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
@@ -102,7 +99,6 @@ services:
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
@@ -130,16 +126,24 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      ENABLE_TRANSACTIONS_EXTENSIONS: 1
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      CORS_METHODS: "GET,POST,OPTIONS"
+      CORS_CREDENTIALS: "true"
+      CORS_HEADERS: "*"
+      PREFIX_PATH: "/catalog"
+      OPENAPI_URL: "/catalog/api"
+      DOCS_URL: "/catalog/api.html"
 
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
 #      RELOAD: false
 #      ENVIRONMENT: local
-      POSTGRES_PASS: ${PGSTAC_PASS}
-      POSTGRES_HOST_READER: ${PGSTAC_HOST}
-      POSTGRES_HOST_WRITER: ${PGSTAC_HOST}
-      POSTGRES_DBNAME: ${PGSTAC_DB}
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGHOST: ${PGSTAC_HOST}
+      PGPORT: 5432
+      PGDATABASE: ${PGSTAC_DB}
 #      WEB_CONCURRENCY: 10
 #      VSI_CACHE: TRUE
       GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
@@ -400,7 +404,7 @@ services:
 
   catalog-db:
     container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.9.7
+    image: ghcr.io/stac-utils/pgstac:v0.9.8
     environment:
       POSTGRES_PORT: ${PGSTAC_PORT}
       POSTGRES_USER: ${PGSTAC_USER}
@@ -420,7 +424,7 @@ services:
 
   pgstac-post-actions: # post actions for catalog-db
     container_name: pgstac-post-actions
-    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.7
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.8
     depends_on:
       - catalog-db
     environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
