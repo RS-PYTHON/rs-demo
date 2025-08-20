@@ -3,12 +3,12 @@ prefect-version: 3
 pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/RS-PYTHON/rs-client-libraries.git
-    branch: feat-rspy735-create-database-performance # should be 'develop' in git
+    branch: feat-rspy735/create-database-performance # should be 'develop' in git
 
 definitions:
     work_pools:
         my_work_pool: &my_work_pool
-            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+            name: "{{ PREFECT_WORK_POOL_GENERAL }}"
 
 deployments:
 - name: PI db init

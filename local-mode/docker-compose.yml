@@ -424,7 +424,7 @@ services:
   ####################
 
   prefect-server:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
     ports:
       - 4200:4200
     depends_on:
@@ -432,7 +432,7 @@ services:
     environment:
       - PREFECT_API_URL=http://127.0.0.1:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}      
     command: ["prefect", "server", "start"]
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import requests; assert requests.get('http://127.0.0.1:4200/api/health').ok\""]
@@ -440,7 +440,7 @@ services:
       retries: 30
 
   prefect-worker-staging:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -452,7 +452,7 @@ services:
       replicas: 1
 
   prefect-worker-eopf:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -465,6 +465,24 @@ services:
       RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
       RSPY_HOST_DPR_SERVICE: ${RSPY_HOST_DPR_SERVICE}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  prefect-worker-general:
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      # rs-server urls
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PORT}      
+      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 1
@@ -579,7 +597,7 @@ services:
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
     # From: https://github.com/RS-PYTHON/rs-client-libraries/tree/develop/.github/dockerfiles/Dockerfile.jupyter
-    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
+    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:feat-rspy735-create-database-performance
     container_name: jupyter
     ports:
       - 8888:8888
@@ -618,6 +636,7 @@ services:
       RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
       PREFECT_WORK_POOL_STAGING: ${PREFECT_WORK_POOL_STAGING}
       PREFECT_WORK_POOL_EOPF: ${PREFECT_WORK_POOL_EOPF}
+      PREFECT_WORK_POOL_GENERAL: ${PREFECT_WORK_POOL_GENERAL}
       # dask
       DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
