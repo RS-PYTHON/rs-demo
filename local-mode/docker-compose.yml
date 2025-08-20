@@ -424,7 +424,7 @@ services:
   ####################
 
   prefect-server:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     ports:
       - 4200:4200
     depends_on:
@@ -440,7 +440,7 @@ services:
       retries: 30
 
   prefect-worker-staging:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -452,7 +452,7 @@ services:
       replicas: 1
 
   prefect-worker-eopf:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -470,7 +470,7 @@ services:
       replicas: 1
 
   prefect-worker-general:
-    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:feat-rspy735-create-database-performance
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
@@ -597,7 +597,7 @@ services:
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
     # From: https://github.com/RS-PYTHON/rs-client-libraries/tree/develop/.github/dockerfiles/Dockerfile.jupyter
-    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:feat-rspy735-create-database-performance
+    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
     container_name: jupyter
     ports:
       - 8888:8888
