@@ -18,7 +18,7 @@ services:
     # variables are set in the .env file
     environment:
       RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
@@ -43,7 +43,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
@@ -84,7 +84,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
       # s3 bucket
       S3_ACCESSKEY: ${S3_ACCESSKEY}
@@ -126,16 +126,24 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
-      STAC_BROWSER_URLS: ${STAC_BROWSER_URLS}
+      ENABLE_TRANSACTIONS_EXTENSIONS: 1
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      CORS_METHODS: "GET,POST,OPTIONS"
+      CORS_CREDENTIALS: "true"
+      CORS_HEADERS: "*"
+      PREFIX_PATH: "/catalog"
+      OPENAPI_URL: "/catalog/api"
+      DOCS_URL: "/catalog/api.html"
 
       APP_HOST: 0.0.0.0
       APP_PORT: 8000
 #      RELOAD: false
 #      ENVIRONMENT: local
-      POSTGRES_PASS: ${PGSTAC_PASS}
-      POSTGRES_HOST_READER: ${PGSTAC_HOST}
-      POSTGRES_HOST_WRITER: ${PGSTAC_HOST}
-      POSTGRES_DBNAME: ${PGSTAC_DB}
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGHOST: ${PGSTAC_HOST}
+      PGPORT: 5432
+      PGDATABASE: ${PGSTAC_DB}
 #      WEB_CONCURRENCY: 10
 #      VSI_CACHE: TRUE
       GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
