@@ -484,12 +484,6 @@ services:
         condition: service_healthy
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-      # rs-server urls
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
-      POSTGRES_HOST: ${POSTGRES_HOST}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
     deploy:
       mode: replicated
@@ -654,6 +648,12 @@ services:
       DASK_GATEWAY_EOPF_MOCKUP_PUBLIC: ${DASK_GATEWAY_EOPF_MOCKUP_PUBLIC}
       LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
       LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
+      # postgres (for performance indicator)
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
