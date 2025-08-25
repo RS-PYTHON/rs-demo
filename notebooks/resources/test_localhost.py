@@ -54,8 +54,14 @@ os.environ["PREFECT_API_URL"] = os.environ["PREFECT_URL"] + "/api"
 os.environ["DASK_GATEWAY_STAGING_ADDRESS"] = os.environ[
     "DASK_GATEWAY_STAGING_PUBLIC"
 ] = "http://localhost:8701"
-os.environ["DASK_GATEWAY_EOPF_ADDRESS"] = os.environ["DASK_GATEWAY_EOPF_PUBLIC"] = (
+os.environ["DASK_GATEWAY_S1L0_ADDRESS"] = os.environ["DASK_GATEWAY_S1L0_PUBLIC"] = (
     "http://localhost:8702"
+)
+os.environ["DASK_GATEWAY_S3L0ADDRESS"] = os.environ["DASK_GATEWAY_S3L0_PUBLIC"] = (
+    "http://localhost:8702"
+)
+os.environ["DASK_GATEWAY_S1ARD_ADDRESS"] = os.environ["DASK_GATEWAY_S1ARD_PUBLIC"] = (
+    "http://localhost:8704"
 )
 os.environ["DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"] = os.environ[
     "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"

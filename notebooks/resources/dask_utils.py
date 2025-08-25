@@ -18,6 +18,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import os
+import re
 import socket
 import tempfile
 import time
@@ -265,6 +266,8 @@ def init_dask_cluster_staging(
 
 def init_dask_cluster_eopf(
     scale: int,
+    processor_name: str = "l0",
+    processor_code: str = "S1L0",  # S1L0, S3L0 or S1ARD
     image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
     use_mockup=False,
     *args,
@@ -272,9 +275,9 @@ def init_dask_cluster_eopf(
 ):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
-    local_environ_eopf_address = "DASK_GATEWAY_EOPF_ADDRESS"
-    local_environ_eopf_public = "DASK_GATEWAY_EOPF_PUBLIC"
-    cluster_tag = "dask-l0"
+    local_environ_eopf_address = f"DASK_GATEWAY_{processor_code}_ADDRESS"
+    local_environ_eopf_public = f"DASK_GATEWAY_{processor_code}_PUBLIC"
+    cluster_tag = f"dask-{processor_name}"
 
     if use_mockup:
         image = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest"
@@ -489,7 +492,6 @@ def copy_caller_env(caller_env: dict[str, str]):
         "S3_REGION",
         "PREFECT_BUCKET_NAME",
         "PREFECT_BUCKET_FOLDER",
-        "DASK_GATEWAY_EOPF_ADDRESS",
         "DASK_CLUSTER_EOPF_NAME",
         "AWS_REQUEST_CHECKSUM_CALCULATION",
         "AWS_RESPONSE_CHECKSUM_VALIDATION",
@@ -509,8 +511,15 @@ def copy_caller_env(caller_env: dict[str, str]):
                 "secret_key",
             ],
         )
+
+        # List the environment variables available containing adresses to processor clusters
+        processor_address_pattern = re.compile(r"^DASK_GATEWAY_([A-Za-z0-9]+)_ADDRESS$")
+        processor_env_vars = [
+            var for var in caller_env if processor_address_pattern.match(var)
+        ]
+        keys.extend(processor_env_vars)
     else:
-        keys.extend(["JUPYTERHUB_API_TOKEN"])
+        keys.extend(["JUPYTERHUB_API_TOKEN", "DASK_GATEWAY__ADDRESS"])
     for key in keys:
         if value := caller_env.get(key):
             os.environ[key] = value
