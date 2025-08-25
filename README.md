@@ -101,6 +101,13 @@ await Secret(
     # Token that was used to setup the Dask clusters.
     # See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
     "JUPYTERHUB_API_TOKEN": "<your-token-value>",
+    # Needed to run the performance indicator prefect flow 
+    "POSTGRES_HOST": "<cluster_postgres_host>",
+    "POSTGRES_USER": "<cluster_postgres_user>",
+    "POSTGRES_PASSWORD": "<cluster_postgres_password>",
+    "POSTGRES_PORT": "<cluster_postgres_port>",
+    "POSTGRES_PI_DB": "performance",
+    
   }
 ).save("env-vars", overwrite=True)
 ```
