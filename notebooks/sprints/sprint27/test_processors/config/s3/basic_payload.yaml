@@ -1,3 +1,5 @@
+# NOTE: taken from https://gitlab.eopf.copernicus.eu/L0/validation/-/blob/main/s3/S3_D_TDS_1/basic_payload.yaml
+
 general_configuration:
   logging:
     level: DEBUG
