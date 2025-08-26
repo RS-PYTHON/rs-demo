@@ -74,6 +74,7 @@ build_and_push() {
 # first image: the one that contains the real dpr processor
 if [[ "$BUILD_TARGET" == "local" || "$BUILD_TARGET" == "all" ]]; then
     build_and_push "local" "l0/Dockerfile.dask-l0-local" "ghcr.io/rs-python/dask-gateway-server/l0/local" "$@"
+    build_and_push "local" "s1-ard/Dockerfile.dask-s1-ard-local" "ghcr.io/rs-python/dask-gateway-server/s1-ard/local" "$@"
 fi
 # second image: the one that contains the dpr processor mockup
 if [[ "$BUILD_TARGET" == "mockup" || "$BUILD_TARGET" == "all" ]]; then
