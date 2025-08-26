@@ -19,5 +19,5 @@ deployments:
         env:
             # Copy env vars from client environment
             S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"
-            DASK_GATEWAY_EOPF_ADDRESS: "{{ DASK_GATEWAY_EOPF_ADDRESS }}"
+            DASK_GATEWAY_S1L0_ADDRESS: "{{ DASK_GATEWAY_S1L0_ADDRESS }}"
             DASK_CLUSTER_EOPF_NAME: "{{ DASK_CLUSTER_EOPF_NAME }}"
