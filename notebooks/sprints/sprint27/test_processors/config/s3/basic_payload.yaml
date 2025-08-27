@@ -128,7 +128,7 @@ dask_context:
       password: ${LOCAL_DASK_PASSWORD}
 
   # Activate the report file writing in this file
-  performance_report_file: ./reports/S3_D_TDS_1/output/default/Report/dask_report.html
+  # performance_report_file: ./reports/S3_D_TDS_1/output/default/Report/dask_report.html
 
 # Any secret files to be loaded in the secrets dictionary of EOConfiguration
 secret:
