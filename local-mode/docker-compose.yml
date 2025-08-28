@@ -583,7 +583,7 @@ services:
       # - postgres_data:/var/lib/postgresql/data
       - ./scripts/init_multiple_dbs.sh:/docker-entrypoint-initdb.d/init_multiple_dbs.sh:ro
 
-    # Use minio for temp s3 storage
+  # Use minio for temp s3 storage
   minio:
     image: minio/minio
     container_name: minio
