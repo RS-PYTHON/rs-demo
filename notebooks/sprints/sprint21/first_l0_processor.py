@@ -39,7 +39,7 @@ local_mode = prefect_utils.local_mode
 reload(dask_utils)  # reload global vars from env
 dask_cluster_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_S1L0_ADDRESS"],
+    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
     dask_cluster_name,
 )
 

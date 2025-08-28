@@ -44,7 +44,7 @@ reload(dask_utils)  # reload global vars from env vars
 dask_cluster_eopf_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = (
     dask_utils.get_existing_cluster(
-        os.environ["DASK_GATEWAY__MOCKUP_ADDRESS"],
+        os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
         dask_cluster_eopf_name,
     )
 )

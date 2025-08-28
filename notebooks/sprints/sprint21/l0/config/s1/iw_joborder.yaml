@@ -109,7 +109,7 @@ breakpoints: []
 dask_context:
   cluster_type: gateway
   cluster_config:
-    address: ${DASK_GATEWAY_S1L0_ADDRESS}
+    address: ${DASK_GATEWAY_EOPF_ADDRESS}
     reuse_cluster: ${DASK_CLUSTER_EOPF_NAME}
     auth:
       type: jupyterhub

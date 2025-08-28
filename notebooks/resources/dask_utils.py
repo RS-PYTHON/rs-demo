@@ -345,6 +345,9 @@ def init_dask_cluster_eopf(
             },
         }
 
+    # Update DASK_GATEWAY_EOPF_ADDRESS so it redirects to the processor we want
+    os.environ["DASK_GATEWAY_EOPF_ADDRESS"] = os.environ[local_environ_eopf_address]
+
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
         (
             os.environ["DASK_GATEWAY_ADDRESS"]
@@ -492,6 +495,7 @@ def copy_caller_env(caller_env: dict[str, str]):
         "S3_REGION",
         "PREFECT_BUCKET_NAME",
         "PREFECT_BUCKET_FOLDER",
+        "DASK_GATEWAY_EOPF_ADDRESS",
         "DASK_CLUSTER_EOPF_NAME",
         "AWS_REQUEST_CHECKSUM_CALCULATION",
         "AWS_RESPONSE_CHECKSUM_VALIDATION",
@@ -511,15 +515,8 @@ def copy_caller_env(caller_env: dict[str, str]):
                 "secret_key",
             ],
         )
-
-        # List the environment variables available containing adresses to processor clusters
-        processor_address_pattern = re.compile(r"^DASK_GATEWAY_([A-Za-z0-9]+)_ADDRESS$")
-        processor_env_vars = [
-            var for var in caller_env if processor_address_pattern.match(var)
-        ]
-        keys.extend(processor_env_vars)
     else:
-        keys.extend(["JUPYTERHUB_API_TOKEN", "DASK_GATEWAY__ADDRESS"])
+        keys.extend(["JUPYTERHUB_API_TOKEN"])
     for key in keys:
         if value := caller_env.get(key):
             os.environ[key] = value
