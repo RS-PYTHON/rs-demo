@@ -482,6 +482,18 @@ services:
       mode: replicated
       replicas: 1
 
+  prefect-worker-general:
+    image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
+    deploy:
+      mode: replicated
+      replicas: 1
+
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
@@ -560,13 +572,18 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+    volumes:
+      # Do we want persistance ??
+      # - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_multiple_dbs.sh:/docker-entrypoint-initdb.d/init_multiple_dbs.sh:ro
 
-  # Use minio for temp s3 storage
+    # Use minio for temp s3 storage
   minio:
     image: minio/minio
     container_name: minio
@@ -625,6 +642,7 @@ services:
       RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
       PREFECT_WORK_POOL_STAGING: ${PREFECT_WORK_POOL_STAGING}
       PREFECT_WORK_POOL_EOPF: ${PREFECT_WORK_POOL_EOPF}
+      PREFECT_WORK_POOL_GENERAL: ${PREFECT_WORK_POOL_GENERAL}
       # dask
       DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
@@ -634,6 +652,12 @@ services:
       DASK_GATEWAY_EOPF_MOCKUP_PUBLIC: ${DASK_GATEWAY_EOPF_MOCKUP_PUBLIC}
       LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
       LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
+      # postgres (for performance indicator)
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
       # opentelemetry
       LOKI_ENDPOINT: ${LOKI_ENDPOINT}
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
