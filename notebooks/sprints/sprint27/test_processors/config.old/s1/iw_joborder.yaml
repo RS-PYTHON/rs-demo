@@ -7,7 +7,7 @@ general_configuration:
   # Wait before stopping the dask cluster, usefull for localCluster to access the dashboard
   triggering__wait_before_exit: 0
   # Export the dask graph for variables at writing time
-  dask__export_graphs: ./reports/graphs
+  # dask__export_graphs: ./reports/graphs
 
 workflow:
 - name: s1_l0_processor
@@ -38,7 +38,7 @@ I/O:
   input_products:
 
   - id: S1ACADU
-    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594.short
+    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594
     store_type: cadu
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -87,7 +87,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20240410083700053369.short
+    path: ${OUTPUT_DIR}/S1A_20240410083700053369
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     # The store type to use
