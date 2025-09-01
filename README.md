@@ -101,6 +101,25 @@ await Secret(
     # Token that was used to setup the Dask clusters.
     # See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
     "JUPYTERHUB_API_TOKEN": "<your-token-value>",
+    # Needed to run the performance indicator prefect flow
+    # The values for the following fields should be taken from rs-infra-core inventory,
+    # file rs-infra-core/inventory/sample/host_vars/setup/apps.yml.
+    # There is a section named rs_performance_indicator. The values for the fields
+    # are set at the cluster deployment. These values should be also used here
+    # Here is the aforementioned section:
+    # rs_performance_indicator:
+    #  database:
+    #    host: postgresql-cluster-rw.database.svc.cluster.local
+    #    name: performance
+    #    password: test
+    #    username: test
+    #    secret: pi-database-password
+    "POSTGRES_HOST": "<cluster_postgres_host>" # default: "postgresql-cluster-rw.database.svc.cluster.local",
+    "POSTGRES_USER": "<pi_postgres_user>",
+    "POSTGRES_PASSWORD": "<pi_postgres_password>",
+    "POSTGRES_PORT": "<cluster_postgres_port>", # normally, 5432
+    "POSTGRES_PI_DB": "performance",
+
   }
 ).save("env-vars", overwrite=True)
 ```

@@ -14,7 +14,6 @@ notebooks/sprints/sprint24/604_s3_rights.ipynb
 notebooks/sprints/sprint21/first_l0_processor.ipynb
 notebooks/sprints/sprint22/s3l0_demo_processor.ipynb
 notebooks/sprints/sprint23/s3l0_demo_processor.ipynb
-notebooks/sprints/sprint25/test_l0_v1/test_l0_v1.ipynb
 
 # Ignore dask and prefect tutorials, they take time and their functionnalities should be covered by demos
 notebooks/tutorials/prefect+dask/dask.ipynb
@@ -25,6 +24,7 @@ notebooks/tutorials/prefect+dask/prefect_and_dask.ipynb
 notebooks/demos/stac2025/stac_2025_s1.ipynb
 notebooks/demos/stac2025/stac_2025_s3.ipynb
 notebooks/sprints/sprint25/675_convert_safe_to_zarr.ipynb
+notebooks/sprints/sprint27/test_processors/test_processors.ipynb
 
 # Notebooks that tests parallel flows
 notebooks/sprints/sprint24/100_python_flows/test_parallel_flows.ipynb

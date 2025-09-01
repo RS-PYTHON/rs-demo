@@ -2,8 +2,6 @@
 # L0 Processor Configuration File for Sentinel-1
 # =============================================================
 
-dask_utils__compute__step: 1
-
 S1:
   # -------------------------------------------------------------
   # 1. Window Time Configuration
@@ -35,7 +33,11 @@ S1:
     mpdu_header_size: 2                  # MPDU header size in bytes
     mpdu_packet_zone_size: 1902          # Packet zone data field size in bytes
     rs_check_symbols_size: 128           # Reed Solomon check symbols size
-
+    spacecraft_id:                       # Spacecraft ID
+      a: 67
+      b: 68
+      c: 240
+      d: 113
   # -------------------------------------------------------------
   # 3. Packet Store Identifiers
   # -------------------------------------------------------------
@@ -133,10 +135,6 @@ S1:
   # 5. ISP Headers Information
   # -------------------------------------------------------------
   isp_primary_header_size: 6
-  isp_secondary_header_size:
-    sar: 62
-    ais: 62
-    gps: 20
 
   # -------------------------------------------------------------
   # 6. Output Product Types
@@ -147,40 +145,40 @@ S1:
     cadu_ais: S01AISISP
     cadu_gps: S01GPSISP
     sar:
-      s1: S01S1RAW_
-      s1_anc: S01S1ANC_
-      s2: S01S2RAW_
-      s2_anc: S01S2ANC_
-      s3: S01S3RAW_
-      s3_anc: S01S3ANC_
-      s4: S01S4RAW_
-      s4_anc: S01S4ANC_
-      s5: S01S5RAW_
-      s5_anc: S01S5ANC_
-      s6: S01S6RAW_
-      s6_anc: S01S6ANC_
-      iw: S01IWRAW_
-      iw_anc: S01IWANC_
-      ew: S01EWRAW_
-      ew_anc: S01EWANC_
-      wv: S01WVRAW_
-      wv_anc: S01WVANC_
-      rf: S01RFRAW_
+      s1: S01SS1RAW
+      s1_anc: S01SS1ANC
+      s2: S01SS2RAW
+      s2_anc: S01SS2ANC
+      s3: S01SS3RAW
+      s3_anc: S01SS3ANC
+      s4: S01SS4RAW
+      s4_anc: S01SS4ANC
+      s5: S01SS5RAW
+      s5_anc: S01SS5ANC
+      s6: S01SS6RAW
+      s6_anc: S01SS6ANC
+      iw: S01SIWRAW
+      iw_anc: S01SIWANC
+      ew: S01SEWRAW
+      ew_anc: S01SEWANC
+      wv: S01SWVRAW
+      wv_anc: S01SWVANC
+      rf: S01SRFRAW
       rf_anc: S01RFCANC
-      en: S01ENRAW_
-      en_anc: S01ENANC_
-      n1: S01N1RAW_
-      n1_anc: S01N1ANC_
-      n2: S01N2RAW_
-      n2_anc: S01N2ANC_
-      n3: S01N3RAW_
-      n3_anc: S01N3ANC_
-      n4: S01N4RAW_
-      n4_anc: S01N4ANC_
-      n5: S01N5RAW_
-      n5_anc: S01N5ANC_
-      n6: S01N6RAW_
-      n6_anc: S01N6ANC_
+      en: S01SENRAW
+      en_anc: S01SENANC
+      n1: S01SN1RAW
+      n1_anc: S01SN1ANC
+      n2: S01SN2RAW
+      n2_anc: S01SN2ANC
+      n3: S01SN3RAW
+      n3_anc: S01SN3ANC
+      n4: S01SN4RAW
+      n4_anc: S01SN4ANC
+      n5: S01SN5RAW
+      n5_anc: S01SN5ANC
+      n6: S01SN6RAW
+      n6_anc: S01SN6ANC
     hktm_tf: S01HKMRAW
     gps: S01GPSRAW
     ais: S01AISRAW
@@ -649,10 +647,6 @@ S1:
         type: range
         min: 0
         max: 7
-      instrument_configuration_id:
-        type: range
-        min: 0
-        max: 4294967295
       space_packet_count:
         type: range
         min: 0
@@ -746,7 +740,7 @@ S1:
       packet_version:
         type: range
         min: 0
-        max: 7           # (2^3 - 1)
+        max: 7
 
       packet_type:
         type: range
@@ -802,7 +796,7 @@ S1:
       packet_version:
         type: range
         min: 0
-        max: 7           # (2^3 - 1)
+        max: 7
 
       packet_type:
         type: range

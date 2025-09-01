@@ -171,7 +171,7 @@ def init_dask_cluster(
         if scaled >= scale:
             break
         tries += 1
-        if tries >= 60:
+        if tries >= float("inf"):  # deactivate timeout
             raise TimeoutError(
                 f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
             )
@@ -289,60 +289,64 @@ def init_dask_cluster_eopf(
     # Additional arguments to pass to the DPR cluster.
     # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
     else:
+        worker_tuning = {
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "node-role.kubernetes.io/dask_worker_on_demand",
+                                        "operator": "Exists",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            "tolerations": [
+                {
+                    "key": "role",
+                    "operator": "Equal",
+                    "value": "dask_worker_on_demand",
+                    "effect": "NoSchedule",
+                },
+            ],
+        }
+        scheduler_tuning = {
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "node-role.kubernetes.io/dask_scheduler",
+                                        "operator": "Exists",
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            "tolerations": [
+                {
+                    "key": "role",
+                    "operator": "Equal",
+                    "value": "dask_scheduler",
+                    "effect": "NoSchedule",
+                },
+            ],
+        }
         dpr_tuning = {
+            "worker_cores": 3,
+            "worker_memory": 12,  # In GB
             "scheduler_memory_limit": 60,  # In GB
-            "worker_extra_pod_config": {
-                "affinity": {
-                    "nodeAffinity": {
-                        "requiredDuringSchedulingIgnoredDuringExecution": {
-                            "nodeSelectorTerms": [
-                                {
-                                    "matchExpressions": [
-                                        {
-                                            "key": "node-role.kubernetes.io/dask_worker_on_demand",
-                                            "operator": "Exists",
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    },
-                },
-                "tolerations": [
-                    {
-                        "key": "role",
-                        "operator": "Equal",
-                        "value": "dask_worker_on_demand",
-                        "effect": "NoSchedule",
-                    },
-                ],
-            },
-            "scheduler_extra_pod_config": {
-                "affinity": {
-                    "nodeAffinity": {
-                        "requiredDuringSchedulingIgnoredDuringExecution": {
-                            "nodeSelectorTerms": [
-                                {
-                                    "matchExpressions": [
-                                        {
-                                            "key": "node-role.kubernetes.io/dask_scheduler",
-                                            "operator": "Exists",
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    },
-                },
-                "tolerations": [
-                    {
-                        "key": "role",
-                        "operator": "Equal",
-                        "value": "dask_scheduler",
-                        "effect": "NoSchedule",
-                    },
-                ],
-            },
+            "worker_extra_pod_config": scheduler_tuning,  # worker_tuning, # for testing
+            "scheduler_extra_pod_config": scheduler_tuning,
         }
 
     # Update DASK_GATEWAY_EOPF_ADDRESS so it redirects to the processor we want

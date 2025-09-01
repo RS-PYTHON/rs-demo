@@ -80,3 +80,8 @@ fi
 if [[ "$BUILD_TARGET" == "mockup" || "$BUILD_TARGET" == "all" ]]; then
     build_and_push "mockup" "Dockerfile.dask-eopf-mockup-local" "ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local" "$@"
 fi
+# rs-dpr-service + real dpr processor in same image
+if [[ "$BUILD_TARGET" == "localcluster" || "$BUILD_TARGET" == "all" ]]; then
+    docker pull "ghcr.io/rs-python/rs-dpr-service:latest"
+    build_and_push "localcluster" "Dockerfile.dask-eopf-localcluster" "ghcr.io/rs-python/dask-gateway-server/eopf/localcluster" "$@"
+fi
