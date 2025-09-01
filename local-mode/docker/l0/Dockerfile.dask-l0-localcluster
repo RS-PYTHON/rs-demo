@@ -1,4 +1,4 @@
-# Copyright 2025 CS Group
+# Copyright 2024 CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,53 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# We will add eopf to the dask-gateway-server image for local mode
-# Declare ARG variables before the FROM instruction
-ARG DASK_GATEWAY_TAG=xxx
-FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
-
-ARG PREFECT_TAG=xxx
-ARG PREFECT_DASK_TAG=xxx
+# We will add eopf to the rs-dpr-service image
+FROM ghcr.io/rs-python/rs-dpr-service:latest
 
 # Default user from parent image
-ARG USER=dask:dask
+ARG USER=user
+
+# Do everything from root
+USER root
 
 # System installations
-USER root
 RUN apt update && apt install -y git
-USER $USER
 
 # Install EOPF
-COPY ./s1-ard/requirements.dask-s1-ard-local.txt /opt/
+COPY ./l0/requirements.dask-l0-local.txt /opt/
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/requirements.dask-s1-ard-local.txt
-
-# Install complete dask subsets + prefect
-RUN pip install \
-    dask[complete] \
-    prefect[aws]=="${PREFECT_TAG}" \
-    prefect-dask=="${PREFECT_DASK_TAG}"
+    pip install -U -r /opt/requirements.dask-l0-local.txt
 
 # Other installations
-USER root
-RUN apt update && apt install -y python3-pydot graphviz
-USER $USER
+RUN \
+    apt update && \
+    apt install -y \
+        python3-pydot graphviz && \
+    pip install \
+        bokeh">=3.1.0" \
+        jupyter-server-proxy
 
-# Install and auto configure opentelemetry
-RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
-    opentelemetry-bootstrap -a install
+# Auto configure opentelemetry
+RUN opentelemetry-bootstrap -a install
 
 # Clean everything
-USER root
 RUN apt autoremove -y git
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-l0-local.txt
+
+# Restore user
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/s1-ard/local"
-LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/s1-ard/Dockerfile.dask-s1-ard-local"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/l0/localcluster"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/l0/Dockerfile.dask-l0-localcluster"

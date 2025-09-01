@@ -74,7 +74,7 @@ build_and_push() {
 # first image: the one that contains the real dpr processor
 if [[ "$BUILD_TARGET" == "local" || "$BUILD_TARGET" == "all" ]]; then
     build_and_push "local" "l0/Dockerfile.dask-l0-local" "ghcr.io/rs-python/dask-gateway-server/l0/local" "$@"
-    build_and_push "local" "s1-ard/Dockerfile.dask-s1-ard-local" "ghcr.io/rs-python/dask-gateway-server/s1-ard/local" "$@"
+    build_and_push "local" "s1ard/Dockerfile.dask-s1ard-local" "ghcr.io/rs-python/dask-gateway-server/s1ard/local" "$@"
 fi
 # second image: the one that contains the dpr processor mockup
 if [[ "$BUILD_TARGET" == "mockup" || "$BUILD_TARGET" == "all" ]]; then
@@ -83,5 +83,5 @@ fi
 # rs-dpr-service + real dpr processor in same image
 if [[ "$BUILD_TARGET" == "localcluster" || "$BUILD_TARGET" == "all" ]]; then
     docker pull "ghcr.io/rs-python/rs-dpr-service:latest"
-    build_and_push "localcluster" "Dockerfile.dask-eopf-localcluster" "ghcr.io/rs-python/dask-gateway-server/eopf/localcluster" "$@"
+    build_and_push "localcluster" "l0/Dockerfile.dask-eopf-localcluster" "ghcr.io/rs-python/dask-gateway-server/l0/localcluster" "$@"
 fi

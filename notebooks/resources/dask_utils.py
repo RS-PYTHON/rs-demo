@@ -265,25 +265,20 @@ def init_dask_cluster_staging(
 
 
 def init_dask_cluster_eopf(
+    local_mode_address: str,
+    local_mode_address_public: str,
     scale: int,
-    processor_name: str = "l0",
-    processor_code: str = "S1L0",  # S1L0, S3L0 or S1ARD
-    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
+    image: str,
+    cluster_tag: str,
+    big_resources: bool = False,  # provide more ram and cpu
     use_mockup=False,
     *args,
     **kwargs,
 ):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
-    local_environ_eopf_address = f"DASK_GATEWAY_{processor_code}_ADDRESS"
-    local_environ_eopf_public = f"DASK_GATEWAY_{processor_code}_PUBLIC"
-    cluster_tag = f"dask-{processor_name}"
 
     if use_mockup:
-        image = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest"
-        local_environ_eopf_address = "DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"
-        local_environ_eopf_public = "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
-        cluster_tag = "dask-eopf-mockup"
         dpr_tuning = {}
 
     # Additional arguments to pass to the DPR cluster.
@@ -345,29 +340,65 @@ def init_dask_cluster_eopf(
             "worker_cores": 3,
             "worker_memory": 12,  # In GB
             "scheduler_memory_limit": 60,  # In GB
-            "worker_extra_pod_config": scheduler_tuning,  # worker_tuning, # for testing
+            "worker_extra_pod_config": (
+                scheduler_tuning if big_resources else worker_tuning
+            ),
             "scheduler_extra_pod_config": scheduler_tuning,
         }
-
-    # Update DASK_GATEWAY_EOPF_ADDRESS so it redirects to the processor we want
-    os.environ["DASK_GATEWAY_EOPF_ADDRESS"] = os.environ[local_environ_eopf_address]
 
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
         (
             os.environ["DASK_GATEWAY_ADDRESS"]
             if cluster_mode
-            else os.environ[local_environ_eopf_address]
+            else os.environ[local_mode_address]
         ),
         (
             os.environ["DASK_GATEWAY_PUBLIC"]
             if cluster_mode
-            else os.environ[local_environ_eopf_public]
+            else os.environ[local_mode_address_public]
         ),
         scale,
         image=image,
         cluster_tag=cluster_tag,
         *args,
         **(dpr_tuning | kwargs),  # set default DPR tuning
+    )
+
+
+def init_dask_cluster_mockup(*args, **kwargs):
+    kwargs.setdefault(
+        "image",
+        "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest",
+    )
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
+        cluster_tag=os.environ["RSPY_DASK_MOCKUP_CLUSTER_NAME"],
+        use_mockup=True,
+        **kwargs,
+    )
+
+
+def init_dask_cluster_l0(*args, **kwargs):
+    kwargs.setdefault("image", "ghcr.io/rs-python/rs-infra-core-dask-l0:latest")
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_L0_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_L0_PUBLIC",
+        cluster_tag=os.environ["RSPY_DASK_L0_CLUSTER_NAME"],
+        **kwargs,
+    )
+
+
+def init_dask_cluster_s1ard(*args, **kwargs):
+    kwargs.setdefault("image", "ghcr.io/rs-python/rs-infra-core-dask-s1ard:latest")
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_S1ARD_PUBLIC",
+        cluster_tag=os.environ["RSPY_DASK_S1ARD_CLUSTER_NAME"],
+        **kwargs,
     )
 
 

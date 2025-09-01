@@ -126,9 +126,8 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
-  # NOTE: to debug using a dask LocalCluster, comment the lines:
-  # RSPY_DASK_STAGING_CLUSTER_NAME: ...
-  # DASK_GATEWAY__ADDRESS: ...
+  # NOTE: to debug using a dask LocalCluster, comment the line:
+  # DASK_GATEWAY_ADDRESS: ...
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
@@ -146,8 +145,7 @@ services:
       - .env
       - ~/.s3cfg
     environment:
-      RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
-      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
@@ -159,7 +157,7 @@ services:
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   # NOTE: to debug using a dask LocalCluster, use image:
-  # image: ghcr.io/rs-python/dask-gateway-server/eopf/localcluster
+  # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
@@ -170,16 +168,6 @@ services:
     env_file:
       - .env
       - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-    environment:
-      RSPY_DASK_S1L0_CLUSTER_NAME: dask-l0
-      RSPY_DASK_S3L0_CLUSTER_NAME: dask-l0
-      RSPY_DASK_S1ARD_CLUSTER_NAME: dask-s1ard
-      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
-      DASK_GATEWAY_S1L0_ADDRESS: ${DASK_GATEWAY_S1L0_ADDRESS}
-      DASK_GATEWAY_S3L0_ADDRESS: ${DASK_GATEWAY_S3L0_ADDRESS}
-      DASK_GATEWAY_S1ARD_ADDRESS: ${DASK_GATEWAY_S1ARD_ADDRESS}
-      RSPY_DASK_DPR_SERVICE_MOCKUP_CLUSTER_NAME: dask-eopf-mockup
-      DASK_GATEWAY__MOCKUP_ADDRESS: ${DASK_GATEWAY_EOPF_MOCKUP_ADDRESS}
 
   ############
   # STATIONS #
@@ -304,9 +292,9 @@ services:
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
-  ####################
-  # PREFECT AND DASK #
-  ####################
+  ###########
+  # PREFECT #
+  ###########
 
   prefect-server:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
@@ -362,6 +350,10 @@ services:
       mode: replicated
       replicas: 1
 
+  ########
+  # DASK #
+  ########
+
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
@@ -369,7 +361,7 @@ services:
 
   dask-l0:
     image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
@@ -377,13 +369,13 @@ services:
     ports:
       - 8702:8000
 
-  dask-s1-ard:
-    image: ghcr.io/rs-python/dask-gateway-server/s1-ard/local:latest
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_THREADS_EOPF=4 docker compose up # ...
+  dask-s1ard:
+    image: ghcr.io/rs-python/dask-gateway-server/s1ard/local:latest
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
-      --ClusterConfig.worker_threads="${DASK_THREADS_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
     ports:
       - 8704:8000
 
