@@ -60,5 +60,5 @@ USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/l0/local"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/l0/Dockerfile.dask-l0-local"
