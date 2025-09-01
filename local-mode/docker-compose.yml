@@ -15,10 +15,8 @@ services:
     container_name: rs-server-frontend
     ports:
       - 8000:8000
-    # variables are set in the .env file
-    environment:
-      RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+    env_file:
+      - .env
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
@@ -30,33 +28,17 @@ services:
       - rspy-pre-actions
       - minio
       - adgs-station
-    # variables are set in the .env file
-    environment:
-
-      RSPY_LOCAL_MODE: 1
-      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-      # # OAuth2 authentication
-      # OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-      # OIDC_REALM: rspy
-      # OIDC_CLIENT_ID: fastapi_test
-      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-      # RSPY_COOKIE_SECRET: secret
-
-      CORS_ORIGINS: ${CORS_ORIGINS}
-
-      # s3 bucket
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-      # EODAG
-      EODAG_ADGS_CONFIG: ${EODAG_ADGS_CONFIG}
-      # opentelemetry
-      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
-      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
-      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
+    env_file:
+      - .env
+    # environment:
+    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+    #   # OAuth2 authentication
+    #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+    #   OIDC_REALM: rspy
+    #   OIDC_CLIENT_ID: fastapi_test
+    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   RSPY_COOKIE_SECRET: secret
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
@@ -71,33 +53,17 @@ services:
       - rspy-pre-actions
       - minio
       - cadip-station
-    # variables are set in the .env file
-    environment:
-
-      RSPY_LOCAL_MODE: 1
-      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-      # # OAuth2 authentication
-      # OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-      # OIDC_REALM: rspy
-      # OIDC_CLIENT_ID: fastapi_test
-      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-      # RSPY_COOKIE_SECRET: secret
-
-      CORS_ORIGINS: ${CORS_ORIGINS}
-
-      # s3 bucket
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-      # EODAG
-      EODAG_CADIP_CONFIG: ${EODAG_CADIP_CONFIG}
-      # opentelemetry
-      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
-      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
-      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
+    env_file:
+      - .env
+    # environment:
+    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+    #   # OAuth2 authentication
+    #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+    #   OIDC_REALM: rspy
+    #   OIDC_CLIENT_ID: fastapi_test
+    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   RSPY_COOKIE_SECRET: secret
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
@@ -110,11 +76,9 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
-    # variables are set in the .env file
+    env_file:
+      - .env
     environment:
-
-      RSPY_HOST_USER: ${USER}
-      RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -125,9 +89,10 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
 
+      RSPY_HOST_USER: ${USER}
+
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
       ENABLE_TRANSACTIONS_EXTENSIONS: 1
-      CORS_ORIGINS: ${CORS_ORIGINS}
       CORS_METHODS: "GET,POST,OPTIONS"
       CORS_CREDENTIALS: "true"
       CORS_HEADERS: "*"
@@ -139,11 +104,6 @@ services:
       APP_PORT: 8000
 #      RELOAD: false
 #      ENVIRONMENT: local
-      PGUSER: ${PGSTAC_USER}
-      PGPASSWORD: ${PGSTAC_PASSWORD}
-      PGHOST: ${PGSTAC_HOST}
-      PGPORT: 5432
-      PGDATABASE: ${PGSTAC_DB}
 #      WEB_CONCURRENCY: 10
 #      VSI_CACHE: TRUE
       GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: YES
@@ -151,22 +111,17 @@ services:
       DB_MIN_CONN_SIZE: 1
       DB_MAX_CONN_SIZE: 1
       USE_API_HYDRATE: false
+      # pg stac database
+      PGUSER: ${PGSTAC_USER}
       POSTGRES_USER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
       POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
+      PGHOST: ${PGSTAC_HOST}
       POSTGRES_HOST: ${PGSTAC_HOST}
+      PGPORT: 5432
       POSTGRES_PORT: 5432
+      PGDATABASE: ${PGSTAC_DB}
       POSTGRES_DB: ${PGSTAC_DB}
-      # s3 bucket
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-      BUCKET_CONFIG_FILE_PATH: ${BUCKET_CONFIG_FILE_PATH}
-      # opentelemetry
-      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
-      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
-      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
@@ -187,98 +142,34 @@ services:
       - cadip-station
       - rs-server-catalog
       - postgres
-    # variables are set in the .env file
+    env_file:
+      - .env
+      - ~/.s3cfg
     environment:
-      RSPY_LOCAL_MODE: 1
-      RSPY_HOST_CATALOG: http://rs-server-catalog:8000
-      RSPY_HOST_CADIP: http://rs-server-cadip:8000
-      RSPY_HOST_ADGS: http://rs-server-adgs:8000
-
       RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
-      LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
-      LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
-      # postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      # s3 bucket
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-      BUCKET_CONFIG_FILE_PATH: ${BUCKET_CONFIG_FILE_PATH}
-      # opentelemetry
-      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
-      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
-      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
-    env_file:
-      - ~/.s3cfg
     volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
-      #- ./config/rs-server-staging.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
-
-  ############
-  # STATIONS #
-  ############
-
-  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/ADGS/Dockerfile
-  adgs-station:
-    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
-    container_name: adgs-station
-    environment:
-      # Token expiration settings
-      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
-      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    ports:
-      - 5001:5000
-    volumes:
-      - ~/.s3cfg:/.s3cfg
-
-  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
-  cadip-station:
-    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
-    container_name: cadip-station
-    environment:
-      HTTP_REDIRECTION_HREF: http://cadip-station:5000
-      # Token expiration settings
-      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
-      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    ports:
-      - 5002:5000
-      - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
-
-  lta-station:
-    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
-    container_name: lta-station
-    ports:
-      - 5003:5000
-
-  ##############
-  # SIMULATORS #
-  ##############
 
   # NOTE: to debug using a dask LocalCluster, use image:
   # image: ghcr.io/rs-python/dask-gateway-server/eopf/localcluster
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
-    depends_on:
-      - postgres
     ports:
       - 6003:8000
-    # variables are set in the .env file
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
     environment:
       RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-eopf
       DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
@@ -304,25 +195,50 @@ services:
       TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
       OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
       OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
-    env_file: # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-      - ~/.s3cfg
 
+  ############
+  # STATIONS #
+  ############
 
-  ###############
-  # PRE-ACTIONS #
-  ###############
-
-  # Run a bash container as root to run custom pre-actions:
-  #   - Give all permissions to the docker named volumes "rspy_working_dir"
-  #   - Copy stations configuration files
-  rspy-pre-actions:
-    image: bash:latest
-    container_name: rspy-pre-actions
-    privileged: true
+  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/ADGS/Dockerfile
+  adgs-station:
+    image: ghcr.io/rs-python/rs-testmeans_adgs-station-mock:latest
+    container_name: adgs-station
+    ports:
+      - 5001:5000
+    # env_file:
+    #   - .env # WARNING: does not work because it overrides env vars
+    environment:
+      # Token expiration settings
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
+      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
     volumes:
-      - .:/docker/compose/dir
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
+      - ~/.s3cfg:/.s3cfg
+
+  # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
+  cadip-station:
+    image: ghcr.io/rs-python/rs-testmeans_cadip-station-mock:latest
+    container_name: cadip-station
+    ports:
+      - 5002:5000
+      - ${HTTP_REDIRECTION_PORT}:${HTTP_REDIRECTION_PORT}
+    # env_file:
+    #   - .env # WARNING: does not work because it overrides env vars
+    environment:
+      HTTP_REDIRECTION_HREF: http://cadip-station:5000
+      # Token expiration settings
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
+      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
+    volumes:
+      - ~/.s3cfg:/.s3cfg
+
+  lta-station:
+    image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
+    container_name: lta-station
+    ports:
+      - 5003:5000
+    # env_file:
+    #   - .env # WARNING: does not work because it overrides env vars
 
   ########
   # STAC #
@@ -336,6 +252,8 @@ services:
       - 8101:8080
     depends_on:
       - rs-server-adgs
+    env_file:
+      - .env
     environment:
       SB_authConfig: |
             {
@@ -359,6 +277,8 @@ services:
       - 8102:8080
     depends_on:
       - rs-server-cadip
+    env_file:
+      - .env
     environment:
       SB_authConfig: |
             {
@@ -382,6 +302,8 @@ services:
       - 8103:8080
     depends_on:
       - rs-server-catalog
+    env_file:
+      - .env
     environment:
       SB_authConfig: |
             {
@@ -397,41 +319,6 @@ services:
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
-  catalog-db:
-    container_name: catalog-db
-    image: ghcr.io/stac-utils/pgstac:v0.9.8
-    environment:
-      POSTGRES_PORT: ${PGSTAC_PORT}
-      POSTGRES_USER: ${PGSTAC_USER}
-      POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
-      POSTGRES_DB: ${PGSTAC_DB}
-      PGUSER: ${PGSTAC_USER}
-      PGPASSWORD: ${PGSTAC_PASSWORD}
-      PGDATABASE: ${PGSTAC_DB}
-    ports:
-      - ${PGSTAC_PORT}:5432
-    command: postgres -N 500
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  pgstac-post-actions: # post actions for catalog-db
-    container_name: pgstac-post-actions
-    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.8
-    depends_on:
-      - catalog-db
-    environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
-      PGHOST: catalog-db
-      PGPORT: 5432
-      PGUSER: ${PGSTAC_USER}
-      PGPASSWORD: ${PGSTAC_PASSWORD}
-      PGDATABASE: ${PGSTAC_DB}
-    volumes:
-      - ./scripts/pgstac_post_actions.py:/scripts/pgstac_post_actions.py
-    command: "bash -c 'pip3 install smart_open[http]; python3 /scripts/pgstac_post_actions.py'"
-
   ####################
   # PREFECT AND DASK #
   ####################
@@ -442,6 +329,8 @@ services:
       - 4200:4200
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       - PREFECT_API_URL=http://127.0.0.1:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
@@ -457,6 +346,8 @@ services:
     depends_on:
       prefect-server:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
@@ -469,6 +360,8 @@ services:
     depends_on:
       prefect-server:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
       # rs-server urls
@@ -487,6 +380,8 @@ services:
     depends_on:
       prefect-server:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
@@ -501,24 +396,24 @@ services:
 
   dask-eopf:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
+    ports:
+      - 8702:8000
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
-    ports:
-      - 8702:8000
 
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
-    entrypoint: > # don't use '|' it doesn't work
-      tini -g -- dask-gateway-server
-      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
-      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
     ports:
       - 8703:8000
     env_file: # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
       - ~/.s3cfg
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
 
   #################
   # OPENTELEMETRY #
@@ -530,49 +425,49 @@ services:
     image: grafana/grafana:10.4.10
     ports:
       - 3000:3000
+    depends_on:
+      - tempo
     attach: false # hide logs
-    volumes:
-      - ./config/grafana.ini:/etc/grafana/grafana.ini
-      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
+    env_file:
+      - .env
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-    depends_on:
-      - tempo
+    volumes:
+      - ./config/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
 
   loki:
     image: grafana/loki:2.9.6
     ports:
       - 3100:3100
     attach: false # hide logs
+    env_file:
+      - .env
     command: -config.file=/etc/loki/local-config.yaml
 
   tempo:
     image: grafana/tempo:2.4.1
+    ports:
+      - 4317:4317
     attach: false # hide logs
+    env_file:
+      - .env
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yaml:/etc/tempo.yaml
-    ports:
-      - 4317:4317
 
-  ##########
-  # OTHERS #
-  ##########
+  #############
+  # DATABASES #
+  #############
 
   postgres:
     image: postgres:15-alpine
-    container_name: ${POSTGRES_HOST}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
-    # variables are set in the .env file
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -583,6 +478,48 @@ services:
       # - postgres_data:/var/lib/postgresql/data
       - ./scripts/init_multiple_dbs.sh:/docker-entrypoint-initdb.d/init_multiple_dbs.sh:ro
 
+  catalog-db:
+    image: ghcr.io/stac-utils/pgstac:v0.9.8
+    ports:
+      - ${PGSTAC_PORT}:5432
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${PGSTAC_USER}
+      PGUSER: ${PGSTAC_USER}
+      POSTGRES_PASSWORD: ${PGSTAC_PASSWORD}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      POSTGRES_PORT: ${PGSTAC_PORT}
+      POSTGRES_DB: ${PGSTAC_DB}
+      PGDATABASE: ${PGSTAC_DB}
+    command: postgres -N 500
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgstac-post-actions: # post actions for catalog-db
+    container_name: pgstac-post-actions
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.8
+    depends_on:
+      - catalog-db
+    env_file:
+      - .env
+    environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
+      PGHOST: catalog-db
+      PGPORT: 5432
+      PGUSER: ${PGSTAC_USER}
+      PGPASSWORD: ${PGSTAC_PASSWORD}
+      PGDATABASE: ${PGSTAC_DB}
+    volumes:
+      - ./scripts/pgstac_post_actions.py:/scripts/pgstac_post_actions.py
+    command: "bash -c 'pip3 install smart_open[http]; python3 /scripts/pgstac_post_actions.py'"
+
+#############
+# S3 BUCKET #
+#############
+
   # Use minio for temp s3 storage
   minio:
     image: minio/minio
@@ -590,29 +527,32 @@ services:
     ports:
       - "9100:9000"
       - "9101:9001"
-    volumes:
-      - minio_storage:/data # docker named volume
-    # variables are set in the .env file
+    env_file:
+      - .env
     environment:
       MINIO_ROOT_USER: ${S3_ACCESSKEY}
       MINIO_ROOT_PASSWORD: ${S3_SECRETKEY}
+    volumes:
+      - minio_storage:/data # docker named volume
     command: server --console-address ":9001" /data
+
+###########
+# JUPYTER #
+###########
 
   # Local Jupyter server.
   # The logs will show shomething like: http://127.0.0.1:8888/lab?token=<token-value> in your terminal.
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
-    # From: https://github.com/RS-PYTHON/rs-client-libraries/tree/develop/.github/dockerfiles/Dockerfile.jupyter
     image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
     container_name: jupyter
     ports:
       - 8888:8888
     depends_on:
       - minio # used to check manually the s3 bucket contents
-    # variables are set in the .env file
+    env_file:
+      - .env
     environment:
-      RSPY_HOST_USER: ${USER}
-      RSPY_LOCAL_MODE: 1
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -623,48 +563,11 @@ services:
       # # In Chrome: in the "Application" tab, in Firefox: in the "Storage" tab.
       # RSPY_OAUTH2_COOKIE: xxx # DON'T SAVE THIS VALUE IN GIT !
 
-      # rs-server urls
-      RSPY_HOST_ADGS: ${RSPY_HOST_ADGS}
-      RSPY_HOST_CADIP: ${RSPY_HOST_CADIP}
-      RSPY_HOST_CATALOG: ${RSPY_HOST_CATALOG}
-      RSPY_HOST_STAGING: ${RSPY_HOST_STAGING}
-      RSPY_HOST_DPR_SERVICE: ${RSPY_HOST_DPR_SERVICE}
-      # s3 bucket
-      S3_ACCESSKEY: ${S3_ACCESSKEY}
-      S3_SECRETKEY: ${S3_SECRETKEY}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION}
-      RSPY_TEMP_BUCKET: ${RSPY_TEMP_BUCKET}
-      BUCKET_CONFIG_FILE_PATH: ${BUCKET_CONFIG_FILE_PATH}
-      # prefect
-      PREFECT_URL: ${PREFECT_URL}
-      PREFECT_API_URL: ${PREFECT_API_URL}
-      RSPY_PREFECT_URL: ${RSPY_PREFECT_URL}
-      PREFECT_WORK_POOL_STAGING: ${PREFECT_WORK_POOL_STAGING}
-      PREFECT_WORK_POOL_EOPF: ${PREFECT_WORK_POOL_EOPF}
-      PREFECT_WORK_POOL_GENERAL: ${PREFECT_WORK_POOL_GENERAL}
-      # dask
-      DASK_GATEWAY_STAGING_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
-      DASK_GATEWAY_EOPF_ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
-      DASK_GATEWAY_EOPF_MOCKUP_ADDRESS: ${DASK_GATEWAY_EOPF_MOCKUP_ADDRESS}
-      DASK_GATEWAY_STAGING_PUBLIC: ${DASK_GATEWAY_STAGING_PUBLIC}
-      DASK_GATEWAY_EOPF_PUBLIC: ${DASK_GATEWAY_EOPF_PUBLIC}
-      DASK_GATEWAY_EOPF_MOCKUP_PUBLIC: ${DASK_GATEWAY_EOPF_MOCKUP_PUBLIC}
-      LOCAL_DASK_USERNAME: ${LOCAL_DASK_USERNAME}
-      LOCAL_DASK_PASSWORD: ${LOCAL_DASK_PASSWORD}
-      # postgres (for performance indicator)
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_PI_DB: ${POSTGRES_PI_DB}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      # opentelemetry
-      LOKI_ENDPOINT: ${LOKI_ENDPOINT}
-      TEMPO_ENDPOINT: ${TEMPO_ENDPOINT}
-      OTEL_PYTHON_REQUESTS_TRACE_HEADERS: 1
-      OTEL_PYTHON_REQUESTS_TRACE_BODY: 1
+      RSPY_HOST_USER: ${USER}
+
       # to import resources/ from the mounted volume below
       PYTHONPATH: /home/jovyan/notebooks
+
     volumes:
       - ../notebooks:/home/jovyan/notebooks
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
@@ -693,6 +596,26 @@ services:
   #     APIKM_OIDC_CLIENT_ID: apikeymanager
   #     APIKM_OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
   #     APIKM_USE_AUTHLIB_OAUTH: true
+
+  ###############
+  # PRE-ACTIONS #
+  ###############
+
+  # Run a bash container as root to run custom pre-actions:
+  #   - Give all permissions to the docker named volumes "rspy_working_dir"
+  #   - Copy stations configuration files
+  rspy-pre-actions:
+    image: bash:latest
+    container_name: rspy-pre-actions
+    privileged: true
+    volumes:
+      - .:/docker/compose/dir
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+    entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
+
+#################
+# CONFIGURATION #
+#################
 
 # Docker named volumes
 volumes:
