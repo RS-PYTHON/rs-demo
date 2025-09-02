@@ -346,23 +346,29 @@ def init_dask_cluster_eopf(
             "scheduler_extra_pod_config": scheduler_tuning,
         }
 
+    # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
+    # We need this address in some config files. So we update this env var from the current cluster value.
+    # NOTE: these variables will be overridden if we init several eopf clusters in the same demo.
+    if local_mode:
+        os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[local_mode_address]
+        os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[local_mode_address_public]
+
+    # Init the dask eopf cluster and update the global variables.
+    # NOTE: here also these variables will be overridden if we init several eopf clusters in the same demo.
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
-        (
-            os.environ["DASK_GATEWAY_ADDRESS"]
-            if cluster_mode
-            else os.environ[local_mode_address]
-        ),
-        (
-            os.environ["DASK_GATEWAY_PUBLIC"]
-            if cluster_mode
-            else os.environ[local_mode_address_public]
-        ),
+        os.environ["DASK_GATEWAY_ADDRESS"],
+        os.environ["DASK_GATEWAY_PUBLIC"],
         scale,
         image=image,
         cluster_tag=cluster_tag,
         *args,
         **(dpr_tuning | kwargs),  # set default DPR tuning
     )
+
+    # Save the dask eopf cluster instance id
+    # This is something like "dask-gateway.17e196069443463495547eb97f532834"
+    # NOTE: here also this variable will be overridden if we init several eopf clusters in the same demo.
+    os.environ["DASK_CLUSTER_INSTANCE"] = dask_cluster_eopf.name
 
 
 def init_dask_cluster_mockup(*args, **kwargs):
@@ -510,7 +516,7 @@ def upload_util_modules(clients: list[DaskClient]):
 
 def copy_caller_env(caller_env: dict[str, str]):
     """
-    Copy environment variables from caller (=prefect or jupyter) environment.
+    Copy environment variables from the caller (=prefect or jupyter) environment to the dask client.
 
     Args:
         caller_env: os.environ coming from caller
@@ -530,13 +536,13 @@ def copy_caller_env(caller_env: dict[str, str]):
         "S3_REGION",
         "PREFECT_BUCKET_NAME",
         "PREFECT_BUCKET_FOLDER",
-        "DASK_GATEWAY_EOPF_ADDRESS",
-        "DASK_CLUSTER_EOPF_NAME",
         "AWS_REQUEST_CHECKSUM_CALCULATION",
         "AWS_RESPONSE_CHECKSUM_VALIDATION",
         "TEMPO_ENDPOINT",
         "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
         "OTEL_PYTHON_REQUESTS_TRACE_BODY",
+        "DASK_GATEWAY_ADDRESS",
+        "DASK_CLUSTER_INSTANCE",
     ]
     if local_mode:
         keys.extend(
@@ -552,6 +558,7 @@ def copy_caller_env(caller_env: dict[str, str]):
         )
     else:
         keys.extend(["JUPYTERHUB_API_TOKEN"])
+
     for key in keys:
         if value := caller_env.get(key):
             os.environ[key] = value

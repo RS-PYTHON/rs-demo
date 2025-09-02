@@ -28,6 +28,7 @@ from opentelemetry import trace
 from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
 from pystac import Asset, Item, ItemCollection
+from rs_client.ogcapi.dpr_client import DprProcess
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry, prefect_utils
 
@@ -619,7 +620,9 @@ async def dpr_service(
         os.makedirs(report_dirname, exist_ok=True)
         with open(payload_abs_path, "r") as payload_data:
             data = yaml.safe_load(payload_data)
-        data.update({"use_mockup": use_dpr_mockup})
 
-        job_status = dpr_client.run_process("s3_l0", data)
+        job_status = dpr_client.run_process(
+            DprProcess.MOCKUP if use_dpr_mockup else DprProcess.S3L0,
+            data,
+        )
         return dpr_client.wait_for_job(job_status, logger, "'S3 L0 processor'")
