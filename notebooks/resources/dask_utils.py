@@ -522,7 +522,7 @@ def copy_caller_env(caller_env: dict[str, str]):
         caller_env: os.environ coming from caller
     """
 
-    # Update the local/clsuter mode global variable with the env var coming from the caller
+    # Update the local/cluster mode global variable with the env var coming from the caller
     global local_mode, cluster_mode
     local_mode = caller_env.get("RSPY_LOCAL_MODE") == "1"
     cluster_mode = not local_mode

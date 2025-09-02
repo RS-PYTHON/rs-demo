@@ -20,7 +20,6 @@ import os
 import os.path as osp
 import re
 import subprocess
-import time
 from datetime import datetime
 from importlib import reload
 from pathlib import Path
@@ -48,7 +47,7 @@ dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
 
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number
 # See: https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/issues/680
-worker_count = len(dask_client_eopf.scheduler_info()["workers"])
+worker_count = len(dask_client.scheduler_info()["workers"])
 
 # Global vars
 caller_env: dict = None  # prefect env vars, will be copied into dask env
@@ -122,7 +121,7 @@ async def s3l0_demo_processor(
         rs_server_api_key = os.environ.get("RSPY_APIKEY")
 
         # Upload utility modules to dask clients
-        dask_utils.upload_util_modules([dask_client_eopf])
+        dask_utils.upload_util_modules([dask_client])
 
         module, processing_unit = extract_module_and_processing_unit(payload_file)
         if not module or not processing_unit:
@@ -569,8 +568,8 @@ def publish_to_catalog(catalog_client, collection_name, eopf_result, output_data
 #######################
 @flow(
     task_runner=DaskTaskRunner(
-        address=dask_cluster_eopf.scheduler_address,
-        client_kwargs={"security": dask_cluster_eopf.security},
+        address=dask_cluster.scheduler_address,
+        client_kwargs={"security": dask_cluster.security},
     ),
 )
 def start_processor_dask_for_aux_search(
@@ -641,8 +640,8 @@ async def eopf_aux_data_search(
 #######################
 @flow(
     task_runner=DaskTaskRunner(
-        address=dask_cluster_eopf.scheduler_address,
-        client_kwargs={"security": dask_cluster_eopf.security},
+        address=dask_cluster.scheduler_address,
+        client_kwargs={"security": dask_cluster.security},
     ),
 )
 def s3l0_demo_processor_dask(

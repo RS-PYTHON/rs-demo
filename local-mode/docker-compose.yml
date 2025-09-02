@@ -304,6 +304,7 @@ services:
       - postgres
     env_file:
       - .env
+      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
     environment:
       - PREFECT_API_URL=http://127.0.0.1:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
@@ -321,6 +322,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
     deploy:
       mode: replicated
@@ -333,6 +335,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
@@ -345,6 +348,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
     deploy:
       mode: replicated
@@ -383,8 +387,6 @@ services:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
     ports:
       - 8703:8000
-    env_file: # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-      - ~/.s3cfg
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
