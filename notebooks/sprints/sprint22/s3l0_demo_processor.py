@@ -300,7 +300,6 @@ def job_staging_monitor(
     owner_id,
     data_to_be_staged,
     collection_name,
-    timeout=120,
     poll_interval=2,
 ):
     logger = get_run_logger()
@@ -316,7 +315,7 @@ def job_staging_monitor(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-    staging_client.wait_for_jobs(job_status, logger, timeout, poll_interval)
+    staging_client.wait_for_jobs(job_status, logger, poll_interval)
 
 
 @task(name="auxip-search")
