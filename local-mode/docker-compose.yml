@@ -156,8 +156,9 @@ services:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
-  # NOTE: to debug using a dask LocalCluster, use image:
+  # NOTE: to debug using a dask LocalCluster, use one of the images:
   # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
+  # image: ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
@@ -216,12 +217,14 @@ services:
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
     container_name: prip-station
+    ports:
+      - 5004:5000
+    # env_file:
+    #   - .env # WARNING: does not work because it overrides env vars (to be tested ?)
     environment:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    ports:
-      - 5004:5000
 
   ########
   # STAC #
