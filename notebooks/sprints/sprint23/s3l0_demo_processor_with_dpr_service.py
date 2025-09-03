@@ -293,7 +293,7 @@ def job_staging_monitor(
         data_to_be_staged.to_dict(),
         collection_name,
     )
-    staging_client.wait_for_jobs(job_status, logger, timeout, poll_interval)
+    staging_client.wait_for_jobs(job_status, logger, poll_interval)
 
 
 @task(name="auxip-search")
