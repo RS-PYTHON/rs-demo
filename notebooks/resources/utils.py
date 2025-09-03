@@ -306,13 +306,20 @@ def stage_data(
     staging_input: dict | str,
     items_id: list[str],
     catalog_collection_name: str,
-    timeout: int = 120,
+    # timeout: int = 120,
 ) -> ItemCollection:
     """Stage an item collection into the STAC catalog and return it."""
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
     job_status = staging_client.run_staging(staging_input, catalog_collection_name)
-    staging_client.wait_for_jobs(job_status, logger, timeout, 2)
+    # NOTE: The timeout argument has been disabled, see the comment from rs-client-libraries
+    # in ogcapi_client.wait_for_job function
+    staging_client.wait_for_jobs(
+        job_status,
+        logger,
+        # timeout,
+        2,
+    )
     time.sleep(0.5)
     return ItemCollection(
         list(catalog_client.get_items(catalog_collection_name, items_id)),
