@@ -44,8 +44,8 @@ prefect_utils.read_prefect_blocks(_sync=True)
 # Get the existing dask cluster info from the env vars passed by the client.
 reload(dask_utils)  # reload global vars from env vars
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_S1L0_ADDRESS"],
-    os.environ["DASK_CLUSTER_NAME"],
+    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_CLUSTER_INSTANCE"],
 )
 
 # Now I need to upload my local utility module to the dask workers

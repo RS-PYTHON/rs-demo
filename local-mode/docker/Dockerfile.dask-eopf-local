@@ -17,6 +17,9 @@
 ARG DASK_GATEWAY_TAG=xxx
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 
+# requirements.txt file
+ARG REQ_FILE=xxx
+
 ARG PREFECT_TAG=xxx
 ARG PREFECT_DASK_TAG=xxx
 
@@ -28,14 +31,14 @@ USER root
 RUN apt update && apt install -y git
 USER $USER
 
-# Install EOPF
-COPY ./s1-ard/requirements.dask-s1-ard-local.txt /opt/
+# Install processor and eopf
+COPY "$REQ_FILE" /opt/
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/requirements.dask-s1-ard-local.txt
+    pip install -U -r /opt/$(basename "$REQ_FILE")
 
 # Install complete dask subsets + prefect
 RUN pip install \
@@ -60,5 +63,8 @@ USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/s1-ard/local"
-LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/s1-ard/Dockerfile.dask-s1-ard-local"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
+
+# This Dockerfile is used to build:
+# ghcr.io/rs-python/dask-gateway-server/l0/local
+# ghcr.io/rs-python/dask-gateway-server/s1ard/local

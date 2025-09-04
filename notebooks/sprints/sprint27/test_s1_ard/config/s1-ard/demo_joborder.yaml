@@ -168,8 +168,8 @@ I/O:
 dask_context:
   cluster_type: gateway
   cluster_config:
-    address: ${DASK_GATEWAY_EOPF_ADDRESS}
-    reuse_cluster: ${DASK_CLUSTER_EOPF_NAME}
+    address: ${DASK_GATEWAY_ADDRESS}
+    reuse_cluster: ${DASK_CLUSTER_INSTANCE}
     workers: ${N_WORKERS}
     auth:
       type: jupyterhub
