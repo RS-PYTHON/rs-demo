@@ -278,11 +278,63 @@ def init_dask_cluster_eopf(
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
 
-    if use_mockup:
-        dpr_tuning = {}
-
     # Additional arguments to pass to the DPR cluster.
     # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
+    if use_mockup:
+        dpr_tuning = {
+            "worker_extra_pod_config": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-role.kubernetes.io/rs_server",
+                                            "operator": "Exists",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                "tolerations": [
+                    {
+                        "key": "role",
+                        "operator": "Equal",
+                        "value": "rs_server",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            },
+            "scheduler_extra_pod_config": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-role.kubernetes.io/rs_server",
+                                            "operator": "Exists",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                "tolerations": [
+                    {
+                        "key": "role",
+                        "operator": "Equal",
+                        "value": "rs_server",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            },
+        }
     else:
         worker_tuning = {
             "affinity": {
