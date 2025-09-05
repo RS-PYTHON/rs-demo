@@ -37,10 +37,9 @@ local_mode = prefect_utils.local_mode
 
 # Get the existing dask cluster info from the env vars passed by the client.
 reload(dask_utils)  # reload global vars from env
-dask_cluster_name = os.environ["DASK_CLUSTER_EOPF_NAME"]
 dask_gateway, dask_cluster, dask_client = dask_utils.get_existing_cluster(
-    os.environ["DASK_GATEWAY_EOPF_ADDRESS"],
-    dask_cluster_name,
+    os.environ["DASK_GATEWAY_ADDRESS"],
+    os.environ["DASK_CLUSTER_INSTANCE"],
 )
 
 # TEMP: EOPF changes the number of dask workers but we want to keep the current number

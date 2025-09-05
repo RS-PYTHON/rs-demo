@@ -18,6 +18,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import os
+import re
 import socket
 import tempfile
 import time
@@ -264,23 +265,20 @@ def init_dask_cluster_staging(
 
 
 def init_dask_cluster_eopf(
+    local_mode_address: str,
+    local_mode_address_public: str,
     scale: int,
-    image: str = "ghcr.io/rs-python/rs-infra-core-dask-eopf:latest",
+    image: str,
+    cluster_tag: str,
+    big_resources: bool = False,  # provide more ram and cpu
     use_mockup=False,
     *args,
     **kwargs,
 ):
     """Init existing eopf dask cluster or create one"""
     global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
-    local_environ_eopf_address = "DASK_GATEWAY_EOPF_ADDRESS"
-    local_environ_eopf_public = "DASK_GATEWAY_EOPF_PUBLIC"
-    cluster_tag = "dask-eopf"
 
     if use_mockup:
-        image = "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest"
-        local_environ_eopf_address = "DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"
-        local_environ_eopf_public = "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
-        cluster_tag = "dask-eopf-mockup"
         dpr_tuning = {}
 
     # Additional arguments to pass to the DPR cluster.
@@ -342,26 +340,71 @@ def init_dask_cluster_eopf(
             "worker_cores": 3,
             "worker_memory": 12,  # In GB
             "scheduler_memory_limit": 60,  # In GB
-            "worker_extra_pod_config": scheduler_tuning,  # worker_tuning, # for testing
+            "worker_extra_pod_config": (
+                scheduler_tuning if big_resources else worker_tuning
+            ),
             "scheduler_extra_pod_config": scheduler_tuning,
         }
 
+    # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
+    # We need this address in some config files. So we update this env var from the current cluster value.
+    # NOTE: these variables will be overridden if we init several eopf clusters in the same demo.
+    if local_mode:
+        os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[local_mode_address]
+        os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[local_mode_address_public]
+
+    # Init the dask eopf cluster and update the global variables.
+    # NOTE: here also these variables will be overridden if we init several eopf clusters in the same demo.
     dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
-        (
-            os.environ["DASK_GATEWAY_ADDRESS"]
-            if cluster_mode
-            else os.environ[local_environ_eopf_address]
-        ),
-        (
-            os.environ["DASK_GATEWAY_PUBLIC"]
-            if cluster_mode
-            else os.environ[local_environ_eopf_public]
-        ),
+        os.environ["DASK_GATEWAY_ADDRESS"],
+        os.environ["DASK_GATEWAY_PUBLIC"],
         scale,
         image=image,
         cluster_tag=cluster_tag,
         *args,
         **(dpr_tuning | kwargs),  # set default DPR tuning
+    )
+
+    # Save the dask eopf cluster instance id
+    # This is something like "dask-gateway.17e196069443463495547eb97f532834"
+    # NOTE: here also this variable will be overridden if we init several eopf clusters in the same demo.
+    os.environ["DASK_CLUSTER_INSTANCE"] = dask_cluster_eopf.name
+
+
+def init_dask_cluster_mockup(*args, **kwargs):
+    kwargs.setdefault(
+        "image",
+        "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest",
+    )
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
+        cluster_tag=os.environ["RSPY_DASK_MOCKUP_CLUSTER_NAME"],
+        use_mockup=True,
+        **kwargs,
+    )
+
+
+def init_dask_cluster_l0(*args, **kwargs):
+    kwargs.setdefault("image", "ghcr.io/rs-python/rs-infra-core-dask-l0:latest")
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_L0_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_L0_PUBLIC",
+        cluster_tag=os.environ["RSPY_DASK_L0_CLUSTER_NAME"],
+        **kwargs,
+    )
+
+
+def init_dask_cluster_s1ard(*args, **kwargs):
+    kwargs.setdefault("image", "ghcr.io/rs-python/rs-infra-core-dask-s1ard:latest")
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_S1ARD_PUBLIC",
+        cluster_tag=os.environ["RSPY_DASK_S1ARD_CLUSTER_NAME"],
+        **kwargs,
     )
 
 
@@ -473,13 +516,13 @@ def upload_util_modules(clients: list[DaskClient]):
 
 def copy_caller_env(caller_env: dict[str, str]):
     """
-    Copy environment variables from caller (=prefect or jupyter) environment.
+    Copy environment variables from the caller (=prefect or jupyter) environment to the dask client.
 
     Args:
         caller_env: os.environ coming from caller
     """
 
-    # Update the local/clsuter mode global variable with the env var coming from the caller
+    # Update the local/cluster mode global variable with the env var coming from the caller
     global local_mode, cluster_mode
     local_mode = caller_env.get("RSPY_LOCAL_MODE") == "1"
     cluster_mode = not local_mode
@@ -493,13 +536,13 @@ def copy_caller_env(caller_env: dict[str, str]):
         "S3_REGION",
         "PREFECT_BUCKET_NAME",
         "PREFECT_BUCKET_FOLDER",
-        "DASK_GATEWAY_EOPF_ADDRESS",
-        "DASK_CLUSTER_EOPF_NAME",
         "AWS_REQUEST_CHECKSUM_CALCULATION",
         "AWS_RESPONSE_CHECKSUM_VALIDATION",
         "TEMPO_ENDPOINT",
         "OTEL_PYTHON_REQUESTS_TRACE_HEADERS",
         "OTEL_PYTHON_REQUESTS_TRACE_BODY",
+        "DASK_GATEWAY_ADDRESS",
+        "DASK_CLUSTER_INSTANCE",
     ]
     if local_mode:
         keys.extend(
@@ -515,6 +558,7 @@ def copy_caller_env(caller_env: dict[str, str]):
         )
     else:
         keys.extend(["JUPYTERHUB_API_TOKEN"])
+
     for key in keys:
         if value := caller_env.get(key):
             os.environ[key] = value

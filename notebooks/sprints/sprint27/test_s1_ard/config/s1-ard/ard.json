@@ -1,0 +1,35 @@
+{
+    "ReferenceDEM": {
+        "chunks": {
+            "x": 1024,
+            "y": 1024
+        },
+        "spacing": {
+            "x": 10,
+            "y": 10
+        }
+    },
+    "ReferenceGeometry": {
+        "chunk_length": 1024,
+        "recompute": false
+    },
+    "Coregistration": {
+        "warp_ov_fact": 100000,
+        "warp_kernel_shape": [
+            11,
+            11
+        ],
+        "warp_kaiser_beta": 6
+    },
+    "Geocoding": {
+        "gamma_flattening": false,
+        "include_phase": false,
+        "recompute": false,
+        "n_chunks": {
+            "acquisition_date": 1,
+            "polarization": 1,
+            "azimuth_time": 1,
+            "slant_range_time": 1
+        }
+    }
+}

@@ -15,6 +15,9 @@
 # We will add eopf to the rs-dpr-service image
 FROM ghcr.io/rs-python/rs-dpr-service:latest
 
+# requirements.txt file
+ARG REQ_FILE=xxx
+
 # Default user from parent image
 ARG USER=user
 
@@ -24,14 +27,14 @@ USER root
 # System installations
 RUN apt update && apt install -y git
 
-# Install EOPF
-COPY ./requirements.dask-eopf-local.txt /opt/
+# Install processor and eopf
+COPY "$REQ_FILE" /opt/
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/requirements.dask-eopf-local.txt
+    pip install -U -r /opt/$(basename "$REQ_FILE")
 
 # Other installations
 RUN \
@@ -47,12 +50,15 @@ RUN opentelemetry-bootstrap -a install
 
 # Clean everything
 RUN apt autoremove -y git
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-eopf-local.txt
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-l0-local.txt
 
 # Restore user
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/localcluster"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-localcluster"
+
+# This Dockerfile is used to build:
+# ghcr.io/rs-python/dask-gateway-server/l0/localcluster
+# ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster
