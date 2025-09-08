@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility Python module for the tutorials, to be shared with the dask workers.
+"""Utility Python module for the Jupyter demos, to be shared with the dask workers.
 
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
