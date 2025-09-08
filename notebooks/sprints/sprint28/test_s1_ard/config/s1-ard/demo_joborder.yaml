@@ -108,46 +108,46 @@ I/O:
     - id: CONFIG
       path: s3://${PREFECT_BUCKET_NAME}/ARD_V2/ADFS/CONFIG/ard.json
       store_params:
-      # s3_secret_alias: s3_cluster # see secrets.json
-      storage_options:
-        key: ${S3_ACCESSKEY_CLUSTER}
-        secret: ${S3_SECRETKEY_CLUSTER}
-        client_kwargs:
-          endpoint_url: ${S3_ENDPOINT_CLUSTER}
-          region_name: ${S3_REGION_CLUSTER}
+        # s3_secret_alias: s3_cluster # see secrets.json
+        storage_options:
+          key: ${S3_ACCESSKEY_CLUSTER}
+          secret: ${S3_SECRETKEY_CLUSTER}
+          client_kwargs:
+            endpoint_url: ${S3_ENDPOINT_CLUSTER}
+            region_name: ${S3_REGION_CLUSTER}
 
     - id: S2_TILES
       path: s3://${PREFECT_BUCKET_NAME}/ARD_V2/ADFS/KML/S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml
       store_params:
-      # s3_secret_alias: s3_cluster # see secrets.json
-      storage_options:
-        key: ${S3_ACCESSKEY_CLUSTER}
-        secret: ${S3_SECRETKEY_CLUSTER}
-        client_kwargs:
-          endpoint_url: ${S3_ENDPOINT_CLUSTER}
-          region_name: ${S3_REGION_CLUSTER}
+        # s3_secret_alias: s3_cluster # see secrets.json
+        storage_options:
+          key: ${S3_ACCESSKEY_CLUSTER}
+          secret: ${S3_SECRETKEY_CLUSTER}
+          client_kwargs:
+            endpoint_url: ${S3_ENDPOINT_CLUSTER}
+            region_name: ${S3_REGION_CLUSTER}
 
     - id: ETAD
       path: s3://${PREFECT_BUCKET_NAME}/ARD_V2/ADFS/BRESSO/ETAD
       store_params:
-      # s3_secret_alias: s3_cluster # see secrets.json
-      storage_options:
-        key: ${S3_ACCESSKEY_CLUSTER}
-        secret: ${S3_SECRETKEY_CLUSTER}
-        client_kwargs:
-          endpoint_url: ${S3_ENDPOINT_CLUSTER}
-          region_name: ${S3_REGION_CLUSTER}
+        # s3_secret_alias: s3_cluster # see secrets.json
+        storage_options:
+          key: ${S3_ACCESSKEY_CLUSTER}
+          secret: ${S3_SECRETKEY_CLUSTER}
+          client_kwargs:
+            endpoint_url: ${S3_ENDPOINT_CLUSTER}
+            region_name: ${S3_REGION_CLUSTER}
 
     - id: DEM
       path: s3://${PREFECT_BUCKET_NAME}/ARD_V2/ADFS/BRESSO/DEM
       store_params:
-      # s3_secret_alias: s3_cluster # see secrets.json
-      storage_options:
-        key: ${S3_ACCESSKEY_CLUSTER}
-        secret: ${S3_SECRETKEY_CLUSTER}
-        client_kwargs:
-          endpoint_url: ${S3_ENDPOINT_CLUSTER}
-          region_name: ${S3_REGION_CLUSTER}
+        # s3_secret_alias: s3_cluster # see secrets.json
+        storage_options:
+          key: ${S3_ACCESSKEY_CLUSTER}
+          secret: ${S3_SECRETKEY_CLUSTER}
+          client_kwargs:
+            endpoint_url: ${S3_ENDPOINT_CLUSTER}
+            region_name: ${S3_REGION_CLUSTER}
 
   output_products:
     - id: cslcs
