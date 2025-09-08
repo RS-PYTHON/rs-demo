@@ -151,9 +151,8 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
-  # NOTE: to debug using a dask LocalCluster, comment the lines:
-  # RSPY_DASK_STAGING_CLUSTER_NAME: ...
-  # DASK_GATEWAY__ADDRESS: ...
+  # NOTE: to debug using a dask LocalCluster, comment the line:
+  # DASK_GATEWAY_ADDRESS: ...
   rs-server-staging:
     image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
@@ -171,8 +170,7 @@ services:
       - .env
       - ~/.s3cfg
     environment:
-      RSPY_DASK_STAGING_CLUSTER_NAME: dask-staging
-      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
@@ -183,8 +181,9 @@ services:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
-  # NOTE: to debug using a dask LocalCluster, use image:
-  # image: ghcr.io/rs-python/dask-gateway-server/eopf/localcluster
+  # NOTE: to debug using a dask LocalCluster, use one of the images:
+  # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
+  # image: ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
@@ -195,11 +194,6 @@ services:
     env_file:
       - .env
       - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-    environment:
-      RSPY_DASK_DPR_SERVICE_CLUSTER_NAME: dask-eopf
-      DASK_GATEWAY__ADDRESS: ${DASK_GATEWAY_EOPF_ADDRESS}
-      RSPY_DASK_DPR_SERVICE_MOCKUP_CLUSTER_NAME: dask-eopf-mockup
-      DASK_GATEWAY__MOCKUP_ADDRESS: ${DASK_GATEWAY_EOPF_MOCKUP_ADDRESS}
 
   ############
   # STATIONS #
@@ -248,12 +242,14 @@ services:
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
     container_name: prip-station
+    ports:
+      - 5004:5000
+    # env_file:
+    #   - .env # WARNING: does not work because it overrides env vars (to be tested ?)
     environment:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    ports:
-      - 5004:5000
 
   ########
   # STAC #
@@ -334,9 +330,9 @@ services:
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
-  ####################
-  # PREFECT AND DASK #
-  ####################
+  ###########
+  # PREFECT #
+  ###########
 
   prefect-server:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
@@ -346,6 +342,7 @@ services:
       - postgres
     env_file:
       - .env
+      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
     environment:
       - PREFECT_API_URL=http://127.0.0.1:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
@@ -363,6 +360,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
     deploy:
       mode: replicated
@@ -375,6 +373,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
@@ -387,32 +386,45 @@ services:
         condition: service_healthy
     env_file:
       - .env
+      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 1
+
+  ########
+  # DASK #
+  ########
 
   dask-staging:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
       - 8701:8000
 
-  dask-eopf:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/local:latest
-    ports:
-      - 8702:8000
+  dask-l0:
+    image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+    ports:
+      - 8702:8000
+
+  dask-s1ard:
+    image: ghcr.io/rs-python/dask-gateway-server/s1ard/local:latest
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+    ports:
+      - 8704:8000
 
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
     ports:
       - 8703:8000
-    env_file: # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-      - ~/.s3cfg
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"

@@ -38,7 +38,7 @@ def dask_cluster():
         raise RuntimeError(f"Unsupported authentication type: {auth_type}")
     logger.info("Creating dask gateway object")
     gateway = Gateway(
-        address=os.environ["DASK_GATEWAY__ADDRESS"],
+        address=os.environ["DASK_GATEWAY_ADDRESS"],
         auth=gateway_auth,
     )
     logger.info(
