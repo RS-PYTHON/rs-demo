@@ -55,8 +55,9 @@ class DprDemo:
             dpr_client: rs-client-libraries DPR client instance
             local_config_dir: local config dir
             s3_config_dir: config dir in the S3 bucket
-            s3_output_dir: output dir in the s3 bucket
-            s3_report_dir: report dir in the s3 bucket
+            s3_output_dir: default output dir in the s3 bucket
+            s3_report_dir: default report dir in the s3 bucket
+            s3_working_dir: default working dir in the s3 bucket
         """
         self.owner_id: str = owner_id
         self.dpr_client: DprClient = dpr_client
@@ -64,6 +65,7 @@ class DprDemo:
         self.s3_config_dir: str = ""
         self.s3_output_dir: str = ""
         self.s3_report_dir: str = ""
+        self.s3_working_dir: str = ""
 
     async def init(self, local_secrets_file: str | Path | None):
         """
@@ -82,11 +84,11 @@ class DprDemo:
             share_bucket.bucket_folder,
             "users",
             self.owner_id,
-            "l0",
         )
         self.s3_config_dir = osp.join(s3_base, "config")
         self.s3_output_dir = osp.join(s3_base, "output")
         self.s3_report_dir = osp.join(s3_base, "reports")
+        self.s3_working_dir = osp.join(s3_base, "working")
 
         # Upload the local configuration dir to s3 bucket
         await s3_upload_dir(self.local_config_dir, self.s3_config_dir)
@@ -107,9 +109,10 @@ class DprDemo:
         self,
         process: DprProcess,
         payload_subpath: str,
-        s3_output_dir: str,
-        s3_report_dir: str,
-        experimental_config: dict,
+        s3_output_dir: str = "",
+        s3_report_dir: str = "",
+        del_s3_working_dir: str = "",
+        experimental_config: dict = {},
         **kwargs,
     ):
         """
@@ -118,20 +121,31 @@ class DprDemo:
         Args:
             process: processor to run
             payload_subpath: local eopf payload file, relative to the config dir
-            s3_output_dir: output dir in the s3 bucket
-            s3_report_dir: report dir in the s3 bucket
+            s3_output_dir: output dir in the s3 bucket for this run. Will be removed before the run.
+            s3_report_dir: report dir in the s3 bucket for this run. Will be removed before the run.
+            del_s3_working_dir: working dir in the s3 bucket for this run. If given, it will be removed before the run.
             experimental_config: experimental DPR processor configuration, used only for testing.
             kwargs: Specific environment variables to expand in the payload file
         """
+        # Use default values
+        if not s3_output_dir:
+            s3_output_dir = self.s3_output_dir
+        if not s3_report_dir:
+            s3_report_dir = self.s3_report_dir
 
         print(f"s3_config_dir: {self.s3_config_dir}")
         print(f"payload_subpath: {payload_subpath}")
-        print(f"s3_output_dir: {s3_output_dir}")
-        print(f"s3_report_dir: {s3_report_dir}")
+        print(f"Remove s3_output_dir: {s3_output_dir}")
+        print(f"Remove s3_report_dir: {s3_report_dir}")
 
         # Remove existing output and report folders
         s3_delete(s3_output_dir, log=True)
         s3_delete(s3_report_dir, log=True)
+
+        # Remove working dir, if given
+        if del_s3_working_dir:
+            print(f"Remove s3_working_dir: {del_s3_working_dir}")
+            s3_delete(del_s3_working_dir, log=True)
 
         # Update local payload file depending on the environment, upload it to the s3 bucket,
         # and initialize output bucket folders.
