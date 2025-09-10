@@ -17,8 +17,8 @@
 ARG DASK_GATEWAY_TAG=xxx
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 
-# requirements.txt file
-ARG REQ_FILE=xxx
+
+ARG IMAGE2BUILD
 
 ARG PREFECT_TAG=xxx
 ARG PREFECT_DASK_TAG=xxx
@@ -32,13 +32,13 @@ RUN apt update && apt install -y git
 USER $USER
 
 # Install processor and eopf
-COPY "$REQ_FILE" /opt/
+ADD ./resources /opt/resources
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/$(basename "$REQ_FILE")
+    pip install -U -r /opt/resources/requirements-${IMAGE2BUILD}.txt
 
 # Install complete dask subsets + prefect
 RUN pip install \
@@ -55,10 +55,15 @@ USER $USER
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install
 
+# Run post-install script as root if it exists
+USER root
+RUN [ -f /opt/resources/post-install-${IMAGE2BUILD}.sh ] && /opt/resources/post-install-${IMAGE2BUILD}.sh
+USER $USER
+
 # Clean everything
 USER root
 RUN apt autoremove -y git
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-l0-local.txt
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/resources
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
