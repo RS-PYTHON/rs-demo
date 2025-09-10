@@ -29,16 +29,21 @@ ARG USER=dask:dask
 # System installations
 USER root
 RUN apt update && apt install -y git
+
+# NOTE: we install python packages as user. If we install them as root, we can have conflicts,
+# e.g. the user will have his own numpy version, not the one that we installed as root and
+# that we expected the user to have.
+# Maybe there is a better way to handle this.
 USER $USER
 
 # Install processor and eopf
-ADD ./resources /opt/resources
+ADD ./resources/requirements-*.txt /opt
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/resources/requirements-${IMAGE2BUILD}.txt
+    pip install -U -r /opt/requirements-${IMAGE2BUILD}.txt
 
 # Install complete dask subsets + prefect
 RUN pip install \
@@ -57,13 +62,17 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
 
 # Run post-install script as root if it exists
 USER root
-RUN [ -f /opt/resources/post-install-${IMAGE2BUILD}.sh ] && /opt/resources/post-install-${IMAGE2BUILD}.sh
+ADD ./resources/post-install-*.sh /opt
+RUN \
+    if [ -f /opt/post-install-${IMAGE2BUILD}.sh ]; then \
+        /opt/post-install-${IMAGE2BUILD}.sh; \
+    fi
 USER $USER
 
 # Clean everything
 USER root
 RUN apt autoremove -y git
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/resources
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements-*.txt /opt/post-install-*.sh
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
