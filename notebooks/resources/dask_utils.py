@@ -279,7 +279,7 @@ def init_dask_cluster_eopf(
 
     NOTE: to find the maximum cluster resources that you can request per node, first init a dask cluster, then in k9s
     go to your allocated dask-worker -> push 'o' (Show Node) -> push 'd' (Describe) -> check 'Allocatable' values.
-    Then lower a little bit these values because the nodes also run other services.
+    Then decrease a little bit these values because the nodes also run other services.
 
     Several workers can fit into a single node depending on the resources you requested for each worker. Else new nodes
     will be allocated. To find the maximum of nodes you can request, in k9s, type
