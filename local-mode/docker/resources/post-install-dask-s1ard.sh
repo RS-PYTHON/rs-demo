@@ -17,17 +17,7 @@ set -euo pipefail
 set -x
 
 # This is a workaround for https://gitlab.eopf.copernicus.eu/S1/s1-ard-core/-/issues/10
-#chmod -R a+w /usr/local/lib/python3.11/site-packages/pyproj/proj_dir/share/proj
-# NOTE: proj may have been installed for the users, not root, so add rights to all folders we find
-for dir in $(find / -path "*/proj_dir/share/proj" 2>/dev/null); do
-    chmod -R a+w "$dir"
-    # If the root folder does not exist, create it and link to the user dir
-    root_dir="/usr/local/lib/python3.11/site-packages/pyproj/proj_dir/share/proj"
-    if [[ ! -d "$root_dir" ]]; then
-        mkdir -p $(dirname "$root_dir")
-        ln -sf "$dir" "$root_dir"
-    fi
-done
+chmod -R a+w /usr/local/lib/python3.11/site-packages/pyproj/proj_dir/share/proj
 
 # Same as s1-ard-core/initialize_env.sh
 S1_ARD_PATH=$(python -c "import s1_ard_core;print(s1_ard_core.__path__[0])")

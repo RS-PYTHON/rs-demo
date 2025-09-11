@@ -47,7 +47,7 @@ RUN \
 # Auto configure opentelemetry
 RUN opentelemetry-bootstrap -a install
 
-# Run post-install script as root if it exists
+# Run post-install script if it exists
 ADD ./resources/post-install-*.sh /opt
 RUN \
     if [ -f /opt/post-install-${IMAGE2BUILD}.sh ]; then \

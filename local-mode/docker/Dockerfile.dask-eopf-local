@@ -17,7 +17,6 @@
 ARG DASK_GATEWAY_TAG=xxx
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
 
-
 ARG IMAGE2BUILD
 
 ARG PREFECT_TAG=xxx
@@ -26,15 +25,11 @@ ARG PREFECT_DASK_TAG=xxx
 # Default user from parent image
 ARG USER=dask:dask
 
-# System installations
+# Do everything from root
 USER root
-RUN apt update && apt install -y git
 
-# NOTE: we install python packages as user. If we install them as root, we can have conflicts,
-# e.g. the user will have his own numpy version, not the one that we installed as root and
-# that we expected the user to have.
-# Maybe there is a better way to handle this.
-USER $USER
+# System installations
+RUN apt update && apt install -y git
 
 # Install processor and eopf
 ADD ./resources/requirements-*.txt /opt
@@ -52,27 +47,24 @@ RUN pip install \
     prefect-dask=="${PREFECT_DASK_TAG}"
 
 # Other installations
-USER root
 RUN apt update && apt install -y python3-pydot graphviz
-USER $USER
 
 # Install and auto configure opentelemetry
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install
 
-# Run post-install script as root if it exists
-USER root
+# Run post-install script if it exists
 ADD ./resources/post-install-*.sh /opt
 RUN \
     if [ -f /opt/post-install-${IMAGE2BUILD}.sh ]; then \
         /opt/post-install-${IMAGE2BUILD}.sh; \
     fi
-USER $USER
 
 # Clean everything
-USER root
 RUN apt autoremove -y git
 RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements-*.txt /opt/post-install-*.sh
+
+# Restore user
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
