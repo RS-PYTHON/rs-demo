@@ -41,7 +41,7 @@ I/O:
   # input products descriptions and access parameters
   input_products:
   - id: S3ACADUS
-    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S3A_20250612034536048530/
+    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/S3A_20250612034536048530/
     store_type: cadu
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -54,7 +54,7 @@ I/O:
 
   adfs:
   - id: OSF
-    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0007.EOF
+    path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0007.EOF
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
@@ -65,7 +65,7 @@ I/O:
           region_name: ${S3_REGION_CLUSTER}
 
   - id: FRO
-    path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S3A_AX___FRO_AX_20250609T000000_20250619T000000_20250612T064635___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20250609T000000_20250619T000000_0001.EOF
+    path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S3A_AX___FRO_AX_20250609T000000_20250619T000000_20250612T064635___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20250609T000000_20250619T000000_0001.EOF
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:

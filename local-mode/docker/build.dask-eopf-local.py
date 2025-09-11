@@ -47,8 +47,8 @@ class Image:
     # Name of the LocalCluster image (for debugging)
     local_cluster_name: str = ""
 
-    # requirements.txt file to install the processor and eopf
-    req_file: Path | None = None
+    # Used to identify the image to build
+    image2build: str = ""
 
 
 # All possible processor images
@@ -57,12 +57,12 @@ all_procs = {
     "l0": Image(
         "ghcr.io/rs-python/dask-gateway-server/l0/local",
         "ghcr.io/rs-python/dask-gateway-server/l0/localcluster",
-        THIS_DIR / "req_files" / "requirements-dask-l0.txt",
+        "dask-l0",
     ),
     "s1ard": Image(
         "ghcr.io/rs-python/dask-gateway-server/s1ard/local",
         "ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster",
-        THIS_DIR / "req_files" / "requirements-dask-s1ard.txt",
+        "dask-s1ard",
     ),
 }
 
@@ -151,12 +151,6 @@ for proc, local_cluster in procs_to_build:
     # Docker image information
     image = all_procs[proc]
 
-    # requirements.txt file, relative to this script directory
-    if image.req_file:
-        req_file = image.req_file.relative_to(THIS_DIR)
-    else:
-        req_file = ""  # not used
-
     # Docker image name
     registry = image.local_cluster_name if local_cluster else image.name
 
@@ -166,7 +160,7 @@ for proc, local_cluster in procs_to_build:
             "docker",
             "build",
             "--build-arg",
-            f"REQ_FILE={req_file}",
+            f"IMAGE2BUILD={image.image2build}",
             "--build-arg",
             f"DASK_GATEWAY_TAG={DASK_GATEWAY_TAG}",
             "--build-arg",

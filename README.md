@@ -78,7 +78,12 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 Before the first use, you need to initialize the Prefect block that contains the
 environment variables for all users.
 
-Run this Python code from any Jupyter notebook:
+Run this command line to get the existing values, if any:
+```sh
+prefect block inspect secret/env-vars
+```
+
+Run this Python code from any Jupyter notebook to write the new values:
 
 ```python
 import os
