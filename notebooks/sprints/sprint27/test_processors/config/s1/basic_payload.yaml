@@ -38,7 +38,7 @@ I/O:
   input_products:
 
   - id: S1ACADU
-    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594
+    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S1A_20250611050700059594${SHORT_SUFFIX}
     store_type: cadu
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -87,7 +87,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20240410083700053369
+    path: ${OUTPUT_DIR}/S1A_20240410083700053369${SHORT_SUFFIX}
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     # The store type to use
@@ -132,5 +132,5 @@ logging: ../logging_config.yaml
 
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
-- ./iw_configuration.yaml
+- ./s1_default_configuration.yaml
 - ../l0_dask_configuration.yaml
