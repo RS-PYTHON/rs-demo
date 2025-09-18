@@ -1023,7 +1023,7 @@ S1:
     # 11.7 Slice Configuration for Burst Processing
     slice:
       iw:
-        enabled_slicing: true
+        enabled_slicing: false
         number_of_bursts: 5
         number_of_bursts_overlap: 0
       ew:
