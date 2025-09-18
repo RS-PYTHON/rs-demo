@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility Python module for the tutorials, to be shared with the dask workers.
+"""Utility Python module for the Jupyter demos, to be shared with the dask workers.
 
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import os
-import re
 import socket
 import tempfile
 import time
@@ -275,14 +274,81 @@ def init_dask_cluster_eopf(
     *args,
     **kwargs,
 ):
-    """Init existing eopf dask cluster or create one"""
-    global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
+    """
+    Init existing eopf dask cluster or create one.
 
-    if use_mockup:
-        dpr_tuning = {}
+    NOTE: to find the maximum cluster resources that you can request per node, first init a dask cluster, then in k9s
+    go to your allocated dask-worker -> push 'o' (Show Node) -> push 'd' (Describe) -> check 'Allocatable' values.
+    Then decrease a little bit these values because the nodes also run other services.
+
+    Several workers can fit into a single node depending on the resources you requested for each worker. Else new nodes
+    will be allocated. To find the maximum of nodes you can request, in k9s, type
+    ':nodepools' -> find your nodeAffinity -> check the 'MAX' column value.
+
+    For big_resources=False and nodeAffinity=dask_worker_on_demand we have max: 3 CPU, 12GB RAM, 8 nodes.
+
+    For big_resources=True and nodeAffinity=dask_scheduler we have max: 7 CPU, 58GB RAM, 1 node.
+
+    """
+    global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
 
     # Additional arguments to pass to the DPR cluster.
     # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
+    if use_mockup:
+        dpr_tuning = {
+            "worker_extra_pod_config": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-role.kubernetes.io/rs_server",
+                                            "operator": "Exists",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                "tolerations": [
+                    {
+                        "key": "role",
+                        "operator": "Equal",
+                        "value": "rs_server",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            },
+            "scheduler_extra_pod_config": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-role.kubernetes.io/rs_server",
+                                            "operator": "Exists",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                },
+                "tolerations": [
+                    {
+                        "key": "role",
+                        "operator": "Equal",
+                        "value": "rs_server",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            },
+        }
     else:
         worker_tuning = {
             "affinity": {

@@ -44,7 +44,7 @@ I/O:
   input_products:
   - id: S3ACADUS
     # NOTE: taken from s3://s2-output/L0/Validation/S3/S3_D_TDS_1/CADUs/S3A_20200121061417020455
-    path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop-2/S3_D_TDS_1/CADUs/S3A_20200121061417020455${SHORT_SUFFIX} # ${SHORT_SUFFIX} = "" or ".short"
+    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop-2/S3_D_TDS_1/CADUs/S3A_20200121061417020455${SHORT_SUFFIX} # ${SHORT_SUFFIX} = "" or ".short"
     # path: /data/S3A_20200121061417020455 # tests in local mode
     store_type: cadu
     store_params:
@@ -59,7 +59,7 @@ I/O:
   # NOTE: taken from s3://s2-output/L0/Validation/S3/S3_D_TDS_1/AUX/
   adfs:
   - id: OSF
-    path: s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20170322T163046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0002.EOF
+    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20170322T163046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0002.EOF
     # path: /data/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20170322T163046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0002.EOF # tests in local mode
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -71,7 +71,7 @@ I/O:
           region_name: ${S3_REGION_CLUSTER}
 
   - id: FRO
-    path: s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___FRO_AX_20200117T000000_20200127T000000_20200120T065046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20200117T000000_20200127T000000_0001.EOF
+    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___FRO_AX_20200117T000000_20200127T000000_20200120T065046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20200117T000000_20200127T000000_0001.EOF
     # path: /data/S3A_AX___FRO_AX_20200117T000000_20200127T000000_20200120T065046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20200117T000000_20200127T000000_0001.EOF # tests in local mode
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json

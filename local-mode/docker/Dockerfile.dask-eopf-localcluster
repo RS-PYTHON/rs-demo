@@ -15,8 +15,7 @@
 # We will add eopf to the rs-dpr-service image
 FROM ghcr.io/rs-python/rs-dpr-service:latest
 
-# requirements.txt file
-ARG REQ_FILE=xxx
+ARG IMAGE2BUILD
 
 # Default user from parent image
 ARG USER=user
@@ -28,13 +27,13 @@ USER root
 RUN apt update && apt install -y git
 
 # Install processor and eopf
-COPY "$REQ_FILE" /opt/
+ADD ./resources/requirements-*.txt /opt
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/$(basename "$REQ_FILE")
+    pip install -U -r /opt/requirements-${IMAGE2BUILD}.txt
 
 # Other installations
 RUN \
@@ -48,9 +47,16 @@ RUN \
 # Auto configure opentelemetry
 RUN opentelemetry-bootstrap -a install
 
+# Run post-install script if it exists
+ADD ./resources/post-install-*.sh /opt
+RUN \
+    if [ -f /opt/post-install-${IMAGE2BUILD}.sh ]; then \
+        /opt/post-install-${IMAGE2BUILD}.sh; \
+    fi
+
 # Clean everything
 RUN apt autoremove -y git
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements.dask-l0-local.txt
+RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements-*.txt /opt/post-install-*.sh
 
 # Restore user
 USER $USER
