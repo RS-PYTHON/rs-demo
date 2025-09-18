@@ -87,7 +87,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20240410083700053369${SHORT_SUFFIX}    
+    path: ${OUTPUT_DIR}/S1A_20240410083700053369${SHORT_SUFFIX}
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     # The store type to use
