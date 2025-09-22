@@ -16,14 +16,15 @@
 
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
-
 import glob
+import os
 import shutil
 import time
 from datetime import timedelta
 from os import path as osp
 from pathlib import Path
 
+from resources.dask_utils import dask_client_eopf
 from rs_client.ogcapi.dpr_client import DprClient, DprProcess
 from rs_common.logging import Logging
 from rs_common.prefect_utils import (
@@ -146,6 +147,13 @@ class DprDemo:
         if del_s3_working_dir:
             print(f"Remove s3_working_dir: {del_s3_working_dir}")
             s3_delete(del_s3_working_dir, log=True)
+
+        # Update the dask configuration
+        kwargs["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_ADDRESS"]
+        kwargs["DASK_CLUSTER_INSTANCE"] = os.environ["DASK_CLUSTER_INSTANCE"]
+        kwargs["N_WORKERS"] = len(  # Number of dask workers
+            dask_client_eopf.scheduler_info()["workers"],
+        )
 
         # Update local payload file depending on the environment, upload it to the s3 bucket,
         # and initialize output bucket folders.
