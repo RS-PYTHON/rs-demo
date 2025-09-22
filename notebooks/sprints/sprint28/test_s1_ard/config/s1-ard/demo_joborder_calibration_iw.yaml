@@ -27,7 +27,7 @@ workflow:
       dynamic_working_directory: *dynamic_working_directory
       indices: [0,1,9,10,18,19,27,28,36,37,45,46]
 
-  
+
 
 I/O:
   input_products:
