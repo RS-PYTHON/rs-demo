@@ -253,7 +253,7 @@ services:
 
   prip-station-2:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
-    container_name: prip-station
+    container_name: prip-station-2
     ports:
       - 5005:5000
     # env_file:
