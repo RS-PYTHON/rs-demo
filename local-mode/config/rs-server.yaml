@@ -258,14 +258,14 @@ external_data_sources:
       client_id: client_id
       client_secret: client_secret
       authorization: Basic test
-  s2a:
+  s2b:
     domain: prip-station
     service:
       name: prip
-      url: http://prip-station:5000
+      url: http://prip-station-2:5000
     authentication:
       auth_type: oauth2
-      token_url: http://prip-station:5000/oauth2/token
+      token_url: http://prip-station-2:5000/oauth2/token
       grant_type: password
       scope: null
       username: test
