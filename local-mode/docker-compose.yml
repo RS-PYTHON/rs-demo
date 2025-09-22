@@ -251,6 +251,18 @@ services:
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
 
+  prip-station-2:
+    image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
+    container_name: prip-station
+    ports:
+      - 5005:5000
+    # env_file:
+    #   - .env # WARNING: does not work because it overrides env vars (to be tested ?)
+    environment:
+      # Token expiration settings
+      RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
+      RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
+
   ########
   # STAC #
   ########
