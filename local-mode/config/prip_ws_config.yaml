@@ -289,7 +289,7 @@ s2b:
       productType: OPER_MSI_L2A
   search:
     type: ODataV4Search
-    api_endpoint: http://prip-station-2:5000/Products
+    api_endpoint: http://prip-station:5000/Products
     need_auth: true
     results_entry: $.value | $
     metadata_mapping:
@@ -400,8 +400,8 @@ s2b:
       - $.platformShortName
       href:
       - null
-      - http://prip-station-2:5000/Products({id})/$value
-      downloadLink: http://prip-station-2:5000/Products({id})/$value
+      - http://prip-station:5000/Products({id})/$value
+      downloadLink: http://prip-station:5000/Products({id})/$value
       title: $.Name
       intersects:
       - null
@@ -499,7 +499,7 @@ s2b:
       total_items_nb_key_path: $.total
   download:
     type: HTTPDownload
-    base_uri: http://prip-station-2:5000/Products
+    base_uri: http://prip-station:5000/Products
     metadata_mapping:
       uid: $.Id
-      downloadLink: http://prip-station-2:5000/Products({uid})/$value
+      downloadLink: http://prip-station:5000/Products({uid})/$value
