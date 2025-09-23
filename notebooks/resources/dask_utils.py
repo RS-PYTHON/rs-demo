@@ -270,7 +270,6 @@ def init_dask_cluster_eopf(
     image: str,
     cluster_tag: str,
     big_resources: bool = False,  # provide more ram and cpu
-    use_mockup=False,
     *args,
     **kwargs,
 ):
@@ -294,123 +293,67 @@ def init_dask_cluster_eopf(
 
     # Additional arguments to pass to the DPR cluster.
     # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
-    if use_mockup:
-        dpr_tuning = {
-            "worker_extra_pod_config": {
-                "affinity": {
-                    "nodeAffinity": {
-                        "requiredDuringSchedulingIgnoredDuringExecution": {
-                            "nodeSelectorTerms": [
+    worker_tuning = {
+        "affinity": {
+            "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "matchExpressions": [
                                 {
-                                    "matchExpressions": [
-                                        {
-                                            "key": "node-role.kubernetes.io/rs_server",
-                                            "operator": "Exists",
-                                        },
-                                    ],
+                                    "key": "node-role.kubernetes.io/dask_worker_on_demand",
+                                    "operator": "Exists",
                                 },
                             ],
                         },
-                    },
+                    ],
                 },
-                "tolerations": [
-                    {
-                        "key": "role",
-                        "operator": "Equal",
-                        "value": "rs_server",
-                        "effect": "NoSchedule",
-                    },
-                ],
             },
-            "scheduler_extra_pod_config": {
-                "affinity": {
-                    "nodeAffinity": {
-                        "requiredDuringSchedulingIgnoredDuringExecution": {
-                            "nodeSelectorTerms": [
+        },
+        "tolerations": [
+            {
+                "key": "role",
+                "operator": "Equal",
+                "value": "dask_worker_on_demand",
+                "effect": "NoSchedule",
+            },
+        ],
+    }
+    scheduler_tuning = {
+        "affinity": {
+            "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "matchExpressions": [
                                 {
-                                    "matchExpressions": [
-                                        {
-                                            "key": "node-role.kubernetes.io/rs_server",
-                                            "operator": "Exists",
-                                        },
-                                    ],
+                                    "key": "node-role.kubernetes.io/dask_scheduler",
+                                    "operator": "Exists",
                                 },
                             ],
                         },
-                    },
-                },
-                "tolerations": [
-                    {
-                        "key": "role",
-                        "operator": "Equal",
-                        "value": "rs_server",
-                        "effect": "NoSchedule",
-                    },
-                ],
-            },
-        }
-    else:
-        worker_tuning = {
-            "affinity": {
-                "nodeAffinity": {
-                    "requiredDuringSchedulingIgnoredDuringExecution": {
-                        "nodeSelectorTerms": [
-                            {
-                                "matchExpressions": [
-                                    {
-                                        "key": "node-role.kubernetes.io/dask_worker_on_demand",
-                                        "operator": "Exists",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
+                    ],
                 },
             },
-            "tolerations": [
-                {
-                    "key": "role",
-                    "operator": "Equal",
-                    "value": "dask_worker_on_demand",
-                    "effect": "NoSchedule",
-                },
-            ],
-        }
-        scheduler_tuning = {
-            "affinity": {
-                "nodeAffinity": {
-                    "requiredDuringSchedulingIgnoredDuringExecution": {
-                        "nodeSelectorTerms": [
-                            {
-                                "matchExpressions": [
-                                    {
-                                        "key": "node-role.kubernetes.io/dask_scheduler",
-                                        "operator": "Exists",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                },
+        },
+        "tolerations": [
+            {
+                "key": "role",
+                "operator": "Equal",
+                "value": "dask_scheduler",
+                "effect": "NoSchedule",
             },
-            "tolerations": [
-                {
-                    "key": "role",
-                    "operator": "Equal",
-                    "value": "dask_scheduler",
-                    "effect": "NoSchedule",
-                },
-            ],
-        }
-        dpr_tuning = {
-            "worker_cores": 3,
-            "worker_memory": 12,  # In GB
-            "scheduler_memory_limit": 60,  # In GB
-            "worker_extra_pod_config": (
-                scheduler_tuning if big_resources else worker_tuning
-            ),
-            "scheduler_extra_pod_config": scheduler_tuning,
-        }
+        ],
+    }
+    dpr_tuning = {
+        "worker_cores": 3,
+        "worker_memory": 12,  # In GB
+        "scheduler_memory_limit": 60,  # In GB
+        "worker_extra_pod_config": (
+            scheduler_tuning if big_resources else worker_tuning
+        ),
+        "scheduler_extra_pod_config": scheduler_tuning,
+    }
 
     # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
     # We need this address in some config files. So we update this env var from the current cluster value.
@@ -447,7 +390,6 @@ def init_dask_cluster_mockup(*args, **kwargs):
         local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
         cluster_tag=os.environ["RSPY_DASK_MOCKUP_CLUSTER_NAME"],
-        use_mockup=True,
         **kwargs,
     )
 
