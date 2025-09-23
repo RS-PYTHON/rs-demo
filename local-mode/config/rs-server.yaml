@@ -259,7 +259,7 @@ external_data_sources:
       client_secret: client_secret
       authorization: Basic test
   s2b:
-    domain: prip-station
+    domain: prip-station-2
     service:
       name: prip
       url: http://prip-station-2:5000
