@@ -34,5 +34,4 @@ notebooks/sprints/sprint24/100_deployments/100_flows_with_deployments.ipynb
 # Ignore those for osam, which run only in cluster mode
 notebooks/sprints/sprint24/604_s3_rights.ipynb
 notebooks/sprints/sprint25/605_606_osam_s3_user_access_policy.ipynb
-
 notebooks/sprints/sprint28/324_761_prip_search_staging.ipynb
