@@ -30,7 +30,8 @@ services:
       - adgs-station
     env_file:
       - .env
-    # environment:
+    environment:
+       CORS_ORIGINS: http://localhost:8101
     #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
     #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
     #   # OAuth2 authentication
@@ -55,7 +56,8 @@ services:
       - cadip-station
     env_file:
       - .env
-    # environment:
+    environment:
+       CORS_ORIGINS: http://localhost:8102
     #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
     #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
     #   # OAuth2 authentication
@@ -79,6 +81,7 @@ services:
     env_file:
       - .env
     environment:
+      CORS_ORIGINS: http://localhost:8103
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -251,7 +254,7 @@ services:
             }
       SB_allowExternalAccess: false
       SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8001
+      SB_catalogUrl: http://127.0.0.1:8001/auxip
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
@@ -276,7 +279,7 @@ services:
             }
       SB_allowExternalAccess: false
       SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8002
+      SB_catalogUrl: http://127.0.0.1:8002/cadip
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
@@ -301,7 +304,7 @@ services:
             }
       SB_allowExternalAccess: false
       SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8003
+      SB_catalogUrl: http://127.0.0.1:8003/catalog
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
