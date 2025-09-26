@@ -606,6 +606,43 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
     entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
 
+############
+# PROFILES #
+############
+
+# Don't use real docker-compose profiles (https://docs.docker.com/compose/how-tos/profiles/)
+# because by default we want to run all services.
+# Use this solution instead: https://stackoverflow.com/a/54027899
+
+  cicd: # all needed services for the ci/cd demos
+    image: bash:latest
+    depends_on:
+      - rs-server-adgs
+      - rs-server-cadip
+      - rs-server-catalog
+      #- rs-server-prip
+      - rs-server-staging
+      - rs-dpr-service
+      - adgs-station
+      - cadip-station
+      - lta-station
+      - prip-station
+      - prefect-server
+      - prefect-worker-staging
+      - prefect-worker-eopf
+      - prefect-worker-general
+      - dask-staging
+      - dask-eopf-mockup
+      - loki
+      - tempo
+      - postgres
+      - catalog-db
+      - minio
+      - jupyter
+    entrypoint: tail # use this so this service stays alive
+    command: -F anything
+
+
 #################
 # CONFIGURATION #
 #################
