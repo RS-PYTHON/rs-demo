@@ -645,7 +645,7 @@ services:
       - rs-server-adgs
       - rs-server-cadip
       - rs-server-catalog
-      #- rs-server-prip
+      - rs-server-prip
       - rs-server-staging
       - rs-dpr-service
       - adgs-station
