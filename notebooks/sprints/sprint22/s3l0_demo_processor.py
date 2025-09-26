@@ -68,7 +68,6 @@ async def s3l0_demo_processor(
     collection_name: str,
     cadip_stac_filter: str,
     auxip_cql2_filter: dict,
-    staging_timeout: int,
     use_dpr_mockup: bool = False,
 ):
     """
@@ -89,7 +88,6 @@ async def s3l0_demo_processor(
         collection_name (str): Name of the target collection in the catalog.
         cadip_stac_filter (str): STAC filter for querying CADIP data.
         auxip_cql2_filter (dict): CQL2 filter used for AUXIP data querying.
-        staging_timeout (int): Timeout in seconds for staging tasks to complete.
 
     Returns:
         None
@@ -194,7 +192,6 @@ async def s3l0_demo_processor(
             owner_id,
             cadip_data,
             collection_name,
-            staging_timeout,
         )
 
         auxip_job_staging_monitor_task = job_staging_monitor.submit(
@@ -202,7 +199,6 @@ async def s3l0_demo_processor(
             owner_id,
             auxip_data,
             collection_name,
-            staging_timeout,
         )
 
         # wait for results
