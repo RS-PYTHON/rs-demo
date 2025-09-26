@@ -36,5 +36,5 @@ notebooks/sprints/sprint24/604_s3_rights.ipynb
 notebooks/sprints/sprint25/605_606_osam_s3_user_access_policy.ipynb
 
 # These should be run in the cluster only
-notebooks/sprints/sprint28/test_s1_ard/test_s1_ard.ipynb
 notebooks/sprints/sprint28/test_s1_l0/test_s1l0_processor.ipynb
+notebooks/sprints/sprint29/test_s1_ard/test_s1_ard.ipynb
