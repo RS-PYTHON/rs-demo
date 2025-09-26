@@ -44,6 +44,31 @@ services:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
 
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/prip/.github/Dockerfile
+  rs-server-prip:
+    image: ghcr.io/rs-python/rs-server-prip:latest
+    container_name: rs-server-prip
+    ports:
+      - 8005:8000
+    depends_on:
+      - rspy-pre-actions
+      - minio
+      - prip-station
+    env_file:
+      - .env
+    # environment:
+    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+    #   # OAuth2 authentication
+    #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
+    #   OIDC_REALM: rspy
+    #   OIDC_CLIENT_ID: fastapi_test
+    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   RSPY_COOKIE_SECRET: secret
+    volumes:
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/prip_ws_config.yaml:${EODAG_PRIP_CONFIG}
+
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
     image: ghcr.io/rs-python/rs-server-cadip:latest
@@ -620,7 +645,7 @@ services:
       - rs-server-adgs
       - rs-server-cadip
       - rs-server-catalog
-      #- rs-server-prip
+      - rs-server-prip
       - rs-server-staging
       - rs-dpr-service
       - adgs-station

@@ -174,18 +174,20 @@ def init_rsclient(owner_id=None):
 
     # From this generic instance, get child instances
     auxip_client = generic_client.get_auxip_client()
+    prip_client = generic_client.get_prip_client()
     cadip_client = generic_client.get_cadip_client()
     catalog_client = generic_client.get_catalog_client()
     staging_client = generic_client.get_staging_client()
     dpr_client = generic_client.get_dpr_client()
 
     print(f"Auxip service: {auxip_client.href_service}")
+    print(f"PRIP service: {prip_client.href_service}")
     print(f"CADIP service: {cadip_client.href_service}")
     print(f"Catalog service: {catalog_client.href_service}")
     print(f"Staging service: {staging_client.href_service}")
     print(f"DPR service: {dpr_client.href_service}")
 
-    return auxip_client, cadip_client, catalog_client, staging_client
+    return auxip_client, cadip_client, catalog_client, staging_client, prip_client
 
 
 def get_or_create_test_collection(
@@ -364,7 +366,6 @@ def temporary_fix_adgs_feature(items_collection):
 
 def init_demo(owner_id=None):
     """Init environment before running a demo notebook."""
-
     # Some kind of workaround for boto3 to avoid checksum being added inside
     # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
     # See: https://github.com/boto/boto3/issues/4435
