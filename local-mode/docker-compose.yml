@@ -30,7 +30,8 @@ services:
       - adgs-station
     env_file:
       - .env
-    # environment:
+    environment:
+       CORS_ORIGINS: http://localhost:8101
     #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
     #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
     #   # OAuth2 authentication
@@ -80,7 +81,8 @@ services:
       - cadip-station
     env_file:
       - .env
-    # environment:
+    environment:
+       CORS_ORIGINS: http://localhost:8102
     #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
     #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
     #   # OAuth2 authentication
@@ -104,6 +106,7 @@ services:
     env_file:
       - .env
     environment:
+      CORS_ORIGINS: http://localhost:8103
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -276,7 +279,7 @@ services:
             }
       SB_allowExternalAccess: false
       SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8001
+      SB_catalogUrl: http://127.0.0.1:8001/auxip
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
@@ -301,7 +304,7 @@ services:
             }
       SB_allowExternalAccess: false
       SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8002
+      SB_catalogUrl: http://127.0.0.1:8002/cadip
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
@@ -326,7 +329,7 @@ services:
             }
       SB_allowExternalAccess: false
       SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8003
+      SB_catalogUrl: http://127.0.0.1:8003/catalog
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
@@ -627,6 +630,43 @@ services:
       - .:/docker/compose/dir
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
     entrypoint: /docker/compose/dir/scripts/rspy-pre-actions.sh
+
+############
+# PROFILES #
+############
+
+# Don't use real docker-compose profiles (https://docs.docker.com/compose/how-tos/profiles/)
+# because by default we want to run all services.
+# Use this solution instead: https://stackoverflow.com/a/54027899
+
+  cicd: # all needed services for the ci/cd demos
+    image: bash:latest
+    depends_on:
+      - rs-server-adgs
+      - rs-server-cadip
+      - rs-server-catalog
+      #- rs-server-prip
+      - rs-server-staging
+      - rs-dpr-service
+      - adgs-station
+      - cadip-station
+      - lta-station
+      - prip-station
+      - prefect-server
+      - prefect-worker-staging
+      - prefect-worker-eopf
+      - prefect-worker-general
+      - dask-staging
+      - dask-eopf-mockup
+      - loki
+      - tempo
+      - postgres
+      - catalog-db
+      - minio
+      - jupyter
+    entrypoint: tail # use this so this service stays alive
+    command: -F anything
+
 
 #################
 # CONFIGURATION #
