@@ -76,7 +76,7 @@ class DprDemo:
             local_secrets_file: local eopf secrets.json file
         """
         # Get the prefect share bucket folder
-        share_bucket = await get_share_bucket()
+        share_bucket, _ = await get_share_bucket()
 
         # s3 bucket dirs that will contain the data
         s3_base = osp.join(
