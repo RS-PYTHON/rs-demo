@@ -29,6 +29,7 @@ ARG USER=dask:dask
 USER root
 
 # System installations
+RUN . /etc/os-release && echo "deb http://deb.debian.org/debian $VERSION_CODENAME main" > /etc/apt/sources.list
 RUN apt update && apt install -y git
 
 # Install processor and eopf

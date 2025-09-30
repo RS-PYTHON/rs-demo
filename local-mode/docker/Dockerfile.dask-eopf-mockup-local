@@ -64,6 +64,7 @@ RUN pip install \
 
 # Other installations
 USER root
+RUN . /etc/os-release && echo "deb http://deb.debian.org/debian $VERSION_CODENAME main" > /etc/apt/sources.list
 RUN apt update && apt install -y python3-pydot graphviz
 USER $USER
 
