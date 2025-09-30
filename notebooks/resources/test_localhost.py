@@ -41,12 +41,15 @@ os.environ["RSPY_HOST_ADGS"] = "http://localhost:8001"
 os.environ["RSPY_HOST_CADIP"] = "http://localhost:8002"
 os.environ["RSPY_HOST_CATALOG"] = "http://localhost:8003"
 os.environ["RSPY_HOST_STAGING"] = "http://localhost:8004"
+os.environ["RSPY_HOST_PRIP"] = "http://localhost:8005"
 os.environ["RSPY_HOST_DPR_SERVICE"] = "http://localhost:6003"
 # s3 bucket
 os.environ["S3_ENDPOINT"] = "http://localhost:9100"
 os.environ["BUCKET_CONFIG_FILE_PATH"] = str(
     THIS_DIR.parent.parent / "local-mode/config/expiration_bucket.csv",
 )
+# postgres
+os.environ["POSTGRES_HOST"] = "localhost"
 # prefect
 os.environ["PREFECT_URL"] = os.environ["RSPY_PREFECT_URL"] = "http://localhost:4200"
 os.environ["PREFECT_API_URL"] = os.environ["PREFECT_URL"] + "/api"
