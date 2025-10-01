@@ -24,7 +24,7 @@ from datetime import timedelta
 from os import path as osp
 from pathlib import Path
 
-from resources.dask_utils import dask_client_eopf
+from resources import dask_utils
 from rs_client.ogcapi.dpr_client import DprClient, DprProcess
 from rs_common.logging import Logging
 from rs_common.prefect_utils import (
@@ -153,7 +153,7 @@ class DprDemo:
         kwargs["DASK_CLUSTER_INSTANCE"] = os.environ["DASK_CLUSTER_INSTANCE"]
         kwargs.setdefault(
             "N_WORKERS",  # Number of dask gateway workers
-            len(dask_client_eopf.scheduler_info()["workers"]),
+            len(dask_utils.dask_client_eopf.scheduler_info()["workers"]),
         )
 
         # Update local payload file depending on the environment, upload it to the s3 bucket,
