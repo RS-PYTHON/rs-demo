@@ -23,9 +23,14 @@ ARG USER=user
 # Do everything from root
 USER root
 
+COPY ./resources/layer-cleanup.sh ./resources/restore-apt.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+
 # System installations
-RUN . /etc/os-release && echo "deb http://deb.debian.org/debian $VERSION_CODENAME main" > /etc/apt/sources.list
-RUN apt update && apt install -y git
+RUN \
+    restore-apt.sh && apt update && \
+    apt install -y git && \
+    layer-cleanup.sh
 
 # Install processor and eopf
 ADD ./resources/requirements-*.txt /opt
@@ -34,30 +39,34 @@ ADD ./resources/requirements-*.txt /opt
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
     pip install -U pip && \
-    pip install -U -r /opt/requirements-${IMAGE2BUILD}.txt
+    pip install -U -r /opt/requirements-${IMAGE2BUILD}.txt && \
+    layer-cleanup.sh
 
 # Other installations
 RUN \
+    restore-apt.sh && \
     apt update && \
     apt install -y \
         python3-pydot graphviz && \
     pip install \
         bokeh">=3.1.0" \
-        jupyter-server-proxy
+        jupyter-server-proxy && \
+    layer-cleanup.sh
 
 # Auto configure opentelemetry
-RUN opentelemetry-bootstrap -a install
+RUN opentelemetry-bootstrap -a install && layer-cleanup.sh
 
 # Run post-install script if it exists
 ADD ./resources/post-install-*.sh /opt
 RUN \
     if [ -f /opt/post-install-${IMAGE2BUILD}.sh ]; then \
-        /opt/post-install-${IMAGE2BUILD}.sh; \
+        /opt/post-install-${IMAGE2BUILD}.sh && \
+        layer-cleanup.sh; \
     fi
 
 # Clean everything
 RUN apt autoremove -y git
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/* /opt/requirements-*.txt /opt/post-install-*.sh
+RUN rm -rf /opt/requirements-*.txt /opt/post-install-*.sh
 
 # Restore user
 USER $USER

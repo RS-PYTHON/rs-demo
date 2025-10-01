@@ -33,6 +33,9 @@ wget -P "$tmp" "https://raw.githubusercontent.com/dask/dask-gateway/refs/tags/${
 req="${tmp}/Dockerfile.requirements.txt"
 sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
 
+# Copy Dockerfile requirements
+cp -t "$tmp" "${SCRIPT_DIR}/../scripts/layer-cleanup.sh" "${SCRIPT_DIR}/../scripts/restore-apt.sh"
+
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/base/local"
 docker build \

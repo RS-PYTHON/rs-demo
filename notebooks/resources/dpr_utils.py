@@ -151,8 +151,9 @@ class DprDemo:
         # Update the dask configuration
         kwargs["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_ADDRESS"]
         kwargs["DASK_CLUSTER_INSTANCE"] = os.environ["DASK_CLUSTER_INSTANCE"]
-        kwargs["N_WORKERS"] = len(  # Number of dask workers
-            dask_client_eopf.scheduler_info()["workers"],
+        kwargs.setdefault(
+            "N_WORKERS",  # Number of dask gateway workers
+            len(dask_client_eopf.scheduler_info()["workers"]),
         )
 
         # Update local payload file depending on the environment, upload it to the s3 bucket,
