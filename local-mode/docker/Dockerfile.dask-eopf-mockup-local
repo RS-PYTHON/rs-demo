@@ -82,6 +82,11 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
     opentelemetry-bootstrap -a install && \
     layer-cleanup.sh
 
+# Remove apt repository list and custom scripts
+USER root
+RUN rm -f /etc/apt/sources.list /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+USER $USER
+
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local"
