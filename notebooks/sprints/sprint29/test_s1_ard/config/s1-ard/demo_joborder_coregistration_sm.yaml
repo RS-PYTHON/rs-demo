@@ -42,12 +42,12 @@ workflow:
   - name: reference_geometry
     module: s1_l12_rp.computing.ard_processing_units
     processing_unit: ReferenceGeometry
-    inputs: 
+    inputs:
       slcs: calibration.slcs # Contains the input SLCs
       dem: reference_dem.DEM # Digital Elevation Model
-    adfs: 
+    adfs:
       CONFIG: CONFIG
-    parameters: 
+    parameters:
       reference_date: *reference_date
       static_working_directory: *static_working_directory
       dynamic_working_directory: *dynamic_working_directory
