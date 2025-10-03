@@ -150,7 +150,7 @@ class DprDemo:
 
         # Update the dask configuration
         kwargs["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_ADDRESS"]
-        kwargs["DASK_CLUSTER_INSTANCE"] = os.environ["DASK_CLUSTER_INSTANCE"]
+        kwargs.setdefault("DASK_CLUSTER_INSTANCE", os.environ["DASK_CLUSTER_INSTANCE"])
         kwargs.setdefault(
             "N_WORKERS",  # Number of dask gateway workers
             len(dask_utils.dask_client_eopf.scheduler_info()["workers"]),

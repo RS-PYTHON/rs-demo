@@ -28,6 +28,7 @@ from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
+from rs_client.ogcapi.dpr_client import ClusterInfo
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -42,6 +43,9 @@ dask_client_staging: DaskClient = None
 dask_gateway_eopf: Gateway = None
 dask_cluster_eopf: GatewayCluster = None
 dask_client_eopf: DaskClient = None
+
+# Information to connect to a DPR Dask cluster.
+cluster_info_eopf: ClusterInfo = None
 
 
 def get_ip_address() -> str:
@@ -76,7 +80,7 @@ def init_dask_cluster(
     public_domain: str,
     scale: int = 2,
     image: str = "",
-    cluster_tag: str = "",
+    cluster_label: str = "",
     worker_cores: int = 1,
     worker_memory: float = 2.0,
     scheduler_memory_limit: int = 2,
@@ -91,13 +95,18 @@ def init_dask_cluster(
         public_domain: dask gateway public url domain
         scale: number of dask workers to create
         image: docker image name to use for the workers
-        cluster_tag: cluster name: "dask-staging" or "dask-eopf"
+        cluster_label: custom label to identify the cluster e.g. "dask-proc". Will be automatically suffixed
+        by the docker image version so it will be e.g. "dask-proc:version"
         worker_cores: number of worker cores
         worker_memory: worker memory in GB
         namespace: dask gateway namespace
         kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
     """
-    print(f"Connecting to dask gateway for {cluster_tag!r}: {address} ...")
+    # Add the docker image version (after the ':', if any) to the label
+    if len(splits := image.split(":")) > 1:
+        cluster_label += f":{splits[-1]}"
+
+    print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
     # Sort the clusters by newest first
@@ -123,7 +132,7 @@ def init_dask_cluster(
                     report.name
                     for report in clusters
                     if (report.options.get("image") == image)
-                    and (report.options.get("cluster_name") == cluster_tag)
+                    and (report.options.get("cluster_name") == cluster_label)
                 ),
                 None,
             )
@@ -149,13 +158,13 @@ def init_dask_cluster(
             scheduler_memory_limit=scheduler_memory_limit,
             namespace=namespace,
             image=image,
-            cluster_name=cluster_tag,
-            scheduler_extra_pod_labels={"cluster_name": cluster_tag},
+            cluster_name=cluster_label,
+            scheduler_extra_pod_labels={"cluster_name": cluster_label},
             **kwargs,
         )
 
     print(
-        f"Dask dashboard for {cluster_tag!r}: {cluster.dashboard_link.replace(address, public_domain)}",
+        f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(address, public_domain)}",
     )
 
     # Scale the cluster and get the client
@@ -166,13 +175,13 @@ def init_dask_cluster(
     tries = 0
     while True:
         scaled = len(client.scheduler_info()["workers"])
-        print(f"Dask workers for {cluster_tag!r} are up: {scaled}/{scale}")
+        print(f"Dask workers for {cluster_label!r} are up: {scaled}/{scale}")
         if scaled >= scale:
             break
         tries += 1
         if tries >= float("inf"):  # deactivate timeout
             raise TimeoutError(
-                f"Error waiting for all Dask workers for {cluster_tag!r} to be up: {scaled}/{scale}",
+                f"Error waiting for all Dask workers for {cluster_label!r} to be up: {scaled}/{scale}",
             )
         time.sleep(5)
     return gateway, cluster, client
@@ -181,6 +190,7 @@ def init_dask_cluster(
 def init_dask_cluster_staging(
     scale: int,
     image: str = "ghcr.io/rs-python/rs-infra-core-dask-staging:latest",
+    cluster_label: str = "dask-staging",
     *args,
     **kwargs,
 ):
@@ -257,7 +267,7 @@ def init_dask_cluster_staging(
         ),
         scale,
         image=image,
-        cluster_tag="dask-staging",
+        cluster_label=cluster_label,
         *args,
         **(dpr_tuning | kwargs),  # set default DPR tuning
     )
@@ -268,7 +278,7 @@ def init_dask_cluster_eopf(
     local_mode_address_public: str,
     scale: int,
     image: str,
-    cluster_tag: str,
+    cluster_label: str,
     big_resources: bool = False,  # provide more ram and cpu
     *args,
     **kwargs,
@@ -289,7 +299,7 @@ def init_dask_cluster_eopf(
     For big_resources=True and nodeAffinity=dask_scheduler we have max: 7 CPU, 58GB RAM, 1 node.
 
     """
-    global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf
+    global dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf, cluster_info_eopf
 
     # Additional arguments to pass to the DPR cluster.
     # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
@@ -369,49 +379,65 @@ def init_dask_cluster_eopf(
         os.environ["DASK_GATEWAY_PUBLIC"],
         scale,
         image=image,
-        cluster_tag=cluster_tag,
+        cluster_label=cluster_label,
         *args,
         **(dpr_tuning | kwargs),  # set default DPR tuning
     )
 
-    # Save the dask eopf cluster instance id
-    # This is something like "dask-gateway.17e196069443463495547eb97f532834"
+    # Save the cluster info
     # NOTE: here also this variable will be overridden if we init several eopf clusters in the same demo.
-    os.environ["DASK_CLUSTER_INSTANCE"] = dask_cluster_eopf.name
-
-
-def init_dask_cluster_mockup(*args, **kwargs):
-    kwargs.setdefault(
-        "image",
-        "ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest",
+    cluster_info_eopf = ClusterInfo(
+        jupyter_token=os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
+        cluster_label=cluster_label,
+        cluster_instance=dask_cluster_eopf.name,
     )
+    os.environ["DASK_CLUSTER_INSTANCE"] = cluster_info_eopf.cluster_instance
+
+
+def init_dask_cluster_mockup(
+    *args,
+    image="ghcr.io/rs-python/rs-infra-core-dask-eopf-mockup:latest",
+    cluster_label="dask-eopf-mockup",
+    **kwargs,
+):
     return init_dask_cluster_eopf(
         *args,
         local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
-        cluster_tag=os.environ["RSPY_DASK_MOCKUP_CLUSTER_NAME"],
+        image=image,
+        cluster_label=cluster_label,
         **kwargs,
     )
 
 
-def init_dask_cluster_l0(*args, **kwargs):
-    kwargs.setdefault("image", "ghcr.io/rs-python/rs-infra-core-dask-l0:latest")
+def init_dask_cluster_l0(
+    *args,
+    image="ghcr.io/rs-python/rs-infra-core-dask-l0:latest",
+    cluster_label="dask-l0",
+    **kwargs,
+):
     return init_dask_cluster_eopf(
         *args,
         local_mode_address="DASK_GATEWAY_L0_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_L0_PUBLIC",
-        cluster_tag=os.environ["RSPY_DASK_L0_CLUSTER_NAME"],
+        image=image,
+        cluster_label=cluster_label,
         **kwargs,
     )
 
 
-def init_dask_cluster_s1ard(*args, **kwargs):
-    kwargs.setdefault("image", "ghcr.io/rs-python/rs-infra-core-dask-s1ard:latest")
+def init_dask_cluster_s1ard(
+    *args,
+    image="ghcr.io/rs-python/rs-infra-core-dask-s1ard:latest",
+    cluster_label="dask-s1ard",
+    **kwargs,
+):
     return init_dask_cluster_eopf(
         *args,
         local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_S1ARD_PUBLIC",
-        cluster_tag=os.environ["RSPY_DASK_S1ARD_CLUSTER_NAME"],
+        image=image,
+        cluster_label=cluster_label,
         **kwargs,
     )
 
