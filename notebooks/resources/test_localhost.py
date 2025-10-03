@@ -20,6 +20,19 @@ Use with this at the top of your notebook:
 import sys
 sys.path.insert(0, "/path/to/parent/of/resources/dir")
 import resources.test_localhost
+
+Then in your notebook, select a Python kernel that you'll create like this:
+python -m venv /PATH/TO/VENV
+source /PATH/TO/VENV/bin/activate
+pip install -U pip && \
+pip install ipykernel psycopg2 && \
+pip install -e /PATH/TO/rs-client-libraries && \
+pip install \
+    dask==2024.5.2 \
+    dask-gateway==2024.1.0 \
+    prefect[aws]==3.2.13 \
+    prefect-dask==0.3.3 && \
+opentelemetry-bootstrap -a install
 """
 
 import getpass

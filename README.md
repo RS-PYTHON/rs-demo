@@ -106,6 +106,7 @@ await Secret(
     # Token that was used to setup the Dask clusters.
     # See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
     "JUPYTERHUB_API_TOKEN": "<your-token-value>",
+
     # Needed to run the performance indicator prefect flow
     # The values for the following fields should be taken from rs-infra-core inventory,
     # file rs-infra-core/inventory/sample/host_vars/setup/apps.yml.

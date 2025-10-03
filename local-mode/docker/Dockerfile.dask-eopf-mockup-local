@@ -29,6 +29,11 @@ ARG PREFECT_DASK_TAG=xxx
 ARG USER=dask:dask
 ARG USER_NAME=dask
 
+USER root
+COPY ./resources/layer-cleanup.sh ./resources/restore-apt.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+USER $USER
+
 ############################################
 # Install the DPR mockup (=fake processor) #
 ############################################
@@ -50,7 +55,8 @@ RUN \
     poetry export --without-hashes --format=requirements.txt > requirements.txt && \
     pip-autoremove -y poetry && \
     pip install -r requirements.txt && \
-    rm -f requirements.txt
+    rm -f requirements.txt && \
+    layer-cleanup.sh
 
 ##################
 # End DPR mockup #
@@ -58,22 +64,27 @@ RUN \
 
 # Install complete dask subsets + prefect
 RUN pip install \
-    dask[complete] \
-    prefect[aws]=="${PREFECT_TAG}" \
-    prefect-dask=="${PREFECT_DASK_TAG}"
+        dask[complete] \
+        prefect[aws]=="${PREFECT_TAG}" \
+        prefect-dask=="${PREFECT_DASK_TAG}" \
+    && layer-cleanup.sh
 
 # Other installations
 USER root
-RUN apt update && apt install -y python3-pydot graphviz
+RUN \
+    restore-apt.sh && apt update && \
+    apt install -y python3-pydot graphviz && \
+    layer-cleanup.sh
 USER $USER
 
 # Install and auto configure opentelemetry
 RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
-    opentelemetry-bootstrap -a install
+    opentelemetry-bootstrap -a install && \
+    layer-cleanup.sh
 
-# Clean everything
+# Remove apt repository list and custom scripts
 USER root
-RUN rm -rf /tmp/whl /root/.cache/pip /var/cache/apt/archives /var/lib/apt/lists/*
+RUN rm -f /etc/apt/sources.list /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):

@@ -18,6 +18,7 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
+DASK_TAG=2024.5.2
 DASK_GATEWAY_TAG=2024.1.0
 
 # Use the same requirements as for the dask-gateway-server docker image.
@@ -33,9 +34,13 @@ wget -P "$tmp" "https://raw.githubusercontent.com/dask/dask-gateway/refs/tags/${
 req="${tmp}/Dockerfile.requirements.txt"
 sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
 
+# Copy Dockerfile requirements
+cp -t "$tmp" "${SCRIPT_DIR}/resources/layer-cleanup.sh" "${SCRIPT_DIR}/resources/restore-apt.sh"
+
 # Build the docker image
 registry="ghcr.io/rs-python/dask-gateway-server/base/local"
 docker build \
+    --build-arg "DASK_TAG=${DASK_TAG}" \
     --build-arg "DASK_GATEWAY_TAG=${DASK_GATEWAY_TAG}" \
     -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
     -t "${registry}:${DASK_GATEWAY_TAG}" \
