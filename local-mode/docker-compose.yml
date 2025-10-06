@@ -11,7 +11,7 @@ services:
   # NOTE: tt's only for showning the aggregated endpoints, they don't work in this docker compose.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
   rs-server-frontend:
-    image: ghcr.io/rs-python/rs-server-frontend:feat-rspy759-deploy-prip-stac-browser
+    image: ghcr.io/rs-python/rs-server-frontend:latest
     container_name: rs-server-frontend
     ports:
       - 8000:8000
