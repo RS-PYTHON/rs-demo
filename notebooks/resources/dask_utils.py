@@ -194,7 +194,7 @@ def init_dask_cluster(
 def init_dask_cluster_staging(
     scale: int,
     image: str = "ghcr.io/rs-python/rs-infra-core-dask-staging:latest",
-    cluster_label: str = "dask-staging",
+    cluster_label: str = os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
     *args,
     **kwargs,
 ):
