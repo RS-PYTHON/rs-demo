@@ -391,6 +391,8 @@ def init_dask_cluster_eopf(
         cluster_label=cluster_label,
         cluster_instance=dask_cluster_eopf.name,
     )
+
+    # Used only by old demos, could be removed
     os.environ["DASK_CLUSTER_INSTANCE"] = cluster_info_eopf.cluster_instance
 
 
