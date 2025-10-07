@@ -97,18 +97,18 @@ def init_dask_cluster(
         scale: number of dask workers to create
         image: docker image name to use for the workers
         cluster_label: custom label to identify the cluster e.g. "dask-proc". Will be automatically suffixed
-        by the owner id and docker image version so it will be e.g. "dask-proc:user:version"
+        by the owner id and docker image version so it will be e.g. "dask-proc.user.version"
         worker_cores: number of worker cores
         worker_memory: worker memory in GB
         namespace: dask gateway namespace
         kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
     """
     # Add the owner id to the label
-    cluster_label += f":{utils.OWNER_ID}"
+    cluster_label += f".{utils.OWNER_ID}"
 
     # Add the docker image version (after the ':', if any) to the label
     if len(splits := image.split(":")) > 1:
-        cluster_label += f":{splits[-1]}"
+        cluster_label += f".{splits[-1]}"
 
     print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
     gateway = get_dask_gateway(address)

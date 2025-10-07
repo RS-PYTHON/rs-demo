@@ -17,14 +17,12 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 import glob
-import os
 import shutil
 import time
 from datetime import timedelta
 from os import path as osp
 from pathlib import Path
 
-from resources import dask_utils
 from rs_client.ogcapi.dpr_client import ClusterInfo, DprClient, DprProcess
 from rs_common.logging import Logging
 from rs_common.prefect_utils import (
