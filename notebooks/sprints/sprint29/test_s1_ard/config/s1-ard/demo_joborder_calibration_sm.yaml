@@ -1,7 +1,7 @@
 variables:
   cslcs_path: &cslcs_path ${OUTPUT_DIR}/S01SIWCSL_20240416T171518_0027_A015_S000_00000_DV.zarr
   nrb_path: &nrb_path ${OUTPUT_DIR}/S01SIWNRB_20240416T171518_0027_A015_S000_00000_DV.zarr
-  reference_date: &reference_date "2024-04-16"
+  reference_date: &reference_date "2021-06-07"
   dynamic_working_directory: &dynamic_working_directory ${WORKING_DIR}/DYNAMIC
   static_working_directory: &static_working_directory ${WORKING_DIR}/STATIC
 
