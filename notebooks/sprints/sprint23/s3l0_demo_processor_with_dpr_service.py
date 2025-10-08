@@ -28,7 +28,7 @@ from opentelemetry import trace
 from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
 from pystac import Asset, Item, ItemCollection
-from rs_client.ogcapi.dpr_client import DprProcess
+from rs_client.ogcapi.dpr_client import ClusterInfo, DprProcess
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry, prefect_utils
 
@@ -47,6 +47,7 @@ rs_server_api_key = None  # rspy api key
 
 @flow
 async def s3l0_demo_processor(
+    cluster_label: str,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -67,6 +68,7 @@ async def s3l0_demo_processor(
         - Publishing results back to a STAC catalog
 
     Args:
+        cluster_label (str): Dask cluster label e.g. "dask-l0"
         input_config_dir (str): Directory containing base configuration templates.
         payload_file (str): File path to the payload file specifying the processor module and unit.
         output_data_dir (str): Directory where processed outputs will be written.
@@ -219,6 +221,7 @@ async def s3l0_demo_processor(
         # Call the dpr service
         eopf_result = dpr_service.submit(
             flow_span_context,
+            cluster_label,
             input_config_dir,
             payload_file,
             output_data_dir,
@@ -577,6 +580,7 @@ async def eopf_aux_data_search(
 @task(name="dpr-service")
 async def dpr_service(
     flow_span_context: SpanContext,
+    cluster_label: str,
     input_config_dir: str,
     payload_file: str,
     output_data_dir: str,
@@ -621,8 +625,17 @@ async def dpr_service(
         with open(payload_abs_path, "r") as payload_data:
             data = yaml.safe_load(payload_data)
 
+        # Create cluster info from JUPYTERHUB_API_TOKEN env var (only in cluster mode) and Dask cluster label.
+        cluster_info = ClusterInfo(
+            jupyter_token=(
+                os.environ["JUPYTERHUB_API_TOKEN"] if prefect_utils.cluster_mode else ""
+            ),
+            cluster_label=cluster_label,
+        )
+
         job_status = dpr_client.run_process(
             DprProcess.MOCKUP if use_dpr_mockup else DprProcess.S3L0,
+            cluster_info,
             data,
         )
         return dpr_client.wait_for_job(job_status, logger, "'S3 L0 processor'")
