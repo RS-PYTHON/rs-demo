@@ -12,21 +12,21 @@ definitions:
 
 deployments:
 - name: On-demand processing
-  tags: ["demo", "sprint 24"]
+  tags: ["demo", "sprint 29"]
   entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_processing
   work_pool: *my_work_pool
 
 - name: Auxip search
-  tags: ["demo", "sprint 24"]
+  tags: ["demo", "sprint 29"]
   entrypoint: ./rs_workflows/auxip_flow.py:search
   work_pool: *my_work_pool
 
 - name: Cadip search
-  tags: ["demo", "sprint 24"]
+  tags: ["demo", "sprint 29"]
   entrypoint: ./rs_workflows/cadip_flow.py:search
   work_pool: *my_work_pool
 
 - name: Staging
-  tags: ["demo", "sprint 24"]
+  tags: ["demo", "sprint 29"]
   entrypoint: ./rs_workflows/staging_flow.py:staging
   work_pool: *my_work_pool
