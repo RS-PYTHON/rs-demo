@@ -138,22 +138,6 @@ I/O:
       store_params:
         consolidate: True
 
-dask_context:
-  cluster_type: gateway
-  cluster_config:
-    address: ${DASK_GATEWAY_ADDRESS}
-    reuse_cluster: ${DASK_CLUSTER_INSTANCE}
-    workers: ${N_WORKERS}
-    auth:
-      type: jupyterhub
-      api_token: ${JUPYTERHUB_API_TOKEN}
-    auth_local_mode: # auth for local mode
-      type: basic
-      username: ${LOCAL_DASK_USERNAME}
-      password: ${LOCAL_DASK_PASSWORD}
-  client_config: {}
-  #performance_report_file: ./reports/report.html
-
 # Any secret files to be loaded in the secrets dictionary of EOConfiguration
 secret:
   - ../secrets.json

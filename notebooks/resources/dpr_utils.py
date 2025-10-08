@@ -17,15 +17,13 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 import glob
-import os
 import shutil
 import time
 from datetime import timedelta
 from os import path as osp
 from pathlib import Path
 
-from resources import dask_utils
-from rs_client.ogcapi.dpr_client import DprClient, DprProcess
+from rs_client.ogcapi.dpr_client import ClusterInfo, DprClient, DprProcess
 from rs_common.logging import Logging
 from rs_common.prefect_utils import (
     get_share_bucket,
@@ -106,9 +104,10 @@ class DprDemo:
                 ),
             )
 
-    async def run(
+    async def run_process(
         self,
         process: DprProcess,
+        cluster_info: ClusterInfo,
         payload_subpath: str,
         s3_output_dir: str = "",
         s3_report_dir: str = "",
@@ -121,6 +120,7 @@ class DprDemo:
 
         Args:
             process: processor to run
+            cluster_info: Information to connect to a DPR Dask cluster
             payload_subpath: local eopf payload file, relative to the config dir
             s3_output_dir: output dir in the s3 bucket for this run. Will be removed before the run.
             s3_report_dir: report dir in the s3 bucket for this run. Will be removed before the run.
@@ -148,14 +148,6 @@ class DprDemo:
             print(f"Remove s3_working_dir: {del_s3_working_dir}")
             s3_delete(del_s3_working_dir, log=True)
 
-        # Update the dask configuration
-        kwargs["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_ADDRESS"]
-        kwargs["DASK_CLUSTER_INSTANCE"] = os.environ["DASK_CLUSTER_INSTANCE"]
-        kwargs.setdefault(
-            "N_WORKERS",  # Number of dask gateway workers
-            len(dask_utils.dask_client_eopf.scheduler_info()["workers"]),
-        )
-
         # Update local payload file depending on the environment, upload it to the s3 bucket,
         # and initialize output bucket folders.
         await self.dpr_client.update_configuration(
@@ -170,6 +162,7 @@ class DprDemo:
         start_time = time.time()
         result = self.dpr_client.run_process(
             process,
+            cluster_info,
             s3_config_dir=self.s3_config_dir,
             payload_subpath=payload_subpath,
             s3_report_dir=s3_report_dir,
