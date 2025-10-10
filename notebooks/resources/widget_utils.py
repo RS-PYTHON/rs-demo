@@ -27,6 +27,16 @@ from importlib import reload
 import ipywidgets as widgets
 from prefect.flows import Flow
 
+##########################
+# Shutdown Dask clusters #
+##########################
+
+shutdown_checkbox = widgets.Checkbox(
+    value=False,
+    description="Shutdown the dask clusters",
+    indent=False,
+)
+
 ########################
 # Deploy Prefect flows #
 ########################
