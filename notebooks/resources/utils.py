@@ -149,7 +149,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client
+    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -331,7 +331,6 @@ def stage_data(
 def stage_single_item(
     item: Item,
     catalog_collection: ItemCollection,
-    timeout: int = 120,
 ) -> ItemCollection:
     """Stage a single item by converting it to an URL returning ItemCollection through the /search endpoint"""
     link = (
@@ -341,7 +340,7 @@ def stage_single_item(
         + "&limit=1&ids="
         + item.id
     )
-    return stage_data(link, [item.id], catalog_collection.id, timeout)
+    return stage_data(link, [item.id], catalog_collection.id)
 
 
 def temporary_fix_adgs_feature(items_collection):
