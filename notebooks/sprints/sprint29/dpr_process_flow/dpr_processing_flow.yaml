@@ -1,0 +1,27 @@
+prefect-version: 3
+
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/RS-PYTHON/rs-client-libraries.git
+    branch: develop # should be 'develop' in git
+
+definitions:
+    work_pools:
+        prefect_work_pool_eopf: &prefect_work_pool_eopf
+            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+
+deployments:
+- name: DPR processing
+  tags: ["dpr", "sprint 29"]
+  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_processing
+  work_pool: *prefect_work_pool_eopf
+
+- name: Auxip staging
+  tags: ["auxip", "sprint 29"]
+  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_auxip_staging
+  work_pool: *prefect_work_pool_eopf
+
+- name: Cadip staging
+  tags: ["cadip", "sprint 29"]
+  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_cadip_staging
+  work_pool: *prefect_work_pool_eopf
