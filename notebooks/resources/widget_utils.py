@@ -59,7 +59,11 @@ dpr_proc_radio = widgets.RadioButtons(
 # "develop" branch but it's hard to test changes in a new branch.
 # So during development it's easier to deploy your local changes using a bucket.
 deploy_prefect_radio = widgets.RadioButtons(
-    options=[("YAML deployment file", "yaml"), ("S3 bucket", "bucket")],
+    options=[
+        ("YAML deployment file", "yaml"),
+        ("S3 bucket", "bucket"),
+        ("Only return deployed names", "names"),
+    ],
     value="bucket",
     description="Deploy Prefect flows using:",
     indent=False,
@@ -140,7 +144,7 @@ async def deploy_prefect(
             subprocess.run(cmd)
 
     # Deploy using the S3 bucket
-    else:
+    elif deploy_prefect_radio.value == "bucket":
         # Use a specific secret block on the bucket for this subfolder
         code_bucket, _ = await prefect_utils.get_share_bucket(s3_code_folder)
         print(
@@ -176,8 +180,9 @@ async def deploy_prefect(
             )
 
     # Wait for deployments
-    for deployed_name in deployed_names:
-        await prefect_utils.wait_for_deployment(deployed_name)
+    if deploy_prefect_radio.value != "names":
+        for deployed_name in deployed_names:
+            await prefect_utils.wait_for_deployment(deployed_name)
 
     return deployed_names[0] if (len(deployed_names) == 1) else deployed_names
 
