@@ -49,7 +49,7 @@ I/O:
       store_type: zarr
 
   adfs:
-  
+
     - id: CONFIG
       path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/CONFIG/ard.json
       store_params:
