@@ -13,7 +13,7 @@ definitions:
 deployments:
 - name: DPR processing
   tags: ["dpr", "sprint 29"]
-  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_processing
+  entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
   work_pool: *prefect_work_pool_eopf
 
 - name: Auxip staging
