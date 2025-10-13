@@ -87,7 +87,7 @@ def init_dask_cluster(
     scheduler_memory_limit: int = 2,
     namespace="dask-gateway",
     **kwargs,
-) -> tuple[Gateway, GatewayCluster, DaskClient, str]:
+) -> tuple[Gateway, GatewayCluster, DaskClient]:
     """
     Return existing dask cluster or create one.
 
@@ -96,21 +96,13 @@ def init_dask_cluster(
         public_domain: dask gateway public url domain
         scale: number of dask workers to create
         image: docker image name to use for the workers
-        cluster_label: custom label to identify the cluster e.g. "dask-proc". Will be automatically suffixed
-        by the owner id and docker image version so it will be e.g. "dask-proc.user.version"
+        cluster_label: custom label to identify the cluster e.g. "dask-proc"
         worker_cores: number of worker cores
         worker_memory: worker memory in GB
         namespace: dask gateway namespace
         kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
     """
-    # Add the owner id to the label
-    final_label = cluster_label + f".{utils.OWNER_ID}"
-
-    # Add the docker image version (after the ':', if any) to the label
-    if len(splits := image.split(":")) > 1:
-        final_label += f".{splits[-1]}"
-
-    print(f"Connecting to dask gateway for {final_label!r}: {address} ...")
+    print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
     # Sort the clusters by newest first
@@ -136,7 +128,7 @@ def init_dask_cluster(
                     report.name
                     for report in clusters
                     if (report.options.get("image") == image)
-                    and (report.options.get("cluster_name") == final_label)
+                    and (report.options.get("cluster_name") == cluster_label)
                 ),
                 None,
             )
@@ -162,13 +154,13 @@ def init_dask_cluster(
             scheduler_memory_limit=scheduler_memory_limit,
             namespace=namespace,
             image=image,
-            cluster_name=final_label,
-            scheduler_extra_pod_labels={"cluster_name": final_label},
+            cluster_name=cluster_label,
+            scheduler_extra_pod_labels={"cluster_name": cluster_label},
             **kwargs,
         )
 
     print(
-        f"Dask dashboard for {final_label!r}: {cluster.dashboard_link.replace(address, public_domain)}",
+        f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(address, public_domain)}",
     )
 
     # Scale the cluster and get the client
@@ -179,16 +171,16 @@ def init_dask_cluster(
     tries = 0
     while True:
         scaled = len(client.scheduler_info()["workers"])
-        print(f"Dask workers for {final_label!r} are up: {scaled}/{scale}")
+        print(f"Dask workers for {cluster_label!r} are up: {scaled}/{scale}")
         if scaled >= scale:
             break
         tries += 1
         if tries >= float("inf"):  # deactivate timeout
             raise TimeoutError(
-                f"Error waiting for all Dask workers for {final_label!r} to be up: {scaled}/{scale}",
+                f"Error waiting for all Dask workers for {cluster_label!r} to be up: {scaled}/{scale}",
             )
         time.sleep(5)
-    return gateway, cluster, client, final_label
+    return gateway, cluster, client
 
 
 def init_dask_cluster_staging(
@@ -258,24 +250,22 @@ def init_dask_cluster_staging(
         },
     }
 
-    dask_gateway_staging, dask_cluster_staging, dask_client_staging, _ = (
-        init_dask_cluster(
-            (
-                os.environ["DASK_GATEWAY_ADDRESS"]
-                if cluster_mode
-                else os.environ["DASK_GATEWAY_STAGING_ADDRESS"]
-            ),
-            (
-                os.environ["DASK_GATEWAY_PUBLIC"]
-                if cluster_mode
-                else os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
-            ),
-            scale,
-            image=image,
-            cluster_label=cluster_label,
-            *args,
-            **(dpr_tuning | kwargs),  # set default DPR tuning
-        )
+    dask_gateway_staging, dask_cluster_staging, dask_client_staging = init_dask_cluster(
+        (
+            os.environ["DASK_GATEWAY_ADDRESS"]
+            if cluster_mode
+            else os.environ["DASK_GATEWAY_STAGING_ADDRESS"]
+        ),
+        (
+            os.environ["DASK_GATEWAY_PUBLIC"]
+            if cluster_mode
+            else os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
+        ),
+        scale,
+        image=image,
+        cluster_label=cluster_label,
+        *args,
+        **(dpr_tuning | kwargs),  # set default DPR tuning
     )
 
 
@@ -284,7 +274,7 @@ def init_dask_cluster_eopf(
     local_mode_address_public: str,
     scale: int,
     image: str,
-    cluster_label: str,
+    cluster_label: str,  # automatically suffixed so it will be e.g. "dask-proc.user.version"
     big_resources: bool = False,  # provide more ram and cpu
     *args,
     **kwargs,
@@ -378,18 +368,23 @@ def init_dask_cluster_eopf(
         os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[local_mode_address]
         os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[local_mode_address_public]
 
+    # Add the owner id to the label
+    final_label = cluster_label + f".{utils.OWNER_ID}"
+
+    # Add the docker image version (after the ':', if any) to the label
+    if len(splits := image.split(":")) > 1:
+        final_label += f".{splits[-1]}"
+
     # Init the dask eopf cluster and update the global variables.
     # NOTE: here also these variables will be overridden if we init several eopf clusters in the same demo.
-    dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf, final_label = (
-        init_dask_cluster(
-            os.environ["DASK_GATEWAY_ADDRESS"],
-            os.environ["DASK_GATEWAY_PUBLIC"],
-            scale,
-            image=image,
-            cluster_label=cluster_label,
-            *args,
-            **(dpr_tuning | kwargs),  # set default DPR tuning
-        )
+    dask_gateway_eopf, dask_cluster_eopf, dask_client_eopf = init_dask_cluster(
+        os.environ["DASK_GATEWAY_ADDRESS"],
+        os.environ["DASK_GATEWAY_PUBLIC"],
+        scale,
+        image=image,
+        cluster_label=final_label,
+        *args,
+        **(dpr_tuning | kwargs),  # set default DPR tuning
     )
 
     # Save the cluster info
