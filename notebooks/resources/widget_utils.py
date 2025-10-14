@@ -60,8 +60,8 @@ dpr_proc_radio = widgets.RadioButtons(
 # So during development it's easier to deploy your local changes using a bucket.
 deploy_prefect_radio = widgets.RadioButtons(
     options=[
-        ("YAML deployment file", "yaml"),
-        ("S3 bucket", "bucket"),
+        ("Yaml file and git repository", "yaml"),
+        ("Local source code and s3 bucket", "bucket"),
         ("Do nothing", "nothing"),
     ],
     value="bucket",
@@ -99,7 +99,7 @@ async def deploy_prefect(
     # Parent folder of the rs-client-libraries workflows
     rs_workflows_parent = Path(rs_workflows.__path__[0]).parent.absolute()
 
-    print(f"Read Prefect YAML deployment file: {deploy_file!r}")
+    print(f"Read Prefect deployment file: {deploy_file!r}")
     with open(deploy_file, "r", encoding="utf-8") as opened:
         deploy_contents = yaml.safe_load(opened)
 
@@ -128,9 +128,10 @@ async def deploy_prefect(
                 f"Error reading deployment: {json.dumps(deployment, indent=2)}",
             ) from e
 
-    # Deploy using the yaml file, from the rs_workflow parent folder
+    # Deploy using the yaml file, from the rs_workflow parent folder.
+    # It should use the git repositry and 'develop' branch.
     if deploy_prefect_radio.value == "yaml":
-        print(f"Deploy YAML file")
+        print(f"Deploy from file:")
         cmd = [
             "prefect",
             "--no-prompt",
@@ -143,19 +144,20 @@ async def deploy_prefect(
         with chdir(rs_workflows_parent):
             subprocess.run(cmd)
 
-    # Deploy using the S3 bucket
+    # Deploy local source code using the S3 bucket and pure python calls.
     elif deploy_prefect_radio.value == "bucket":
-        # Use a specific secret block on the bucket for this subfolder
+
+        # Local source code
+        local_path = os.path.realpath(rs_workflows.__path__[0])
+
+        # Use a specific prefect block on the bucket for this subfolder
         code_bucket, _ = await prefect_utils.get_share_bucket(s3_code_folder)
         print(
-            f"Deploy flows from S3 bucket folder: 's3://{code_bucket.bucket_name}/{code_bucket.bucket_folder}'",
+            f"Deploy flows from {local_path!r} to 's3://{code_bucket.bucket_name}/{code_bucket.bucket_folder}'",
         )
 
-        # Upload workflows package contents
-        await code_bucket.put_directory(
-            local_path=rs_workflows.__path__[0],
-            to_path="rs_workflows",
-        )
+        # Upload local workflows package contents
+        await code_bucket.put_directory(local_path=local_path, to_path="rs_workflows")
 
         # Reload all rs-client-libraries modules
         for module in list(sys.modules.values()):
@@ -198,7 +200,7 @@ run_prefect_radio = widgets.RadioButtons(
     options=[
         ("'prefect deployment run' command line", "cmd"),
         ("Pure python code", "python"),
-        ("Do nothing", "nothing"),
+        ("Do nothing (I'll use the prefect UI)", "nothing"),
     ],
     value="cmd",
     description="Run Prefect flows using:",
@@ -211,7 +213,7 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict):
 
     deployment_url = f"{os.environ['RSPY_PREFECT_URL']}/deployments"
     print(
-        f"Call {deploy_name!r} from {deployment_url} with:{json.dumps(params, indent=2)}",
+        f"Call flow {deploy_name!r} from {deployment_url} with:{json.dumps(params, indent=2)}",
     )
 
     if run_prefect_radio.value == "nothing":
@@ -228,12 +230,12 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict):
             json.dumps(params),
             "--watch",
         ]
-        print(f"""Run from command line:\n'{"' '".join(cmd)}'""")
+        print(f"""Run flow from command line:\n'{"' '".join(cmd)}'""")
         subprocess.run(cmd)
 
     # By calling directly the python code
     else:
-        print("Run from python code")
+        print("Run flow from python code")
         # Reload all rs-client-libraries modules
         for module in list(sys.modules.values()):
             if any(
