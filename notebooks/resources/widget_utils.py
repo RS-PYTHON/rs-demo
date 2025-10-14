@@ -62,7 +62,7 @@ deploy_prefect_radio = widgets.RadioButtons(
     options=[
         ("YAML deployment file", "yaml"),
         ("S3 bucket", "bucket"),
-        ("Only return deployed names", "names"),
+        ("Do nothing", "nothing"),
     ],
     value="bucket",
     description="Deploy Prefect flows using:",
@@ -180,7 +180,7 @@ async def deploy_prefect(
             )
 
     # Wait for deployments
-    if deploy_prefect_radio.value != "names":
+    if deploy_prefect_radio.value != "nothing":
         for deployed_name in deployed_names:
             await prefect_utils.wait_for_deployment(deployed_name)
 
@@ -196,9 +196,9 @@ async def deploy_prefect(
 # - calling directly the python code (faster and allows to debug with breakpoints)
 run_prefect_radio = widgets.RadioButtons(
     options=[
-        ["'prefect deployment run' command line", "cmd"],
-        ["Pure python code", "python"],
-        ["Only print arguments", "print"],
+        ("'prefect deployment run' command line", "cmd"),
+        ("Pure python code", "python"),
+        ("Do nothing", "nothing"),
     ],
     value="cmd",
     description="Run Prefect flows using:",
@@ -214,7 +214,7 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict):
         f"Call {deploy_name!r} from {deployment_url} with:{json.dumps(params, indent=2)}",
     )
 
-    if run_prefect_radio.value == "print":
+    if run_prefect_radio.value == "nothing":
         return
 
     # Using command line
