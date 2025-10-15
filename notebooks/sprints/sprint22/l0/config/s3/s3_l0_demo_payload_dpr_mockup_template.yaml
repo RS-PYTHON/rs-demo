@@ -25,8 +25,8 @@ workflow:
     CADUS: S3ACADUS
 
   outputs:
-    out1: S3MWRL0_
-    out2: S3OLCL0_
+    out1: S03MWRL0_
+    out2: S03OLCL0_
 
 I/O:
   # input products descriptions and access parameters

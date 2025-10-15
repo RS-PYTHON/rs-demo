@@ -23,6 +23,7 @@ notebooks/tutorials/prefect+dask/prefect_and_dask.ipynb
 # Ignore public demos that deal with HUGE real data
 notebooks/demos/stac2025/stac_2025_s1.ipynb
 notebooks/demos/stac2025/stac_2025_s3.ipynb
+notebooks/demos/stac2025/stac_2025_s3_prip.ipynb
 notebooks/sprints/sprint25/675_convert_safe_to_zarr.ipynb
 notebooks/sprints/sprint27/test_processors/test_processors.ipynb
 notebooks/sprints/sprint28/test_s1_ard/test_s1_ard.ipynb

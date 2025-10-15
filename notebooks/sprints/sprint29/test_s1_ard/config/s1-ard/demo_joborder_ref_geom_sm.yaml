@@ -1,7 +1,7 @@
 variables:
   cslcs_path: &cslcs_path ${OUTPUT_DIR}/S01SIWCSL_20240416T171518_0027_A015_S000_00000_DV.zarr
   nrb_path: &nrb_path ${OUTPUT_DIR}/S01SIWNRB_20240416T171518_0027_A015_S000_00000_DV.zarr
-  reference_date: &reference_date "2024-04-16"
+  reference_date: &reference_date "2021-06-07"
   dynamic_working_directory: &dynamic_working_directory ${WORKING_DIR}/DYNAMIC
   static_working_directory: &static_working_directory ${WORKING_DIR}/STATIC
 
@@ -10,6 +10,7 @@ general_configuration:
     level: DEBUG
   triggering__use_basic_logging: true
   triggering__validate_run: false
+  dask_utils__timeout: 3000
 
 workflow:
   - name: calibration
@@ -77,17 +78,6 @@ I/O:
 
     - id: S2_TILES
       path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/KML/S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml
-      store_params:
-        # s3_secret_alias: s3_cluster # see secrets.json
-        storage_options:
-          key: ${S3_ACCESSKEY_CLUSTER}
-          secret: ${S3_SECRETKEY_CLUSTER}
-          client_kwargs:
-            endpoint_url: ${S3_ENDPOINT_CLUSTER}
-            region_name: ${S3_REGION_CLUSTER}
-
-    - id: ETAD
-      path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/BRESSO/ETAD
       store_params:
         # s3_secret_alias: s3_cluster # see secrets.json
         storage_options:
