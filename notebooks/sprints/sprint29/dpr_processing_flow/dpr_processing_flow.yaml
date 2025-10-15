@@ -12,16 +12,19 @@ definitions:
 
 deployments:
 - name: DPR processing
+  version: "todo-version"
   tags: ["dpr", "sprint 29"]
-  entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
   work_pool: *prefect_work_pool_eopf
+  entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
 
 - name: Auxip staging
-  tags: ["auxip", "sprint 29"]
-  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_auxip_staging
+  version: "todo-version"
+  tags: ["dpr", "sprint 29"]
   work_pool: *prefect_work_pool_eopf
+  entrypoint: ./rs_workflows/auxip_flow.py:on_demand_auxip_staging
 
 - name: Cadip staging
-  tags: ["cadip", "sprint 29"]
-  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_cadip_staging
+  version: "todo-version"
+  tags: ["dpr", "sprint 29"]
   work_pool: *prefect_work_pool_eopf
+  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_cadip_staging

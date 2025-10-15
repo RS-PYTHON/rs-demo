@@ -32,8 +32,8 @@ import prefect
 import rs_workflows
 import yaml
 from prefect.flows import Flow
+from rs_client.ogcapi.dpr_client import DprProcessor
 from rs_common import prefect_utils
-from rs_workflows.flow_utils import ProcessorEnum
 
 #
 # Jupyter doc: https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20List.html
@@ -44,8 +44,8 @@ from rs_workflows.flow_utils import ProcessorEnum
 ########################
 
 dpr_proc_radio = widgets.RadioButtons(
-    options=[(proc.name, proc) for proc in ProcessorEnum],
-    value=ProcessorEnum.MOCKUP,
+    options=[(proc.name, proc) for proc in DprProcessor],
+    value=DprProcessor.MOCKUP,
     description="DPR processor in this demo:",
     indent=False,
 )

@@ -28,7 +28,7 @@ from opentelemetry import trace
 from opentelemetry.trace import SpanContext
 from prefect import flow, get_run_logger, task
 from pystac import Asset, Item, ItemCollection
-from rs_client.ogcapi.dpr_client import ClusterInfo, DprProcess
+from rs_client.ogcapi.dpr_client import ClusterInfo, DprProcessor
 from rs_client.rs_client import RsClient
 from rs_common import init_opentelemetry, prefect_utils
 
@@ -634,7 +634,7 @@ async def dpr_service(
         )
 
         job_status = dpr_client.run_process(
-            DprProcess.MOCKUP if use_dpr_mockup else DprProcess.S3L0,
+            DprProcessor.MOCKUP if use_dpr_mockup else DprProcessor.S3L0,
             cluster_info,
             data,
         )
