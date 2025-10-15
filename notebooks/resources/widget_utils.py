@@ -50,6 +50,45 @@ dpr_proc_radio = widgets.RadioButtons(
     indent=False,
 )
 
+
+def get_pipeline_unit_radio():
+    """Return radio buttons to chosse the DPR processor pipeline or processing unit"""
+    # Avaiable pipelines and processing units
+    pipelines = []
+    units = ["single_unit"]
+
+    match dpr_proc_radio.value:
+        case DprProcessor.MOCKUP:
+            pipelines = ["mockup_full"]
+        case DprProcessor.S1L0:
+            pipelines = ["s1_l0_full"]
+        case DprProcessor.S3L0:
+            pipelines = ["s3_l0_full"]
+        case DprProcessor.S1ARD:
+            pipelines = ["s1_ard_full"]
+            units = [
+                "calibration",
+                "reference_dem",
+                "reference_geometry",
+                "coregistration",
+                "geocoding",
+                "mosaicking",
+            ]
+
+    # Text and dict entry used in radio buttons for each pipeline or unit
+    options = []
+    for p in pipelines:
+        options.append((f"{p} (pipleline) ", {"pipeline": p, "unit": ""}))
+    for u in units:
+        options.append((f"{u} (unit)", {"pipeline": "", "unit": u}))
+
+    return widgets.RadioButtons(
+        options=options,
+        description=f"Run {dpr_proc_radio.value.name!r} full pipeline or single processing unit:",
+        indent=False,
+    )
+
+
 ########################
 # Deploy Prefect flows #
 ########################
