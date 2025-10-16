@@ -21,7 +21,7 @@ deployments:
   version: "todo-version"
   tags: ["dpr", "sprint 29"]
   work_pool: *prefect_work_pool_eopf
-  entrypoint: ./rs_workflows/auxip_flow.py:on_demand_auxip_staging
+  entrypoint: ./rs_workflows/auxip_flow.py:auxip_staging
 
 - name: Cadip staging
   version: "todo-version"

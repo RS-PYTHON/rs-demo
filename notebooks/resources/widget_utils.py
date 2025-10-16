@@ -79,7 +79,7 @@ def get_pipeline_unit_radio():
     # Text and dict entry used in radio buttons for each pipeline or unit
     options = []
     for p in pipelines:
-        options.append((f"{p} (pipleline) ", {"pipeline": p, "unit": ""}))
+        options.append((f"{p} (pipeline) ", {"pipeline": p, "unit": ""}))
     for u in units:
         options.append((f"{u} (unit)", {"pipeline": "", "unit": u}))
 
