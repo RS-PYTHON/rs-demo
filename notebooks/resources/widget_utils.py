@@ -32,6 +32,7 @@ import prefect
 import rs_workflows
 import yaml
 from prefect.flows import Flow
+from resources import utils
 from rs_client.ogcapi.dpr_client import DprProcessor
 from rs_common import prefect_utils
 
@@ -103,7 +104,7 @@ deploy_prefect_radio = widgets.RadioButtons(
         ("Local source code and s3 bucket", "bucket"),
         ("Do nothing", "nothing"),
     ],
-    value="bucket",
+    value="bucket" if utils.local_mode else "yaml",
     description="Deploy Prefect flows using:",
     indent=False,
 )
