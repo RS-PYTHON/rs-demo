@@ -254,7 +254,8 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-
+    volumes:
+      - ~/.s3cfg:/.s3cfg
   ########
   # STAC #
   ########
