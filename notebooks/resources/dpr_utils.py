@@ -23,7 +23,7 @@ from datetime import timedelta
 from os import path as osp
 from pathlib import Path
 
-from rs_client.ogcapi.dpr_client import ClusterInfo, DprClient, DprProcess
+from rs_client.ogcapi.dpr_client import ClusterInfo, DprClient, DprProcessor
 from rs_common.logging import Logging
 from rs_common.prefect_utils import (
     get_share_bucket,
@@ -106,7 +106,7 @@ class DprDemo:
 
     async def run_process(
         self,
-        process: DprProcess,
+        process: DprProcessor,
         cluster_info: ClusterInfo,
         payload_subpath: str,
         s3_output_dir: str = "",
