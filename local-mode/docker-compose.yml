@@ -32,14 +32,15 @@ services:
       - .env
     environment:
       CORS_ORIGINS: http://localhost:8101
-    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-    #   # OAuth2 authentication
-    #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-    #   OIDC_REALM: rspy
-    #   OIDC_CLIENT_ID: fastapi_test
-    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-    #   RSPY_COOKIE_SECRET: secret
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
+      # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-station-adgs...:8080 by  http://adgs-station:5000
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
@@ -58,14 +59,15 @@ services:
       - .env
     environment:
       CORS_ORIGINS: http://localhost:8105
-    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-    #   # OAuth2 authentication
-    #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-    #   OIDC_REALM: rspy
-    #   OIDC_CLIENT_ID: fastapi_test
-    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-    #   RSPY_COOKIE_SECRET: secret
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
+      # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-prip...:8080 by  http://prip-station:5000
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/prip_ws_config.yaml:${EODAG_PRIP_CONFIG}
@@ -83,15 +85,16 @@ services:
     env_file:
       - .env
     environment:
-       CORS_ORIGINS: http://localhost:8102
-    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-    #   # OAuth2 authentication
-    #   OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-    #   OIDC_REALM: rspy
-    #   OIDC_CLIENT_ID: fastapi_test
-    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-    #   RSPY_COOKIE_SECRET: secret
+      CORS_ORIGINS: http://localhost:8102
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
+      # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-station-cadip...:8080 by  http://cadip-station:5000
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
@@ -108,16 +111,6 @@ services:
       - .env
     environment:
       CORS_ORIGINS: http://localhost:8103
-      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-      # # OAuth2 authentication
-      # OIDC_ENDPOINT: https://iam.dev-rspy.esa-copernicus.eu
-      # OIDC_REALM: rspy
-      # OIDC_CLIENT_ID: fastapi_test
-      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-      # RSPY_COOKIE_SECRET: secret
-
       RSPY_HOST_USER: ${USER}
 
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
@@ -151,6 +144,16 @@ services:
       POSTGRES_PORT: 5432
       PGDATABASE: ${PGSTAC_DB}
       POSTGRES_DB: ${PGSTAC_DB}
+
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
@@ -178,6 +181,22 @@ services:
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
+
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
+
+      # From the k8s pod, replace:
+      # http://mockup-station-adgs...:8080 by  http://adgs-station:5000
+      # http://mockup-prip...:8080 by  http://prip-station:5000
+      # http://mockup-station-cadip...:8080 by  http://cadip-station:5000
+      # RSPY__TOKEN__xxx
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
@@ -198,6 +217,16 @@ services:
     env_file:
       - .env
       - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
+    # environment:
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
 
   ############
   # STATIONS #
@@ -599,6 +628,10 @@ services:
     env_file:
       - .env
     environment:
+      RSPY_HOST_USER: ${USER}
+      # to import resources/ from the mounted volume below
+      PYTHONPATH: /home/jovyan/notebooks
+
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_WEBSITE: http://rs-server-frontend:8000/docs # not used
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -608,12 +641,6 @@ services:
       # # then from the devtools (press F12) copy the value of the cookie named "session".
       # # In Chrome: in the "Application" tab, in Firefox: in the "Storage" tab.
       # RSPY_OAUTH2_COOKIE: xxx # DON'T SAVE THIS VALUE IN GIT !
-
-      RSPY_HOST_USER: ${USER}
-
-      # to import resources/ from the mounted volume below
-      PYTHONPATH: /home/jovyan/notebooks
-
     volumes:
       - ../notebooks:/home/jovyan/notebooks
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
