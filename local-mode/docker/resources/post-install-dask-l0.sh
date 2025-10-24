@@ -16,10 +16,12 @@
 set -euo pipefail
 set -x
 
-# The dask-gateway base image for local mode installs numpy v2 for user "dask".
-# This is incompatible with L0 which requires numpy v1.
-# But even with forcing numpy v1 in the root install, the "dask" user still uses his numpy v2.
-# So here we uninstall the numpy version of the "dask" user. He will use the root version.
+# The dask-gateway base image for local mode installs everything for the user "dask". It installs numpy v2.
+# The L0 image installs everything for the user "root". It needs numpy v1.
+# So it installs numpy v1 in the L0 image for the user "root".
+# But when we do that, then we use the image from the user "dask", it will still use
+# numpy v2 that has been installed for the user "dask".
+# So here we uninstall the numpy version of the "dask" user. He will then use the root version.
 # I don't know if there's a cleaner way to do this.
 # NOTE: in cluster mode, the dask-gateway base image installs numpy v1.
 if id dask >/dev/null 2>&1; then # if user "dask" exists
