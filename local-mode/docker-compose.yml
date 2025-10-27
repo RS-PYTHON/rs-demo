@@ -272,6 +272,13 @@ services:
     # env_file:
     #   - .env # WARNING: does not work because it overrides env vars
 
+  edrs-station:
+    image: ghcr.io/rs-python/rs-testmeans_edrs-station-mock:edrs
+    container_name: edrs-station
+    ports:
+      - "5005:21"
+      - "21100-21110:21100-21110"
+
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
     container_name: prip-station
