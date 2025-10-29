@@ -273,13 +273,19 @@ services:
     #   - .env # WARNING: does not work because it overrides env vars
 
   edrs-station:
-    image: ghcr.io/rs-python/rs-testmeans_edrs-station-mock:edrs
+    image: ghcr.io/rs-python/rs-testmeans_edrs-station-mock:feat-rspy807-edrs-patch
     container_name: edrs-station
-    # :( rosetta error on ARM
     platform: linux/amd64
     ports:
       - "5005:21"
       - "21100-21110:21100-21110"
+    environment:
+      FTP_USER: ${EDRS_FTP_USER}
+      FTP_PASS: ${EDRS_FTP_PASS}
+    volumes:
+      - ./server.crt:/app/vsftpd/cert/server.crt:ro
+      - ./server.key:/app/vsftpd/cert/server.key:ro
+      - ./ca.crt:/app/vsftpd/cert/ca.crt:ro
 
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
