@@ -67,9 +67,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     gnss:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -81,9 +78,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     doris:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -95,9 +89,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     hktm:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -109,9 +100,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     navatt:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -123,9 +111,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     olci:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -137,9 +122,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     slstr:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -151,9 +133,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
     sral:
       processing:expression: systematic
       processing:facility: Copernicus S3 Core Ground Segment-DPA
@@ -165,9 +144,6 @@ S3:
       - name: 'SGS_'
         roles:
           - processor
-      - name: 'European Space Agency'
-        roles:
-          - producer
 
   apid_mapping:
     S03NAT_IG: [361]
@@ -305,10 +281,14 @@ S3:
     S03OLCR1G: S03OLCCR1
     S03NAT_IG: S03NATL0_
     S03ALT_IG: S03ALTL0_
-    S03SRCRIG: S03SRCRL0
+    S03SRCRIG: S03SRAL0C
     S03HKM_IG: S03HKML0_
     S03HKM2IG: S03HKM2L0
 
+  # Operational Mode
+  strict_mode: true
+  # If true, the processor will fail if a degraded packet is found
+  # ----------------------------------------------
   # Time in seconds for granules generation window
   granules_generation_time:
     S03OLC_IG: 120
@@ -484,8 +464,6 @@ S3:
       S03SLS_IG: true
       S03OLC_IG: true
       S03OLCRIG: true
-      S03OLCR0G: true
-      S03OLCR1G: true
       S03ALT_IG: true
       S03SRCRIG: true
     # Check Gaps
@@ -500,8 +478,6 @@ S3:
       S03SLS_IG: true
       S03OLC_IG: true
       S03OLCRIG: true
-      S03OLCR0G: true
-      S03OLCR1G: true
       S03ALT_IG: true
       S03SRCRIG: true
     # Remove corrupted packets
@@ -516,8 +492,6 @@ S3:
       S03SLS_IG: true
       S03OLC_IG: true
       S03OLCRIG: true
-      S03OLCR0G: true
-      S03OLCR1G: true
       S03ALT_IG: true
       S03SRCRIG: true
     # Remove duplicated packets
@@ -532,8 +506,6 @@ S3:
       S03SLS_IG: true
       S03OLC_IG: true
       S03OLCRIG: true
-      S03OLCR0G: true
-      S03OLCR1G: true
       S03ALT_IG: true
       S03SRCRIG: true
     # Maximim threashold of errors allowed
