@@ -283,9 +283,9 @@ services:
       FTP_USER: ${EDRS_FTP_USER}
       FTP_PASS: ${EDRS_FTP_PASS}
     volumes:
-      - ./server.crt:/app/vsftpd/cert/server.crt:ro
-      - ./server.key:/app/vsftpd/cert/server.key:ro
-      - ./ca.crt:/app/vsftpd/cert/ca.crt:ro
+      - ./certs/server.crt:/app/vsftpd/cert/server.crt
+      - ./certs/server.key:/app/vsftpd/cert/server.key
+      - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
 
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
