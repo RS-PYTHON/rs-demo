@@ -273,7 +273,7 @@ services:
     #   - .env # WARNING: does not work because it overrides env vars
 
   edrs-station:
-    image: ghcr.io/rs-python/rs-testmeans_edrs-station-mock:feat-rspy807-edrs-patch
+    image: ghcr.io/rs-python/rs-testmeans_edrs-station-mock:latest
     container_name: edrs-station
     platform: linux/amd64
     ports:
@@ -283,8 +283,8 @@ services:
       FTP_USER: ${EDRS_FTP_USER}
       FTP_PASS: ${EDRS_FTP_PASS}
     volumes:
-      - ./certs/server.crt:/app/vsftpd/cert/server.crt
-      - ./certs/server.key:/app/vsftpd/cert/server.key
+      - ./certs/client.crt:/app/vsftpd/cert/server.crt
+      - ./certs/client.key:/app/vsftpd/cert/server.key
       - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
 
   prip-station:
