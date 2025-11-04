@@ -110,14 +110,14 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: http://localhost:8103
+      CORS_ORIGINS: '["http://localhost:8103"]'
       RSPY_HOST_USER: ${USER}
 
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
       ENABLE_TRANSACTIONS_EXTENSIONS: 1
-      CORS_METHODS: "GET,POST,OPTIONS"
+      CORS_METHODS: '["GET","POST","OPTIONS"]'
       CORS_CREDENTIALS: "true"
-      CORS_HEADERS: "*"
+      CORS_HEADERS: '["*"]'
       PREFIX_PATH: "/catalog"
       OPENAPI_URL: "/catalog/api"
       DOCS_URL: "/catalog/api.html"
