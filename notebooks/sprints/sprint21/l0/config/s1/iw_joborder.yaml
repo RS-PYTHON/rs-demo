@@ -132,4 +132,4 @@ logging: ../logging_config.yaml
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
 - ./iw_configuration.yaml
-- ../l0_dask_configuration.yaml
+- ../cadu_configuration.yaml
