@@ -31,7 +31,7 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: http://localhost:8101
+      CORS_ORIGINS: '["http://localhost:8101"]'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -58,7 +58,7 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: http://localhost:8105
+      CORS_ORIGINS: '["http://localhost:8105"]'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -85,7 +85,7 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: http://localhost:8102
+      CORS_ORIGINS: '["http://localhost:8102"]'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -110,14 +110,14 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: http://localhost:8103
+      CORS_ORIGINS: '["http://localhost:8103"]'
       RSPY_HOST_USER: ${USER}
 
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
       ENABLE_TRANSACTIONS_EXTENSIONS: 1
-      CORS_METHODS: "GET,POST,OPTIONS"
+      CORS_METHODS: '["GET","POST","OPTIONS"]'
       CORS_CREDENTIALS: "true"
-      CORS_HEADERS: "*"
+      CORS_HEADERS: '["*"]'
       PREFIX_PATH: "/catalog"
       OPENAPI_URL: "/catalog/api"
       DOCS_URL: "/catalog/api.html"
