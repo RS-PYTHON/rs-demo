@@ -101,7 +101,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/edrs/.github/Dockerfile
   rs-server-edrs:
-    image: ghcr.io/rs-python/rs-server-cadip:latest
+    image: ghcr.io/rs-python/rs-server-edrs:feat-rspy808-stac-view-of-edrs-sessions
     container_name: rs-server-edrs
     ports:
       - 8006:8000
@@ -111,6 +111,11 @@ services:
       - edrs-station
     env_file:
       - .env
+    environment:
+        EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+      - ./config/rs_server_edrs_config.yaml:${EDRS_STATION_CONFIG}
     #environment:
       # CORS_ORIGINS: http://localhost:8102
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
