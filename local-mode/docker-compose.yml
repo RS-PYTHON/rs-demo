@@ -122,7 +122,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
       # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-station-cadip...:8080 by  http://cadip-station:5000
-    volumes:
+    #volumes:
       #- ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       #- ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
