@@ -99,6 +99,33 @@ services:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/edrs/.github/Dockerfile
+  rs-server-edrs:
+    image: ghcr.io/rs-python/rs-server-cadip:latest
+    container_name: rs-server-edrs
+    ports:
+      - 8006:8000
+    depends_on:
+      - rspy-pre-actions
+      - minio
+      - edrs-station
+    env_file:
+      - .env
+    environment:
+      # CORS_ORIGINS: http://localhost:8102
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
+      # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-station-cadip...:8080 by  http://cadip-station:5000
+    volumes:
+      #- ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      #- ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
+
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
     container_name: rs-server-catalog
