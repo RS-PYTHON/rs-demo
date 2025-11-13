@@ -111,7 +111,7 @@ services:
       - edrs-station
     env_file:
       - .env
-    environment:
+    #environment:
       # CORS_ORIGINS: http://localhost:8102
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
