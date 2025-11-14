@@ -42,8 +42,8 @@ from rs_client.ogcapi.staging_client import StagingClient
 from rs_client.rs_client import RsClient
 from rs_client.stac.auxip_client import AuxipClient
 from rs_client.stac.cadip_client import CadipClient
-from rs_client.stac.edrs_client import EdrsClient
 from rs_client.stac.catalog_client import CatalogClient
+from rs_client.stac.edrs_client import EdrsClient
 from rs_common.logging import Logging
 from rs_common.prefect_utils import init_prefect_blocks
 
@@ -191,7 +191,14 @@ def init_rsclient(owner_id=None):
     print(f"Staging service: {staging_client.href_service}")
     print(f"DPR service: {dpr_client.href_service}")
 
-    return auxip_client, cadip_client, catalog_client, staging_client, prip_client, edrs_client
+    return (
+        auxip_client,
+        cadip_client,
+        catalog_client,
+        staging_client,
+        prip_client,
+        edrs_client,
+    )
 
 
 def get_or_create_test_collection(
