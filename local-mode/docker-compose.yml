@@ -101,7 +101,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/edrs/.github/Dockerfile
   rs-server-edrs:
-    image: ghcr.io/rs-python/rs-server-edrs:feat-rspy808-stac-view-of-edrs-sessions
+    image: ghcr.io/rs-python/rs-server-edrs:latest
     container_name: rs-server-edrs
     ports:
       - 8006:8000
