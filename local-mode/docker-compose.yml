@@ -181,7 +181,10 @@ services:
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
-
+      FTP_HOST: edrs-station
+      FTP_PORT: 21
+      FTP_USER: ${EDRS_FTP_USER}
+      FTP_PASS: ${EDRS_FTP_PASS}
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
