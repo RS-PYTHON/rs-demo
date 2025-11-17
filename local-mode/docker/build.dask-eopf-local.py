@@ -95,7 +95,12 @@ parser.add_argument(
     action="store_true",
     help="Build the Dask LocalCluster image for local debugging",
 )
-parser.add_argument("-d", "--docker_tag", default="latest", help="Docker tag to use")
+parser.add_argument(
+    "-d",
+    "--docker_tag",
+    default="latest",
+    help="Docker tag to use (default: latest)",
+)
 parser.add_argument(
     "-p",
     "--push",
