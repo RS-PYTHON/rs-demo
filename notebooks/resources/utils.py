@@ -139,6 +139,7 @@ def create_s3_buckets():
     rspy_catalog_buckets.append(RSPY_TEMP_BUCKET)
     for bucket in rspy_catalog_buckets:
         try:
+            logger.debug(f"Creating bucket {bucket}")
             s3_client.create_bucket(Bucket=bucket)
         except (
             s3_client.exceptions.BucketAlreadyExists,

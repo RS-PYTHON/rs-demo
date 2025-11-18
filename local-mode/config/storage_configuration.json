@@ -48,7 +48,7 @@
             "name": "shared_disk",
             "opening_mode": "CREATE_OVERWRITE",
             "relative_path": "/my_share_directory/here/${JOB_IDENTIFIER}"
-            
+
         },
         {
             "name": "local_disk",
