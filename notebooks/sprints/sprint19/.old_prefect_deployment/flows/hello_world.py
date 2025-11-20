@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Module that implements a prefect flow to be launched in a dask cluster """
+"""Module that implements a prefect flow to be launched in a dask cluster"""
 import os
 
 from dask_gateway import Gateway, JupyterHubAuth
@@ -38,7 +38,7 @@ def dask_cluster():
         raise RuntimeError(f"Unsupported authentication type: {auth_type}")
     logger.info("Creating dask gateway object")
     gateway = Gateway(
-        address=os.environ["DASK_GATEWAY__ADDRESS"],
+        address=os.environ["DASK_GATEWAY_ADDRESS"],
         auth=gateway_auth,
     )
     logger.info(

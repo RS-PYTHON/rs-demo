@@ -38,7 +38,8 @@ with conn.cursor() as cur:
             ('https://stac-extensions.github.io/raster/v1.1.0/schema.json'),
             ('https://stac-extensions.github.io/authentication/v1.1.0/schema.json'),
             ('https://stac-extensions.github.io/alternate-assets/v1.2.0/schema.json'),
-            ('https://stac-extensions.github.io/timestamps/v1.1.0/schema.json')
+            ('https://stac-extensions.github.io/timestamps/v1.1.0/schema.json'),
+            ('https://stac-extensions.github.io/file/v2.1.0/schema.json')
         ON CONFLICT DO NOTHING;
         """,
     )

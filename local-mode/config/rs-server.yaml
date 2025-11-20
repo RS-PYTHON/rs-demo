@@ -258,7 +258,7 @@ external_data_sources:
       client_id: client_id
       client_secret: client_secret
       authorization: Basic test
-  s2a:
+  s2b:
     domain: prip-station
     service:
       name: prip
@@ -273,3 +273,20 @@ external_data_sources:
       client_id: client_id
       client_secret: client_secret
       authorization: Basic test
+  s3test:
+    domain: s3.gra.io.cloud.ovh.net
+    service:
+      name: s3
+      url: https://s3.gra.io.cloud.ovh.net
+    authentication:
+      auth_type: s3
+      token_url: null
+      grant_type: password
+      scope: null
+      username: test
+      password: test
+      client_id: client_id
+      client_secret: client_secret
+      authorization: null
+      access_key: ${access_key}
+      secret_key: ${secret_key}

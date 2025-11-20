@@ -40,7 +40,7 @@ jobs:
           set -x
 
           # Copy the s3cmd config file to be able to access the "real" s3 bucket
-          echo "${{ secrets.S3CFG_ORANGE_BUCKET }}" > ~/.s3cfg
+          echo "${{ secrets.S3CFG_OVH_BUCKET }}" > ~/.s3cfg
 
           # We want to use docker images with tag=this_branch_name.
           branch_name=${{ github.ref_name }}
@@ -59,12 +59,12 @@ jobs:
           ./test-docker-tag.sh "$docker_tag"
 
           # Run all services
-          docker compose -f docker-compose-test-tag.yml up -d
+          docker compose -f docker-compose-test-tag.yml up cicd -d
 
           # Run all demos
-          ./run-notebooks.sh "$docker_tag"
+          ./run-notebooks.sh
 
           # Shutdown docker services and volumes
-          docker compose -f docker-compose-test-tag.yml down -v
+          docker compose down -v
 
         shell: bash

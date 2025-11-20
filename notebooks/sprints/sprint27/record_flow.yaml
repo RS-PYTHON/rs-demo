@@ -1,0 +1,21 @@
+prefect-version: 3
+
+pull:
+- prefect.deployments.steps.run_shell_script:
+    # Download source code from S3 bucket using the prefect block named "s3".
+    # NOTE: we cannot use comments or break long lines, most of bash features don't work...
+    expand_env_vars: true
+    script: |
+        python -c "from prefect_aws import S3Bucket; S3Bucket.load('$SHARE_BUCKET').get_directory('$S3_CODE_FOLDER', '.')"
+
+deployments:
+- name: record flow
+  tags: ["demo"]
+  entrypoint: ./record_flow.py:record_flow
+  work_pool:
+    name: "{{ PREFECT_WORK_POOL_GENERAL }}"
+    job_variables:
+        env:
+            # Copy env vars from client environment
+            SHARE_BUCKET: "{{ SHARE_BUCKET }}"
+            S3_CODE_FOLDER: "{{ S3_CODE_FOLDER }}"

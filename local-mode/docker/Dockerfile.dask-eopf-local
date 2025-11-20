@@ -1,4 +1,4 @@
-# Copyright 2024 CS Group
+# Copyright 2025 CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,72 +13,77 @@
 # limitations under the License.
 
 # We will add eopf to the dask-gateway-server image for local mode
-ARG DASK_GATEWAY_TAG=2024.1.0
+# Declare ARG variables before the FROM instruction
+ARG DASK_GATEWAY_TAG=xxx
 FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
-ARG DASK_GATEWAY_TAG=2024.1.0
 
-ARG PREFECT_TAG=3.2.13
-ARG PREFECT_DASK_TAG=0.3.3
+ARG IMAGE2BUILD
+
+ARG PREFECT_TAG=xxx
+ARG PREFECT_DASK_TAG=xxx
 
 # Default user from parent image
 ARG USER=dask:dask
 
-# TEMP: ugly hack for python>3.11: install eopf from local repository
-# after removing the version constraints and some componenets.
-ARG EOPF_TAG=2.5.6
-ADD "https://gitlab.eopf.copernicus.eu/cpm/eopf-cpm/-/archive/${EOPF_TAG}/eopf-cpm-${EOPF_TAG}.tar" /tmp
+# Do everything from root
 USER root
-RUN chown $USER "/tmp/eopf-cpm-${EOPF_TAG}.tar"
-USER $USER
-RUN \
-    cd /tmp && \
-    chmod u+x "eopf-cpm-${EOPF_TAG}.tar" && \
-    tar -xf "eopf-cpm-${EOPF_TAG}.tar" && \
-    cd "/tmp/eopf-cpm-${EOPF_TAG}" && \
-    sed -i "s|\s*>=[^\"]*||g" pyproject.toml && \
-    sed -i "s|\s*==[^\"]*||g" pyproject.toml && \
-    sed -i "/\"sentineltoolbox\"/d" pyproject.toml && \
-    sed -i "/\"ecmwflibs\"/d" pyproject.toml && \
-    cat pyproject.toml && \
-    pip install "/tmp/eopf-cpm-${EOPF_TAG}" && \
-    rm -rf /tmp/eopf-cpm-* && \
-    layer-cleanup.sh
-# END TEMP
-# After removing this TEMP block restore the eopf installation in the requirements.dask-eopf-local.txt file below.
 
-# Install EOPF and processors
-COPY ./requirements.dask-eopf-local.txt /opt/
+COPY ./resources/layer-cleanup.sh ./resources/restore-apt.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+
+# System installations
+RUN \
+    restore-apt.sh && apt update && \
+    apt install -y git && \
+    layer-cleanup.sh
+
+# Install processor and eopf
+ADD ./resources/requirements-*.txt /opt
 # NOTE, with older docker versions, use:
 # RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN \
 # GITLAB_EOPF_TOKEN=$(cat /run/secrets/GITLAB_EOPF_TOKEN) pip install ...
 RUN --mount=type=secret,id=GITLAB_EOPF_TOKEN,env=GITLAB_EOPF_TOKEN \
-    pip install -U -r /opt/requirements.dask-eopf-local.txt && layer-cleanup.sh
-
-# Install prefect
-RUN \
-    pip install \
-        prefect[aws]=="${PREFECT_TAG}" \
-        prefect-dask=="${PREFECT_DASK_TAG}" && \
+    pip install -U pip && \
+    pip install -U -r /opt/requirements-${IMAGE2BUILD}.txt && \
     layer-cleanup.sh
 
+# Install complete dask subsets + prefect
+RUN pip install \
+        dask[complete] \
+        prefect[aws]=="${PREFECT_TAG}" \
+        prefect-dask=="${PREFECT_DASK_TAG}" \
+    && layer-cleanup.sh
+
+# Other installations
+RUN apt update && apt install -y python3-pydot graphviz && layer-cleanup.sh
+
 # Install and auto configure opentelemetry
-RUN \
-    pip install \
-        opentelemetry-distro \
-        opentelemetry-instrumentation-aws-lambda \
-        opentelemetry-test-utils \
-        opentelemetry-exporter-otlp && \
+RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-instrumentation-aws-lambda opentelemetry-test-utils && \
     opentelemetry-bootstrap -a install && \
     layer-cleanup.sh
 
-# Other installations
-USER root
-RUN apt update && apt install -y python3-pydot graphviz && layer-cleanup.sh
+# Run post-install script if it exists
+ADD ./resources/post-install-*.sh /opt
+RUN \
+    if [ -f /opt/post-install-${IMAGE2BUILD}.sh ]; then \
+        /opt/post-install-${IMAGE2BUILD}.sh && \
+        layer-cleanup.sh; \
+    fi
+
+# Clean everything
+RUN apt autoremove -y git
+RUN rm -rf /opt/requirements-*.txt /opt/post-install-*.sh
+
+# Remove apt repository list and custom scripts
+RUN rm -f /etc/apt/sources.list /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+
+# Restore user
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
-# https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
-#
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/local"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-local"
+
+# This Dockerfile is used to build:
+# ghcr.io/rs-python/dask-gateway-server/l0/local
+# ghcr.io/rs-python/dask-gateway-server/s1ard/local

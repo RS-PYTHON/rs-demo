@@ -14,13 +14,13 @@ source /docker/compose/dir/.env
 
 # The .env file defines the config file paths as they should be installed
 # inside the Docker container.
-for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG}; do
+# for target_config in ${EODAG_ADGS_CONFIG} ${EODAG_CADIP_CONFIG}; do
 
-    # The source config file is in ./config with the same filename
-    source_config=/docker/compose/dir/config/$(basename ${target_config})
+#     # The source config file is in ./config with the same filename
+#     source_config=/docker/compose/dir/config/$(basename ${target_config})
 
-    # Create target directory and copy file
-    mkdir -p $(dirname ${target_config})
-    (set -x; cp -f ${source_config} ${target_config})
+#     # Create target directory and copy file
+#     mkdir -p $(dirname ${target_config})
+#     (set -x; cp -f ${source_config} ${target_config})
 
-done
+# done

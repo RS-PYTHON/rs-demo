@@ -17,20 +17,17 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
+import csv
 import json
 import logging
 import os
-import pprint
 import time
 from datetime import datetime
-from time import sleep
 from typing import Optional
 
 import boto3
 import requests
-import rs_common
 from pystac import (
-    Asset,
     Collection,
     Extent,
     Item,
@@ -40,17 +37,19 @@ from pystac import (
 )
 from pystac_client import CollectionClient
 from pystac_client.item_search import DatetimeLike
-from resources.prefect_utils import init_prefect_blocks
-from rs_client.auxip_client import AuxipClient
-from rs_client.cadip_client import CadipClient
-from rs_client.catalog_client import CatalogClient
+from rs_client.ogcapi.dpr_client import DprClient
+from rs_client.ogcapi.staging_client import StagingClient
 from rs_client.rs_client import RsClient
-from rs_client.staging_client import StagingClient
-from rs_common.config import EAuxipStation, ECadipStation
+from rs_client.stac.auxip_client import AuxipClient
+from rs_client.stac.cadip_client import CadipClient
+from rs_client.stac.catalog_client import CatalogClient
+from rs_common.logging import Logging
+from rs_common.prefect_utils import init_prefect_blocks
 
 # Variables
 # Set logger level to info
-rs_common.logging.Logging.level = logging.INFO
+Logging.level = logging.INFO
+logger = Logging.default(__name__)
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -64,14 +63,12 @@ from_cicd: bool = os.getenv("RSPY_FROM_CICD") == "1"
 # In cluster mode, you need an API key to access the RS-Server services.
 apikey: str | None = None
 
-# "headers" field with the api key for HTTP requests
-apikey_headers: dict = {}
-
 # Client instances
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
 catalog_client: CatalogClient = None
 staging_client: StagingClient = None
+dpr_client: DprClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -81,16 +78,11 @@ http_session: requests.Session = requests.Session()
 # Except in local mode, where we use a local MinIO object storage instance.
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
-RSPY_CATALOG_BUCKET = os.environ["RSPY_CATALOG_BUCKET"]
 
 # For local mode only
 if local_mode:
-
-    # Username
-    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]
-
-    # Share data between the user, the client (jupyter or terminal) and prefect
-    PREFECT_SHARE_BUCKET = os.environ["PREFECT_SHARE_BUCKET"]
+    BUCKET_CONFIG_FILE_PATH = os.environ["BUCKET_CONFIG_FILE_PATH"]
+    RSPY_HOST_USER = os.environ["RSPY_HOST_USER"]  # username
 
 OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
@@ -99,7 +91,7 @@ TEST_COLLECTION: str = "my_test_collection"
 
 # Define a search interval
 start_date = datetime(2000, 1, 1)
-stop_date = datetime(2030, 1, 1)
+stop_date = datetime(2024, 1, 1)
 
 #
 # Functions
@@ -110,28 +102,17 @@ def pretty_print(any_dict: dict, indent=2):
     print(json.dumps(any_dict, indent=2))
 
 
-def read_apikey() -> None:
-    """
-    Read the API key, either from the environment variable or from an interactive input form.
-
-    NOTE: don't return the apikey value because there is a risk that it is displayed in the
-    notebook (if this function is called from the last cell line) so this is not secured.
-    """
-    global apikey, apikey_headers
-
-    # No API key in local mode
-    if local_mode:
-        return
-
-    # In cluster mode, read it from the user input
-    if not apikey:
-        import getpass
-
-        apikey = getpass.getpass(f"Enter your API key:")
-        os.environ["RSPY_APIKEY"] = apikey
-
-    # Set the header to use in HTTP requests
-    apikey_headers = {"headers": {"x-api-key": apikey}}
+def get_buckets_from_config_file() -> list:
+    """Returns a list of the buckets names in the configuration file."""
+    data = []
+    # This function is not called in cluster mode but this is an extra check just in case
+    if not local_mode:
+        return data
+    with open(BUCKET_CONFIG_FILE_PATH, newline="", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+        for line in reader:
+            data.append(line)
+    return [row[4] for row in data]
 
 
 def get_s3_client():
@@ -154,7 +135,9 @@ def create_s3_buckets():
     if not local_mode:
         return
     s3_client = get_s3_client()
-    for bucket in RSPY_TEMP_BUCKET, RSPY_CATALOG_BUCKET, PREFECT_SHARE_BUCKET:
+    rspy_catalog_buckets = get_buckets_from_config_file()
+    rspy_catalog_buckets.append(RSPY_TEMP_BUCKET)
+    for bucket in rspy_catalog_buckets:
         try:
             s3_client.create_bucket(Bucket=bucket)
         except (
@@ -164,13 +147,9 @@ def create_s3_buckets():
             pass  # do nothing if already exists
 
 
-def init_rsclient(
-    owner_id=None,
-    cadip_station: str | ECadipStation = "CADIP",
-    adgs_station: str | EAuxipStation = "ADGS",
-):
+def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, catalog_client, staging_client
+    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -193,27 +172,56 @@ def init_rsclient(
         logger=None,
     )
 
-    # From this generic instance, get an Auxip client instance
-    auxip_client = generic_client.get_auxip_client(adgs_station)
-
-    # Or get a Cadip client instance. Pass the cadip station.
-    cadip_client = generic_client.get_cadip_client(cadip_station)
-
-    # Or get a Stac client to access the catalog
+    # From this generic instance, get child instances
+    auxip_client = generic_client.get_auxip_client()
+    prip_client = generic_client.get_prip_client()
+    cadip_client = generic_client.get_cadip_client()
     catalog_client = generic_client.get_catalog_client()
-
-    # Create a client to launch staging
     staging_client = generic_client.get_staging_client()
+    dpr_client = generic_client.get_dpr_client()
 
     print(f"Auxip service: {auxip_client.href_service}")
+    print(f"PRIP service: {prip_client.href_service}")
     print(f"CADIP service: {cadip_client.href_service}")
     print(f"Catalog service: {catalog_client.href_service}")
     print(f"Staging service: {staging_client.href_service}")
+    print(f"DPR service: {dpr_client.href_service}")
 
-    return auxip_client, cadip_client, catalog_client, staging_client
+    return auxip_client, cadip_client, catalog_client, staging_client, prip_client
 
 
-def create_test_collection(collection_id=None) -> CollectionClient:
+def get_or_create_test_collection(
+    collection_id: str | None = None,
+    description: str | None = None,
+    temporal: TemporalExtent | None = None,
+    title: str | None = None,
+    stac_extensions: list[str] | None = None,
+) -> CollectionClient:
+    """Returns the given STAC collection or creates it if does not exist"""
+    try:
+        if (collection := catalog_client.get_collection(collection_id)) is not None:
+            return collection
+    except Exception as e:
+        if "NotFoundError" in str(e):
+            pass
+        else:
+            raise e
+    return create_test_collection(
+        collection_id,
+        description,
+        temporal,
+        title,
+        stac_extensions,
+    )
+
+
+def create_test_collection(
+    collection_id: str | None = None,
+    description: str | None = None,
+    temporal: TemporalExtent | None = None,
+    title: str | None = None,
+    stac_extensions: list[str] | None = None,
+) -> CollectionClient:
     """Create and return a test STAC collection"""
 
     if not collection_id:
@@ -222,17 +230,18 @@ def create_test_collection(collection_id=None) -> CollectionClient:
     catalog_client.remove_collection(collection_id)
 
     # Add new collection
-    response = catalog_client.add_collection(
+    catalog_client.add_collection(
         Collection(
             id=collection_id,
-            description=None,  # rs-client will provide a default description for us
+            description=description,  # if None, rs-client will provide a default description for us
+            title=title,  # if None, rs-client will provide a default title for us
             extent=Extent(
                 spatial=SpatialExtent(bboxes=[-180.0, -90.0, 180.0, 90.0]),
-                temporal=TemporalExtent([start_date, stop_date]),
+                temporal=temporal or TemporalExtent([start_date, stop_date]),
             ),
+            stac_extensions=stac_extensions,
         ),
     )
-    response.raise_for_status()
 
     # Return the inserted collection
     inserted_collection = catalog_client.get_collection(collection_id=collection_id)
@@ -272,7 +281,7 @@ def stage_test_objects(
     collection_id=None,
     objects_are_files=True,
     timestamp: Optional[DatetimeLike] = None,
-):
+) -> ItemCollection:
     """Stage several files from cadip or auxip into the STAC catalog and return it."""
 
     catalog_collection_name = collection_id if collection_id else TEST_COLLECTION
@@ -283,39 +292,55 @@ def stage_test_objects(
         max_items=nb_of_objects,
     )
 
+    # for item in item_collection:
+    #     if item.properties.get('datetime') > "2025":
+    #     # Remove newly added S3 session
+    #         item_collection.items.remove(item)
     assert isinstance(item_collection, ItemCollection)
     if objects_are_files:
         # truncate by number of files. In cadip case, the items are sessions which have more than one file
         item_collection = truncate_features_by_limit(item_collection, nb_of_objects)
     items_id = [item.id for item in item_collection]
+    return stage_data(item_collection.to_dict(), items_id, catalog_collection_name)
+
+
+def stage_data(
+    staging_input: dict | str,
+    items_id: list[str],
+    catalog_collection_name: str,
+    # timeout: int = 120,
+) -> ItemCollection:
+    """Stage an item collection into the STAC catalog and return it."""
     # Start the staging process. The catalog collection is either
     # provided, or the test collection created from create_test_collection() is used
-    job_id = staging_client.run_staging(
-        item_collection.to_dict(),
-        catalog_collection_name,
+    job_status = staging_client.run_staging(staging_input, catalog_collection_name)
+    # NOTE: The timeout argument has been disabled, see the comment from rs-client-libraries
+    # in ogcapi_client.wait_for_job function
+    staging_client.wait_for_jobs(
+        job_status,
+        logger,
+        # timeout,
+        2,
     )
-    timeout = 120
-    while timeout > 0:
-        if "running" not in job_id["status"]:
-            break
-        # TODO: to replace with the following commented line after the rs-server-staging update
-        ###job_info = staging_client.get_job_info(resp["jobID"])
-        job_info = staging_client.get_job_info(job_id["status"]["running"])
-        pprint.PrettyPrinter(indent=4).pprint(job_info)
-        print("\n")
-        if "successful" in job_info["status"]:
-            print(" ----- Job COMPLETED \n")
-            time.sleep(0.5)
-            return ItemCollection(
-                list(catalog_client.get_items(catalog_collection_name, items_id)),
-            )
-        if "failed" in job_info["status"]:
-            print("-----Job FAILED \n")
-            break
-        time.sleep(2)
-        timeout -= 2
+    time.sleep(0.5)
+    return ItemCollection(
+        list(catalog_client.get_items(catalog_collection_name, items_id)),
+    )
 
-    return None
+
+def stage_single_item(
+    item: Item,
+    catalog_collection: ItemCollection,
+) -> ItemCollection:
+    """Stage a single item by converting it to an URL returning ItemCollection through the /search endpoint"""
+    link = (
+        item.get_links("root")[0].get_href()
+        + "search?collections="
+        + item.collection_id
+        + "&limit=1&ids="
+        + item.id
+    )
+    return stage_data(link, [item.id], catalog_collection.id)
 
 
 def temporary_fix_adgs_feature(items_collection):
@@ -338,9 +363,8 @@ def temporary_fix_adgs_feature(items_collection):
 ########
 
 
-def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
+def init_demo(owner_id=None):
     """Init environment before running a demo notebook."""
-
     # Some kind of workaround for boto3 to avoid checksum being added inside
     # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
     # See: https://github.com/boto/boto3/issues/4435
@@ -351,8 +375,7 @@ def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
     if local_mode:
         create_s3_buckets()
 
-    # Init the prefect blocks.
-    # In local mode: create them. In cluster mode: read them.
+    # Init the prefect blocks
     init_prefect_blocks(_sync=True)
 
     # Set OAuth2 authentication in the http request session
@@ -364,16 +387,6 @@ def init_demo(owner_id=None, cadip_station: str | ECadipStation = "CADIP"):
         owner_id = OWNER_ID
 
     # Init RsClient instances
-    ret = init_rsclient(owner_id, cadip_station)
-
-    # Save the local mode dask authentication in the staging
-    if local_mode:
-        http_session.post(
-            f"{staging_client.href_service}/staging/dask/auth",
-            params={
-                "local_dask_username": os.environ["LOCAL_DASK_USERNAME"],
-                "local_dask_password": os.environ["LOCAL_DASK_PASSWORD"],
-            },
-        )
+    ret = init_rsclient(owner_id)
 
     return ret
