@@ -21,10 +21,10 @@
 
 # Build the dask-gateway-server image for local mode.
 
-ARG PYTHON_VERSION=1.13.2
-FROM python:${PYTHON_VERSION}-slim-bookworm
+ARG PYTHON_VERSION_BASE=xxx
+FROM python:${PYTHON_VERSION_BASE}-slim-bookworm
 
-ARG DASK_TAG=2025.3.0
+ARG DASK_TAG=2024.5.2
 ARG DASK_GATEWAY_TAG=2024.1.0
 
 COPY ./layer-cleanup.sh /usr/local/bin/
@@ -59,9 +59,8 @@ RUN pip install --no-cache-dir \
 
 # Same installation as in https://gateway.dask.org/install-local.html#installation
 # Add bokeh and jupyter-server-proxy for the dask dashboard.
-RUN \
+RUN pip install \
         dask==${DASK_TAG} \
-        distributed==${DASK_TAG} \
         distributed==${DASK_TAG} \
         dask-gateway==${DASK_GATEWAY_TAG} \
         dask-gateway-server[local]==${DASK_GATEWAY_TAG} \

@@ -18,58 +18,71 @@ set -x
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-PYTHON_VERSION=3.13.2
-DASK_TAG=2024.5.2
 DASK_GATEWAY_TAG=2024.1.0
 
-# Checkout the dask-gateway git repository into a local ./tmp folder
-cd "$SCRIPT_DIR"
-tmp="./tmp"
-mkdir -p "$tmp"
-cd "$tmp"
-git clone git@github.com:dask/dask-gateway.git || true # don't fail if already cloned
-cd dask-gateway
-git checkout "tags/$DASK_GATEWAY_TAG"
+# We use a different python version in eopf + the dpr processors + rs-dpr-service
+PYTHON_VERSION=3.13.9
+PYTHON_VERSION_DPR=3.11.7
 
-# Change the base python version to use from the Dockerfile
-# FROM python:<version>-<something...> -> FROM python:<new_version>-<something...>
-dockerfile=$(realpath "dask-gateway/Dockerfile")
-sed -i "s|FROM python:[^-]*|FROM python:${PYTHON_VERSION}|g" "$dockerfile"
+for python_version in $PYTHON_VERSION $PYTHON_VERSION_DPR; do
 
-# Refreeze Dockerfile.requirements.txt based on Dockerfile.requirements.in
-# as in https://github.com/dask/dask-gateway/blob/main/.github/workflows/refreeze-dockerfile-requirements-txt.yaml#L34
-matrix_image="dask-gateway-server"
-(\
-    cd "${matrix_image}" && \
-    docker run --rm \
-        --volume=$PWD:/opt/${matrix_image} \
-        --workdir=/opt/${matrix_image} \
-        --user=root \
-        "python:${PYTHON_VERSION}-slim-bullseye" \
-        sh -c 'pip install pip-tools==6.* && pip-compile --upgrade --output-file=Dockerfile.requirements.txt Dockerfile.requirements.in' \
-)
-req=$(realpath "${matrix_image}/Dockerfile.requirements.txt")
+    # Checkout the dask-gateway git repository into a local ./tmp folder
+    cd "$SCRIPT_DIR"
+    tmp="./tmp/py${python_version}"
+    mkdir -p "$tmp"
+    tmp=$(realpath $tmp)
+    cd "$tmp"
+    git clone git@github.com:dask/dask-gateway.git || true # don't fail if already cloned
+    cd dask-gateway
+    git checkout "tags/$DASK_GATEWAY_TAG"
 
-# Comment the line that installs dask-gateway-server from a Dockerfile.requirements.in file.
-# We install it in our Dockerfile instead.
-sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
+    # Change the base python version to use from the Dockerfile
+    # FROM python:<version>-<something...> -> FROM python:<new_version>-<something...>
+    dockerfile=$(realpath "dask-gateway/Dockerfile")
+    sed -i "s|FROM python:[^-]*|FROM python:${python_version}|g" "$dockerfile"
 
-# Copy Dockerfile requirements
-cp -t "$tmp" "${SCRIPT_DIR}/resources/layer-cleanup.sh" "${SCRIPT_DIR}/resources/restore-apt.sh"
+    # For newer python versions, replace bullseye by bookworm
+    python_tag="bullseye"
+    if [[ "${python_version}" > "3.11.7" ]]; then
+        sed -i "s|bullseye|bookworm|g" "$dockerfile"
+        python_tag="bookworm"
+    fi
 
-# Build the docker image
-registry="ghcr.io/rs-python/dask-gateway-server/base/local"
-context=$(realpath "./dask-gateway-server")
-cp "${SCRIPT_DIR}/layer-cleanup.sh" "$context"
-docker build \
-    --build-arg "DASK_TAG=${DASK_TAG}" \
-    -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
-    -t "${registry}:${DASK_GATEWAY_TAG}" \
-    --progress=plain \
-    "$context"
+    # Refreeze Dockerfile.requirements.txt based on Dockerfile.requirements.in
+    # as in https://github.com/dask/dask-gateway/blob/main/.github/workflows/refreeze-dockerfile-requirements-txt.yaml#L34
+    matrix_image="dask-gateway-server"
+    (\
+        cd "${matrix_image}" && \
+        docker run --rm \
+            --volume=$PWD:/opt/${matrix_image} \
+            --workdir=/opt/${matrix_image} \
+            --user=root \
+            "python:${python_version}-slim-${python_tag}" \
+            sh -c 'pip install pip-tools==6.* && pip-compile --upgrade --output-file=Dockerfile.requirements.txt Dockerfile.requirements.in' \
+    )
+    req=$(realpath "${matrix_image}/Dockerfile.requirements.txt")
 
-# Push the docker iamge to the registry, if the --push option is specified.
-if [[ " $@ " == *" --push "* ]]; then
-    docker login https://ghcr.io/v2/rs-python
-    docker push "${registry}:${DASK_GATEWAY_TAG}"
-fi
+    # Comment the line that installs dask-gateway-server from a Dockerfile.requirements.in file.
+    # We install it in our Dockerfile instead.
+    sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
+
+    # Copy Dockerfile requirements
+    cp -t "$tmp" "${SCRIPT_DIR}/resources/layer-cleanup.sh" "${SCRIPT_DIR}/resources/restore-apt.sh"
+
+    # Build the docker image
+    target="ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}-py${python_version}"
+    context=$(realpath "./dask-gateway-server")
+    cp "${SCRIPT_DIR}/layer-cleanup.sh" "$context"
+    docker build \
+        --build-arg "PYTHON_VERSION_BASE=${python_version}" \
+        -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
+        -t "${target}" \
+        --progress=plain \
+        "$context"
+
+    # Push the docker iamge to the registry, if the --push option is specified.
+    if [[ " $@ " == *" --push "* ]]; then
+        docker login https://ghcr.io/v2/rs-python
+        docker push "${target}"
+    fi
+done
