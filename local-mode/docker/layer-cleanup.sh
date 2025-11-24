@@ -17,18 +17,22 @@ apt-get autoclean --yes
 apt-get autoremove --yes
 
 rm -rf /var/lib/apt/lists/*
-# rm -rf /etc/apt/sources.list.d/* # don't remove the repo list
 rm -rf /usr/local/src/*
 
 rm -rf /var/cache/apt/*
 rm -rf /root/.cache/*
-rm -rf /home/*/.cache/*
 # including /root/.cache/pip
+rm -rf /home/*/.cache/*
 rm -rf /usr/local/share/.cache/*
 # including /usr/local/share/.cache/yarn
 
 rm -rf /tmp/* /var/tmp/*
+rm -rf /opt/conda/pkgs/cache
 
-conda clean --all --yes
+rm -rf /tmp/whl
+
+# WARNING: this removes the apt repository list. To restore it and be able to run 'apt update',
+# you need to run ./restore-apt.sh
+rm -rf /etc/apt/sources.list /etc/apt/sources.list.d/*
 
 exit 0

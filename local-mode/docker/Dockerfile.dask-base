@@ -16,71 +16,41 @@
 # We copy paste https://github.com/dask/dask-gateway/blob/main/dask-gateway-server/Dockerfile
 # and make modifications for the local mode.
 
-# Build the dask-gateway-server image for local mode.
-# We cannot use the original ghcr.io/dask/dask-gateway-server image because it is made for k8s
-# and uses a proxy file (that seems to be built with golang) that we don't have in local.
+# Build the base dask-gateway image for local and cluster mode.
 
-ARG PYTHON_VERSION_BASE=xxx
-FROM python:${PYTHON_VERSION_BASE}-slim-bookworm
+# Start from the customized https://github.com/dask/dask-gateway/blob/main/dask-gateway/Dockerfile
+ARG BASE=xxx
+FROM ${BASE}
 
 ARG DASK_TAG=2024.5.2
 ARG DASK_GATEWAY_TAG=2024.1.0
 
+ARG user=dask
+USER root
 COPY ./layer-cleanup.sh /usr/local/bin/
 RUN chmod 755 /usr/local/bin/layer-cleanup.sh
+USER $user
 
-COPY ./layer-cleanup.sh /usr/local/bin/
-RUN chmod 755 /usr/local/bin/layer-cleanup.sh
-
-# Install tini and upgrade linux packages are updated to patch known
-# vulnerabilities.
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y \
-        tini \
- && layer-cleanup.sh
-
-# Create a non-root user to run as
-RUN useradd --create-home --user-group --uid 1000 dask
-ARG USER=dask:dask
-USER $USER
-ENV PATH=/home/dask/.local/bin:$PATH
-WORKDIR /home/dask/
-
-# Update pip version
-RUN pip install --no-cache-dir --upgrade pip && layer-cleanup.sh
-
-# Install dask-gateway-server
-COPY --chown=dask:dask . /opt/dask-gateway-server
-RUN pip install --no-cache-dir \
-    -r /opt/dask-gateway-server/Dockerfile.requirements.txt \
-    && layer-cleanup.sh
-
-# Same installation as in https://gateway.dask.org/install-local.html#installation
+# Add dask-gateway-server and other dependencies.
 # Add bokeh and jupyter-server-proxy for the dask dashboard.
-RUN pip install \
+RUN pip install --upgrade pip && \
+    pip install \
         dask==${DASK_TAG} \
         distributed==${DASK_TAG} \
         dask-gateway==${DASK_GATEWAY_TAG} \
-        dask-gateway-server[local]==${DASK_GATEWAY_TAG} \
+        dask-gateway-server[local,kubernetes]==${DASK_GATEWAY_TAG} \
         bokeh">=3.1.0" \
         jupyter-server-proxy \
     && layer-cleanup.sh
 
-# Remove apt repository list and custom scripts
+# Remove custom scripts
 USER root
-RUN rm -f /etc/apt/sources.list /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
-USER $USER
-
-ENTRYPOINT ["tini", "-g", "--"]
-CMD ["dask-gateway-server"]
+RUN rm -f /usr/local/bin/layer-cleanup.sh
+USER $user
 
 # Set labels based on the Open Containers Initiative (OCI):
 # https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
 #
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/base/local"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask/dask-gateway"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-base"
-
-LABEL org.opencontainers.image.version="dask-gateway==${DASK_GATEWAY_TAG} dask-gateway-server[local]==${DASK_GATEWAY_TAG}"
-LABEL org.opencontainers.image.description="Same as 'ghcr.io/dask/dask-gateway-server' but for local mode."
