@@ -54,27 +54,34 @@ for python_version in $PYTHON_VERSION $PYTHON_VERSION_DPR; do
 
     # Refreeze Dockerfile.requirements.txt based on Dockerfile.requirements.in
     # as in https://github.com/dask/dask-gateway/blob/2024.1.0/.github/workflows/refreeze-dockerfile-requirements-txt.yaml#L34
-    matrix_image="dask-gateway"
-    (\
-        cd "${matrix_image}" && \
-        echo docker run --rm \
-            --volume=$PWD:/opt/${matrix_image} \
-            --workdir=/opt/${matrix_image} \
-            --user=root \
-            "python:${python_version}-slim-${python_tag}" \
-            sh -c 'pip install pip-tools==6.* && pip-compile --upgrade --output-file=Dockerfile.requirements.txt Dockerfile.requirements.in' \
-    )
-    req=$(realpath "${matrix_image}/Dockerfile.requirements.txt")
+    for matrix_image in "dask-gateway" "dask-gateway-server"; do
+        (\
+            cd "${matrix_image}" && \
+            docker run --rm \
+                --volume=$PWD:/opt/${matrix_image} \
+                --workdir=/opt/${matrix_image} \
+                --user=root \
+                "python:${python_version}-slim-${python_tag}" \
+                sh -c 'pip install pip-tools==6.* && pip-compile --upgrade --output-file=Dockerfile.requirements.txt Dockerfile.requirements.in' \
+        )
+        req=$(realpath "${matrix_image}/Dockerfile.requirements.txt")
 
-    # Force the dask versions
-    sed -i "s|dask==.*|dask==${DASK_TAG}|g" "$req"
-    sed -i "s|distributed==.*|distributed==${DASK_TAG}|g" "$req"
-    sed -i "s|fsspec==.*|fsspec|g" "$req"
+        # Force the dask versions (in dask-gateway)
+        sed -i "s|dask==.*|dask==${DASK_TAG}|g" "$req"
+        sed -i "s|distributed==.*|distributed==${DASK_TAG}|g" "$req"
+        sed -i "s|fsspec==.*|fsspec|g" "$req"
+
+        # Comment the line that installs dask-gateway-server from a Dockerfile.requirements.in file
+        # (in dask-gateway-server). We install it in our Dockerfile instead.
+        sed -i "s|\(^\s*dask-gateway-server\)|# \1|g" "$req"
+    done
+
+    exit
 
     # Build this first intermediate docker image
     target="ghcr.io/rs-python/dask/dask-gateway:${DASK_GATEWAY_TAG}-py${python_version}"
     base_target="${target}-base"
-    echo docker build \
+    docker build \
         -f "$dockerfile" \
         -t "$base_target" \
         --progress=plain \
