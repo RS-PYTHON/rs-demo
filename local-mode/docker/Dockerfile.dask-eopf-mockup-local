@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# We will add eopf to the dask-gateway-server image for local mode
-# Declare ARG variables before the FROM instruction
-ARG DASK_GATEWAY_TAG=xxx
+# This Dockerfiles installs the mock DPR processor in the dask-gateway-server image for local mode.
+
+ARG PYTHON_VERSION_DPR=3.11.7
+ARG DASK_GATEWAY_TAG=2024.1.0
 
 # Get the contents from the rs-testmeans_dpr-processor-mock image
 FROM ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest AS dpr_mock
 
-# Use the ARG value in the FROM statement
-FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}
+FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}-py${PYTHON_VERSION_DPR}
 
-ARG PREFECT_TAG=xxx
-ARG PREFECT_DASK_TAG=xxx
+ARG PREFECT_TAG=3.2.13
+ARG PREFECT_DASK_TAG=0.3.3
 
 # Default user from parent image
 ARG USER=dask:dask

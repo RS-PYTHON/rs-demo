@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# We will add eopf to the rs-dpr-service image
+# This Dockerfiles installs a DPR processor in the rs-dpr-service image,
+# to be able to run the processor with the Dask LocalCluster mode.
+
 FROM ghcr.io/rs-python/rs-dpr-service:latest
 
 ARG IMAGE2BUILD

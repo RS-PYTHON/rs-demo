@@ -13,6 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+: <<'COMMENT'
+This script builds the base dask docker images that are used for the local and cluster modes:
+- ghcr.io/rs-python/dask-gateway-server/base/local (local mode)
+- ghcr.io/rs-python/dask/dask-gateway              (cluster mode)
+
+We build the same docker images that in https://github.com/dask/dask-gateway but with some specificities:
+
+In local mode:
+- We do the same as https://github.com/dask/dask-gateway/blob/main/dask-gateway-server/Dockerfile
+- But we remove the installation and running (CMD) of dask-gateway-server
+
+In cluster mode:
+- We do the same as https://github.com/dask/dask-gateway/blob/main/dask-gateway/Dockerfile
+
+In both cases:
+- We use/install specific versions of python and dask.
+- We install some additional dependencies.
+COMMENT
+
 set -euo pipefail
 set -x
 
@@ -25,6 +44,7 @@ PYTHON_VERSION=3.13.9
 PYTHON_VERSION_DPR=3.11.7
 
 for python_version in $PYTHON_VERSION $PYTHON_VERSION_DPR; do
+for mode in "local" "cluster"; do
 
     # Checkout the dask-gateway git repository into a local ./tmp folder
     cd "$SCRIPT_DIR"
@@ -42,10 +62,12 @@ for python_version in $PYTHON_VERSION $PYTHON_VERSION_DPR; do
     sed -i "s|FROM python:[^-]*|FROM python:${python_version}|g" "$dockerfile"
 
     # For newer python versions, replace bullseye by bookworm
-    python_tag="bullseye"
-    if [[ "${python_version}" > "3.11.7" ]]; then
+    if [[ "${python_version}" > "3.13.6" ]]; then
         sed -i "s|bullseye|bookworm|g" "$dockerfile"
         python_tag="bookworm"
+    else
+        sed -i "s|bookworm|bullseye|g" "$dockerfile"
+        python_tag="bullseye"
     fi
 
     # Refreeze Dockerfile.requirements.txt based on Dockerfile.requirements.in
@@ -75,7 +97,7 @@ for python_version in $PYTHON_VERSION $PYTHON_VERSION_DPR; do
     cp "${SCRIPT_DIR}/layer-cleanup.sh" "$context"
     docker build \
         --build-arg "PYTHON_VERSION_BASE=${python_version}" \
-        -f "${SCRIPT_DIR}/Dockerfile.dask-base-local" \
+        -f "${SCRIPT_DIR}/Dockerfile.dask-base" \
         -t "${target}" \
         --progress=plain \
         "$context"
@@ -85,4 +107,5 @@ for python_version in $PYTHON_VERSION $PYTHON_VERSION_DPR; do
         docker login https://ghcr.io/v2/rs-python
         docker push "${target}"
     fi
+done
 done

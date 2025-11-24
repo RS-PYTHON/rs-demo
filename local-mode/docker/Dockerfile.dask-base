@@ -15,11 +15,10 @@
 # dask-gateway-server image for local mode.
 # We copy paste https://github.com/dask/dask-gateway/blob/main/dask-gateway-server/Dockerfile
 # and make modifications for the local mode.
-#
-# We cannot use the original ghcr.io/dask/dask-gateway-server image because it is made for k8s
-# and uses a proxy file (that seems to be built with golang) that we don't have in local.
 
 # Build the dask-gateway-server image for local mode.
+# We cannot use the original ghcr.io/dask/dask-gateway-server image because it is made for k8s
+# and uses a proxy file (that seems to be built with golang) that we don't have in local.
 
 ARG PYTHON_VERSION_BASE=xxx
 FROM python:${PYTHON_VERSION_BASE}-slim-bookworm
@@ -81,7 +80,7 @@ CMD ["dask-gateway-server"]
 #
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/base/local"
-LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-base-local"
+LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-base"
 
 LABEL org.opencontainers.image.version="dask-gateway==${DASK_GATEWAY_TAG} dask-gateway-server[local]==${DASK_GATEWAY_TAG}"
 LABEL org.opencontainers.image.description="Same as 'ghcr.io/dask/dask-gateway-server' but for local mode."

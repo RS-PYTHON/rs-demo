@@ -25,10 +25,6 @@ from pathlib import Path
 
 # NOTE: run "./build.dask-eopf-local.py -h" to display help.
 
-DASK_GATEWAY_TAG = "2024.1.0"
-PREFECT_TAG = "3.2.13"
-PREFECT_DASK_TAG = "0.3.3"
-
 # This script directory
 THIS_DIR = Path(__file__).parent
 
@@ -166,12 +162,6 @@ for proc, local_cluster in procs_to_build:
             "build",
             "--build-arg",
             f"IMAGE2BUILD={image.image2build}",
-            "--build-arg",
-            f"DASK_GATEWAY_TAG={DASK_GATEWAY_TAG}",
-            "--build-arg",
-            f"PREFECT_TAG={PREFECT_TAG}",
-            "--build-arg",
-            f"PREFECT_DASK_TAG={PREFECT_DASK_TAG}",
             "--secret",
             f"id=GITLAB_EOPF_TOKEN",
             "-f",
