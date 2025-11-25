@@ -49,15 +49,15 @@ class Image:
 
 # All possible processor images
 all_procs = {
-    "mockup": Image("ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local"),
+    "mockup": Image("ghcr.io/rs-python/dask/mockup"),
     "l0": Image(
-        "ghcr.io/rs-python/dask-gateway-server/l0/local",
-        "ghcr.io/rs-python/dask-gateway-server/l0/localcluster",
+        "ghcr.io/rs-python/dask/l0",
+        "ghcr.io/rs-python/dask/l0/localcluster",
         "dask-l0",
     ),
     "s1ard": Image(
-        "ghcr.io/rs-python/dask-gateway-server/s1ard/local",
-        "ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster",
+        "ghcr.io/rs-python/dask/s1ard",
+        "ghcr.io/rs-python/dask/s1ard/localcluster",
         "dask-s1ard",
     ),
 }
@@ -132,11 +132,11 @@ for proc, local_cluster in procs_to_build:
     def get_dockerfile() -> Path:
         """Return Dockerfile to use"""
         if proc == "mockup":
-            return THIS_DIR / "Dockerfile.dask-eopf-mockup-local"
+            return THIS_DIR / "Dockerfile.dask-eopf-mockup"
         if local_cluster:
             return THIS_DIR / "Dockerfile.dask-eopf-localcluster"
         # default
-        return THIS_DIR / "Dockerfile.dask-eopf-local"
+        return THIS_DIR / "Dockerfile.dask-eopf"
 
     def run_command(command: list[str]):
         """Run command line"""

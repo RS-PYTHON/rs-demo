@@ -205,8 +205,8 @@ services:
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   # NOTE: to debug using a dask LocalCluster, use one of the images:
-  # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
-  # image: ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster
+  # image: ghcr.io/rs-python/dask/l0/localcluster
+  # image: ghcr.io/rs-python/dask/s1ard/localcluster
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
@@ -474,12 +474,12 @@ services:
   ########
 
   dask-staging:
-    image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
+    image: ghcr.io/rs-python/dask/staging:latest
     ports:
       - 8701:8000
 
   dask-l0:
-    image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
+    image: ghcr.io/rs-python/dask/l0:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
@@ -489,7 +489,7 @@ services:
       - 8702:8000
 
   dask-s1ard:
-    image: ghcr.io/rs-python/dask-gateway-server/s1ard/local:latest
+    image: ghcr.io/rs-python/dask/s1ard:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
@@ -499,7 +499,7 @@ services:
       - 8704:8000
 
   dask-eopf-mockup:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
+    image: ghcr.io/rs-python/dask/mockup:latest
     ports:
       - 8703:8000
     entrypoint: > # don't use '|' it doesn't work

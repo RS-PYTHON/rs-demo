@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This Dockerfiles installs the mock DPR processor in the dask-gateway-server image for local mode.
+# This Dockerfiles installs the mock DPR processor in the dask-gateway image for local and cluster modes.
 
 ARG PYTHON_VERSION_DPR=3.11.7
 ARG DASK_GATEWAY_TAG=2024.1.0
@@ -20,10 +20,7 @@ ARG DASK_GATEWAY_TAG=2024.1.0
 # Get the contents from the rs-testmeans_dpr-processor-mock image
 FROM ghcr.io/rs-python/rs-testmeans_dpr-processor-mock:latest AS dpr_mock
 
-FROM ghcr.io/rs-python/dask-gateway-server/base/local:${DASK_GATEWAY_TAG}-py${PYTHON_VERSION_DPR}
-
-ARG PREFECT_TAG=3.2.13
-ARG PREFECT_DASK_TAG=0.3.3
+FROM ghcr.io/rs-python/dask/dask-gateway:${DASK_GATEWAY_TAG}-py${PYTHON_VERSION_DPR}
 
 # Default user from parent image
 ARG USER=dask:dask
@@ -62,12 +59,8 @@ RUN \
 # End DPR mockup #
 ##################
 
-# Install complete dask subsets + prefect
-RUN pip install \
-        dask[complete] \
-        prefect[aws]=="${PREFECT_TAG}" \
-        prefect-dask=="${PREFECT_DASK_TAG}" \
-    && layer-cleanup.sh
+# Install complete dask subsets
+RUN pip install dask[complete] && layer-cleanup.sh
 
 # Other installations
 USER root
@@ -89,5 +82,5 @@ USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local"
+LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask/mockup"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-mockup-local"

@@ -16,7 +16,7 @@
 # We copy paste https://github.com/dask/dask-gateway/blob/main/dask-gateway-server/Dockerfile
 # and make modifications for the local mode.
 
-# Build the base dask-gateway image for local and cluster mode.
+# Build the base dask-gateway image for local and cluster modes.
 
 ARG PYTHON_VERSION_BASE=xxx
 FROM python:${PYTHON_VERSION_BASE}-slim-bookworm

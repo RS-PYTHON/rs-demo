@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # This Dockerfiles installs a DPR processor in the rs-dpr-service image,
-# to be able to run the processor with the Dask LocalCluster mode.
+# to be able to run the processor with the Dask LocalCluster mode in local mode.
 
 FROM ghcr.io/rs-python/rs-dpr-service:latest
 
@@ -81,5 +81,5 @@ LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-localcluster"
 
 # This Dockerfile is used to build:
-# ghcr.io/rs-python/dask-gateway-server/l0/localcluster
-# ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster
+# ghcr.io/rs-python/dask/l0/localcluster
+# ghcr.io/rs-python/dask/s1ard/localcluster
