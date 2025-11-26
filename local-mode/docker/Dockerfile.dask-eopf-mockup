@@ -75,9 +75,9 @@ RUN pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-i
     opentelemetry-bootstrap -a install && \
     layer-cleanup.sh
 
-# Remove apt repository list and custom scripts
+# Remove custom scripts
 USER root
-RUN rm -f /etc/apt/sources.list /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+RUN rm -f /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
 USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):

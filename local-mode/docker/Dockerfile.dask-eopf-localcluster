@@ -70,8 +70,8 @@ RUN \
 RUN apt autoremove -y git
 RUN rm -rf /opt/requirements-*.txt /opt/post-install-*.sh
 
-# Remove apt repository list and custom scripts
-RUN rm -f /etc/apt/sources.list /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
+# Remove custom scripts
+RUN rm -f /usr/local/bin/layer-cleanup.sh /usr/local/bin/restore-apt.sh
 
 # Restore user
 USER $USER
