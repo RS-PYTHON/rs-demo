@@ -13,29 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Restore the apt repository list.
-# WARNING: works only in Debian/Ubuntu !
+apt-get autoclean --yes
+apt-get autoremove --yes
 
-# Source OS release info
-. /etc/os-release
+rm -rf /var/lib/apt/lists/*
+rm -rf /usr/local/src/*
 
-if [[ "$ID" == "debian" ]]; then
-    cat > /etc/apt/sources.list <<EOF
-deb http://deb.debian.org/debian $VERSION_CODENAME main
-deb http://security.debian.org/debian-security $VERSION_CODENAME-security main
-deb http://deb.debian.org/debian $VERSION_CODENAME-updates main
-deb http://deb.debian.org/debian $VERSION_CODENAME-backports main
-EOF
-elif [[ "$ID" == "ubuntu" ]]; then
-    cat > /etc/apt/sources.list <<EOF
-deb http://archive.ubuntu.com/ubuntu $VERSION_CODENAME main
-deb http://security.ubuntu.com/ubuntu $VERSION_CODENAME-security main
-deb http://archive.ubuntu.com/ubuntu $VERSION_CODENAME-updates main
-deb http://archive.ubuntu.com/ubuntu $VERSION_CODENAME-backports main
-EOF
-else
-    echo "Unsupported distribution: $ID"
-    exit 1
-fi
+rm -rf /var/cache/apt/*
+rm -rf /root/.cache/*
+# including /root/.cache/pip
+rm -rf /home/*/.cache/*
+rm -rf /usr/local/share/.cache/*
+# including /usr/local/share/.cache/yarn
+
+rm -rf /tmp/* /var/tmp/*
+rm -rf /opt/conda/pkgs/cache
+
+rm -rf /tmp/whl
+
+# WARNING: this removes the apt repository list. To restore it and be able to run 'apt update',
+# you need to run ./restore-apt.sh
+rm -rf /etc/apt/sources.list /etc/apt/sources.list.d/*
 
 exit 0

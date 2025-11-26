@@ -65,7 +65,8 @@ while IFS= read -r old_image ; do
 done <<< "$all_images"
 
 # Pull these images
-(set -x; docker compose -f "$dc_file" --progress quiet pull --include-deps cicd)
+# (set -x; docker compose -f "$dc_file" --progress quiet pull --include-deps cicd)
+(set -x; docker compose -f "$dc_file" pull --include-deps cicd)
 
 # Show usage
 echo -e "\nRun with:
