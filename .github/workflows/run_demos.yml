@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 env:
+  PYTHON_VERSION: 3.13.9
   DOCKER_REGISTRY: ghcr.io
 
 jobs:
@@ -18,7 +19,7 @@ jobs:
           submodules: true
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Run pre-commit
         run: >
