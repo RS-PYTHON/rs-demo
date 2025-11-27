@@ -531,6 +531,11 @@ services:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
       - 8701:8000
+    environment:
+      # Each dask worker needs these files in order to securely connect to edrs.
+      - ./certs/client.crt:/certs/client.crt
+      - ./certs/client.key:/certs/client.key
+      - ./certs/ca.crt:/certs/ca.crt
 
   dask-l0:
     image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
