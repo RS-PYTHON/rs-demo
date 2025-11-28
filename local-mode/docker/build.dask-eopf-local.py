@@ -98,7 +98,6 @@ parser.add_argument(
     help="Docker tag to use (default: latest)",
 )
 parser.add_argument(
-    "-p",
     "--push",
     action="store_true",
     help="Push image to Docker registry",
