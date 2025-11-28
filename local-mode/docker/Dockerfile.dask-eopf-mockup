@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This Dockerfiles installs the mock DPR processor in the dask-gateway image for local and cluster modes.
+#
+# This Dockerfile installs the mock DPR processor in the dask-gateway image for local and cluster modes.
+# Target Docker image name:
+# ghcr.io/rs-python/dask/mockup
+#
 
 ARG PYTHON_VERSION_DPR=3.11.7
 ARG DASK_GATEWAY_TAG=2024.1.0
@@ -82,5 +86,4 @@ USER $USER
 
 # Set labels based on the Open Containers Initiative (OCI):
 LABEL org.opencontainers.image.source="https://github.com/RS-PYTHON/rs-demo"
-LABEL org.opencontainers.image.ref.name="ghcr.io/rs-python/dask/mockup"
 LABEL dockerfile.url="https://github.com/RS-PYTHON/rs-demo/blob/develop/local-mode/docker/Dockerfile.dask-eopf-mockup-local"
