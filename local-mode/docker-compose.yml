@@ -202,6 +202,7 @@ services:
       # http://mockup-prip...:8080 by  http://prip-station:5000
       # http://mockup-station-cadip...:8080 by  http://cadip-station:5000
       # RSPY__TOKEN__xxx
+      USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
