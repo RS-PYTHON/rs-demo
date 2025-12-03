@@ -113,9 +113,13 @@ services:
       - .env
     environment:
         EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
+        USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs_server_edrs_config.yaml:${EDRS_STATION_CONFIG}
+      - ./certs/client.crt:/certs/client.crt
+      - ./certs/client.key:/certs/client.key
+      - ./certs/ca.crt:/certs/ca.crt
     #environment:
       # CORS_ORIGINS: http://localhost:8102
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
@@ -217,11 +221,17 @@ services:
       PEDC_PORT: 21
       PEDC_USER: ${EDRS_FTP_USER}
       PEDC_PASS: ${EDRS_FTP_PASS}
+      PEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
+      PEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
+      PEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
       # similar values for now, use same ftp.
       BEDC_HOST: edrs-station
       BEDC_PORT: 21
       BEDC_USER: ${EDRS_FTP_USER}
       BEDC_PASS: ${EDRS_FTP_PASS}
+      BEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
+      BEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
+      BEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -237,12 +247,16 @@ services:
       # http://mockup-prip...:8080 by  http://prip-station:5000
       # http://mockup-station-cadip...:8080 by  http://cadip-station:5000
       # RSPY__TOKEN__xxx
+      USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
+      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
+      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   # NOTE: to debug using a dask LocalCluster, use one of the images:
   # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
@@ -323,11 +337,11 @@ services:
       FTP_USER: ${EDRS_FTP_USER}
       FTP_PASS: ${EDRS_FTP_PASS}
     # Disabled TLS
-      USE_SSL: "FALSE"
-    # volumes:
-    #   - ./certs/client.crt:/app/vsftpd/cert/server.crt
-    #   - ./certs/client.key:/app/vsftpd/cert/server.key
-    #   - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
+      USE_SSL: "TRUE"
+    volumes:
+      - ./certs/client.crt:/app/vsftpd/cert/server.crt
+      - ./certs/client.key:/app/vsftpd/cert/server.key
+      - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
 
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
@@ -517,6 +531,11 @@ services:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
       - 8701:8000
+    environment:
+      # Each dask worker needs these files in order to securely connect to edrs.
+      - ./certs/client.crt:/certs/client.crt
+      - ./certs/client.key:/certs/client.key
+      - ./certs/ca.crt:/certs/ca.crt
 
   dask-l0:
     image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
