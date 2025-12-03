@@ -108,7 +108,7 @@ services:
       catalog-db:
         condition: service_healthy
       rs-osam:
-        condition: service_started   
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -242,9 +242,9 @@ services:
     image: ghcr.io/rs-python/operational-services-osam:feat-rspy857-endpoint-bucket-configuration
     container_name: rs-osam
     ports:
-      - 7001:8000    
+      - 7001:8000
     env_file:
-      - .env      
+      - .env
     volumes:
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
