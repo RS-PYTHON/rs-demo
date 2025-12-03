@@ -759,6 +759,7 @@ services:
       - rs-server-catalog
       - rs-server-prip
       - rs-server-staging
+      - rs-server-edrs
       - rs-dpr-service
       - adgs-station
       - cadip-station
