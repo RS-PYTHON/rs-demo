@@ -11,7 +11,7 @@ services:
   # NOTE: tt's only for showning the aggregated endpoints, they don't work in this docker compose.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
   rs-server-frontend:
-    image: ghcr.io/rs-python/rs-server-frontend:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/rs-server-frontend:latest
     container_name: rs-server-frontend
     ports:
       - 8000:8000
@@ -20,7 +20,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/adgs/.github/Dockerfile
   rs-server-adgs:
-    image: ghcr.io/rs-python/rs-server-adgs:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/rs-server-adgs:latest
     container_name: rs-server-adgs
     ports:
       - 8001:8000
@@ -47,7 +47,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/prip/.github/Dockerfile
   rs-server-prip:
-    image: ghcr.io/rs-python/rs-server-prip:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/rs-server-prip:latest
     container_name: rs-server-prip
     ports:
       - 8005:8000
@@ -74,7 +74,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
-    image: ghcr.io/rs-python/rs-server-cadip:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/rs-server-cadip:latest
     container_name: rs-server-cadip
     ports:
       - 8002:8000
@@ -100,7 +100,7 @@ services:
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
   rs-server-catalog:
-    image: ghcr.io/rs-python/rs-server-catalog:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/rs-server-catalog:latest
     container_name: rs-server-catalog
     ports:
       - 8003:8000
@@ -159,12 +159,12 @@ services:
       # RSPY_COOKIE_SECRET: secret
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      #- ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   # NOTE: to debug using a dask LocalCluster, comment the line:
   # DASK_GATEWAY_ADDRESS: ...
   rs-server-staging:
-    image: ghcr.io/rs-python/rs-server-staging:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/rs-server-staging:latest
     container_name: rs-server-staging
     #extra_hosts:
     #  - "host.docker.internal:host-gateway"
@@ -208,7 +208,7 @@ services:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      #- ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   # NOTE: to debug using a dask LocalCluster, use one of the images:
   # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
@@ -240,7 +240,7 @@ services:
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-osam:
-    image: ghcr.io/rs-python/operational-services-osam:feat-rspy857-endpoint-bucket-configuration
+    image: ghcr.io/rs-python/operational-services-osam:latest
     container_name: rs-osam
     ports:
       - 7001:8000
@@ -480,7 +480,7 @@ services:
       replicas: 1
     volumes:
       - ./config/storage_configuration.json:/etc/storage_configuration.json
-      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      #- ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   prefect-worker-general:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
