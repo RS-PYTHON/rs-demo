@@ -1,4 +1,4 @@
-prefect-version: 3
+prefect-version: "3"
 name: sprint23-s3l0-demo-processor
 
 pull:
