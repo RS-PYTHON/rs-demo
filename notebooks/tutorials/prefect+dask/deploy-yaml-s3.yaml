@@ -1,4 +1,4 @@
-prefect-version: 3
+prefect-version: "3"
 name: tuto-deploy-yaml-s3
 
 pull:
