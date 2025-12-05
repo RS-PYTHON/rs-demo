@@ -461,6 +461,31 @@ services:
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
+  # STAC browser on rs-server-edrs
+  stac-browser-edrs:
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-edrs
+    ports:
+      - 8106:8080
+    depends_on:
+      - rs-server-edrs
+    env_file:
+      - .env
+    environment:
+      SB_authConfig: |
+            {
+              "type": "openIdConnect",
+              "openIdConnectUrl": "https://iam.dev-rspy-ovh.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "oidcConfig": {
+                "client_id": "fastapi_public"
+              }
+            }
+      SB_allowExternalAccess: false
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8006/edrs
+      SB_detectLocaleFromBrowser: true
+      SB_socialSharing: email,bsky,mastodon
+
   ###########
   # PREFECT #
   ###########
