@@ -21,6 +21,7 @@ wait_for_service() {
 wait_for_service 8001 "health" # adgs
 wait_for_service 8002 "health" # cadip
 wait_for_service 8003 "catalog/_mgmt/health" # catalog
+wait_for_service 8006 "health" # edrs
 wait_for_service 8888 "login" # jupyter
 
 # Run the notebooks from the jupyter service from the docker-compose.

@@ -99,6 +99,42 @@ services:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
+  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/edrs/.github/Dockerfile
+  rs-server-edrs:
+    image: ghcr.io/rs-python/rs-server-edrs:latest
+    container_name: rs-server-edrs
+    ports:
+      - 8006:8000
+    depends_on:
+      - rspy-pre-actions
+      - minio
+      - edrs-station
+    env_file:
+      - .env
+    environment:
+        EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
+        USE_SSL: True
+    volumes:
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
+      - ./config/rs_server_edrs_config.yaml:${EDRS_STATION_CONFIG}
+      - ./certs/client.crt:/certs/client.crt
+      - ./certs/client.key:/certs/client.key
+      - ./certs/ca.crt:/certs/ca.crt
+    #environment:
+      # CORS_ORIGINS: http://localhost:8102
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
+      # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-station-cadip...:8080 by  http://cadip-station:5000
+    #volumes:
+      #- ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      #- ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
+
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
     container_name: rs-server-catalog
@@ -158,8 +194,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
     volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      #- ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume      
 
   # NOTE: to debug using a dask LocalCluster, comment the line:
   # DASK_GATEWAY_ADDRESS: ...
@@ -187,6 +222,21 @@ services:
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
 
+      PEDC_HOST: edrs-station
+      PEDC_PORT: 21
+      PEDC_USER: ${EDRS_FTP_USER}
+      PEDC_PASS: ${EDRS_FTP_PASS}
+      PEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
+      PEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
+      PEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
+      # similar values for now, use same ftp.
+      BEDC_HOST: edrs-station
+      BEDC_PORT: 21
+      BEDC_USER: ${EDRS_FTP_USER}
+      BEDC_PASS: ${EDRS_FTP_PASS}
+      BEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
+      BEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
+      BEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -207,8 +257,10 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      #- ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations      
+      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
+      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
+      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   # NOTE: to debug using a dask LocalCluster, use one of the images:
   # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
@@ -304,11 +356,11 @@ services:
       FTP_USER: ${EDRS_FTP_USER}
       FTP_PASS: ${EDRS_FTP_PASS}
     # Disabled TLS
-      USE_SSL: "FALSE"
-    # volumes:
-    #   - ./certs/client.crt:/app/vsftpd/cert/server.crt
-    #   - ./certs/client.key:/app/vsftpd/cert/server.key
-    #   - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
+      USE_SSL: "TRUE"
+    volumes:
+      - ./certs/client.crt:/app/vsftpd/cert/server.crt
+      - ./certs/client.key:/app/vsftpd/cert/server.key
+      - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
 
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
@@ -479,8 +531,7 @@ services:
       mode: replicated
       replicas: 1
     volumes:
-      - ./config/storage_configuration.json:/etc/storage_configuration.json
-      #- ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+      - ./config/storage_configuration.json:/etc/storage_configuration.json      
 
   prefect-worker-general:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
@@ -503,6 +554,11 @@ services:
     image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
     ports:
       - 8701:8000
+    volumes:
+      # Each dask worker needs these files in order to securely connect to edrs.
+      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
+      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
+      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   dask-l0:
     image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
@@ -745,6 +801,7 @@ services:
       - rs-server-catalog
       - rs-server-prip
       - rs-server-staging
+      - rs-server-edrs
       - rs-dpr-service
       - adgs-station
       - cadip-station
