@@ -194,7 +194,7 @@ services:
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
     volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume      
+      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
 
   # NOTE: to debug using a dask LocalCluster, comment the line:
   # DASK_GATEWAY_ADDRESS: ...
@@ -257,7 +257,7 @@ services:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
-      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations      
+      - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
       - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
@@ -531,7 +531,7 @@ services:
       mode: replicated
       replicas: 1
     volumes:
-      - ./config/storage_configuration.json:/etc/storage_configuration.json      
+      - ./config/storage_configuration.json:/etc/storage_configuration.json
 
   prefect-worker-general:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
