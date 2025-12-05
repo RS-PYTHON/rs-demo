@@ -43,6 +43,7 @@ from rs_client.rs_client import RsClient
 from rs_client.stac.auxip_client import AuxipClient
 from rs_client.stac.cadip_client import CadipClient
 from rs_client.stac.catalog_client import CatalogClient
+from rs_client.stac.edrs_client import EdrsClient
 from rs_common.logging import Logging
 from rs_common.prefect_utils import init_prefect_blocks
 
@@ -66,6 +67,7 @@ apikey: str | None = None
 # Client instances
 auxip_client: AuxipClient = None
 cadip_client: CadipClient = None
+edrs_client: EdrsClient = None
 catalog_client: CatalogClient = None
 staging_client: StagingClient = None
 dpr_client: DprClient = None
@@ -149,7 +151,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client
+    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -176,6 +178,7 @@ def init_rsclient(owner_id=None):
     auxip_client = generic_client.get_auxip_client()
     prip_client = generic_client.get_prip_client()
     cadip_client = generic_client.get_cadip_client()
+    edrs_client = generic_client.get_edrs_client()
     catalog_client = generic_client.get_catalog_client()
     staging_client = generic_client.get_staging_client()
     dpr_client = generic_client.get_dpr_client()
@@ -183,11 +186,19 @@ def init_rsclient(owner_id=None):
     print(f"Auxip service: {auxip_client.href_service}")
     print(f"PRIP service: {prip_client.href_service}")
     print(f"CADIP service: {cadip_client.href_service}")
+    print(f"EDRS service: {edrs_client.href_service}")
     print(f"Catalog service: {catalog_client.href_service}")
     print(f"Staging service: {staging_client.href_service}")
     print(f"DPR service: {dpr_client.href_service}")
 
-    return auxip_client, cadip_client, catalog_client, staging_client, prip_client
+    return (
+        auxip_client,
+        cadip_client,
+        catalog_client,
+        staging_client,
+        prip_client,
+        edrs_client,
+    )
 
 
 def get_or_create_test_collection(
