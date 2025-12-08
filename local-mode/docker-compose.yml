@@ -112,16 +112,15 @@ services:
     env_file:
       - .env
     environment:
-        EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
-        USE_SSL: True
+      CORS_ORIGINS: http://localhost:8106
+      EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
+      USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs_server_edrs_config.yaml:${EDRS_STATION_CONFIG}
       - ./certs/client.crt:/certs/client.crt
       - ./certs/client.key:/certs/client.key
       - ./certs/ca.crt:/certs/ca.crt
-    #environment:
-      # CORS_ORIGINS: http://localhost:8102
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -214,6 +213,7 @@ services:
       - ~/.s3cfg
     environment:
       DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      USE_SSL: True
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
@@ -232,6 +232,7 @@ services:
       BEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
       BEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
       BEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
+
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -247,7 +248,6 @@ services:
       # http://mockup-prip...:8080 by  http://prip-station:5000
       # http://mockup-station-cadip...:8080 by  http://cadip-station:5000
       # RSPY__TOKEN__xxx
-      USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
