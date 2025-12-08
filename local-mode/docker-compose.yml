@@ -31,7 +31,7 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: '["http://localhost:8101"]'
+      CORS_ORIGINS: 'http://localhost:8101'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -58,7 +58,7 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: '["http://localhost:8105"]'
+      CORS_ORIGINS: 'http://localhost:8105'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -85,7 +85,7 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: '["http://localhost:8102"]'
+      CORS_ORIGINS: 'http://localhost:8102'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -148,14 +148,14 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: '["http://localhost:8103"]'
+      CORS_ORIGINS: 'http://localhost:8103'
       RSPY_HOST_USER: ${USER}
 
       CATALOG_METADATA_TITLE: "RS-PYTHON STAC Catalog"
       ENABLE_TRANSACTIONS_EXTENSIONS: 1
-      CORS_METHODS: '["GET","POST","OPTIONS"]'
+      CORS_METHODS: 'GET,POST,OPTIONS'
       CORS_CREDENTIALS: "true"
-      CORS_HEADERS: '["*"]'
+      CORS_HEADERS: '*'
       PREFIX_PATH: "/catalog"
       OPENAPI_URL: "/catalog/api"
       DOCS_URL: "/catalog/api.html"
@@ -263,8 +263,8 @@ services:
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   # NOTE: to debug using a dask LocalCluster, use one of the images:
-  # image: ghcr.io/rs-python/dask-gateway-server/l0/localcluster
-  # image: ghcr.io/rs-python/dask-gateway-server/s1ard/localcluster
+  # image: ghcr.io/rs-python/dask/l0/localcluster
+  # image: ghcr.io/rs-python/dask/s1ard/localcluster
   rs-dpr-service:
     image: ghcr.io/rs-python/rs-dpr-service:latest
     container_name: rs-dpr-service
@@ -551,7 +551,7 @@ services:
   ########
 
   dask-staging:
-    image: ghcr.io/rs-python/dask-gateway-server/staging/local:latest
+    image: ghcr.io/rs-python/dask/staging:latest
     ports:
       - 8701:8000
     volumes:
@@ -561,7 +561,7 @@ services:
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   dask-l0:
-    image: ghcr.io/rs-python/dask-gateway-server/l0/local:latest
+    image: ghcr.io/rs-python/dask/l0:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
@@ -571,7 +571,7 @@ services:
       - 8702:8000
 
   dask-s1ard:
-    image: ghcr.io/rs-python/dask-gateway-server/s1ard/local:latest
+    image: ghcr.io/rs-python/dask/s1ard:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
@@ -581,7 +581,7 @@ services:
       - 8704:8000
 
   dask-eopf-mockup:
-    image: ghcr.io/rs-python/dask-gateway-server/eopf/mockup-local:latest
+    image: ghcr.io/rs-python/dask/mockup:latest
     ports:
       - 8703:8000
     entrypoint: > # don't use '|' it doesn't work

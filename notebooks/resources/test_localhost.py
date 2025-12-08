@@ -30,8 +30,7 @@ pip install -e /PATH/TO/rs-client-libraries && \
 pip install \
     dask==2024.5.2 \
     dask-gateway==2024.1.0 \
-    prefect[aws]==3.2.13 \
-    prefect-dask==0.3.3 && \
+    prefect[aws]==3.6.4 \
 opentelemetry-bootstrap -a install
 """
 

@@ -1,6 +1,6 @@
 # Generic metadata about this project
 name: sprint19-rs-client
-prefect-version: 3
+prefect-version: "3"
 
 pull:
 - prefect.deployments.steps.run_shell_script:

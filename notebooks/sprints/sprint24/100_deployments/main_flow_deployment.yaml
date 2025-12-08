@@ -1,4 +1,4 @@
-prefect-version: 3
+prefect-version: "3"
 name: parallel_flow_deployment
 
 pull:

@@ -180,7 +180,7 @@ prefect block inspect secret/auth
 
     # The old rs-client-libraries version is still installed for the root user.
     # This is the version you (=current user) use by default.
-    pip show rs-client-libraries | grep Location # should display: /opt/conda/lib/python3.11/site-packages
+    pip show rs-client-libraries | grep Location # should display: /opt/conda/lib/python3.x/site-packages
 
     # Install the new version for the current user.
     pip install rs_client_libraries-<version>-py3-none-any.whl
@@ -306,9 +306,9 @@ It can be helpful to use your last rs-server code version to debug it or to test
     rs-server-adgs:
       # ...
       volumes:
-        - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.11/site-packages/rs_server_common
-        - /my/local/rs-server/services/adgs/rs_server_adgs:/usr/local/lib/python3.11/site-packages/rs_server_adgs
-        - /my/local/rs-server/services/adgs/config:/usr/local/lib/python3.11/site-packages/config
+        - /my/local/rs-server/services/common/rs_server_common:/usr/local/lib/python3.x/site-packages/rs_server_common
+        - /my/local/rs-server/services/adgs/rs_server_adgs:/usr/local/lib/python3.x/site-packages/rs_server_adgs
+        - /my/local/rs-server/services/adgs/config:/usr/local/lib/python3.x/site-packages/config
         # - and any other useful files ...
     ```
 
@@ -384,5 +384,5 @@ print(sys.executable)
 
 If you use the rs-client-libraries poetry environment, it should show something like:
 ```shell
-${HOME}/.cache/pypoetry/virtualenvs/rs-client-libraries-xxxxxxxx-py3.11/bin/python
+${HOME}/.cache/pypoetry/virtualenvs/rs-client-libraries-xxxxxxxx-py3.x/bin/python
 ```
