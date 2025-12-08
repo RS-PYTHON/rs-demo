@@ -117,9 +117,9 @@ services:
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs_server_edrs_config.yaml:${EDRS_STATION_CONFIG}
-      - ./certs/client.crt:/certs/client.crt
-      - ./certs/client.key:/certs/client.key
-      - ./certs/ca.crt:/certs/ca.crt
+      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
+      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
+      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
     #environment:
       # CORS_ORIGINS: http://localhost:8102
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
