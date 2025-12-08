@@ -217,4 +217,3 @@ cp server.key rs-demo/local-mode/certs/server.key
 - **Server container (`vsftpd`)** should map `server.crt`, `server.key`, and `ca.crt` only.
 - **Client components** should map `ca.crt` and optionally `client.crt/client.key` for mutual TLS.
 - Do not place `client.crt`/`client.key` on the server.
-
