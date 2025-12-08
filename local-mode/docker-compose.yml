@@ -336,12 +336,11 @@ services:
     environment:
       FTP_USER: ${EDRS_FTP_USER}
       FTP_PASS: ${EDRS_FTP_PASS}
-    # Disabled TLS
-      USE_SSL: "TRUE"
+      USE_SSL: "TRUE"  # TLS enabled
     volumes:
-      - ./certs/client.crt:/app/vsftpd/cert/server.crt
-      - ./certs/client.key:/app/vsftpd/cert/server.key
-      - ./certs/ca.crt:/app/vsftpd/cert/ca.crt
+      - ./certs/server.crt:/app/vsftpd/cert/server.crt:ro
+      - ./certs/server.key:/app/vsftpd/cert/server.key:ro
+      - ./certs/ca.crt:/app/vsftpd/cert/ca.crt:ro
 
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
