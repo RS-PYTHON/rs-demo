@@ -1,0 +1,59 @@
+{
+    "product_storage": {
+        "default": [
+            {
+                "origin": "input_products.pipeline_input",
+                "storage": "s3"
+            },
+            {
+                "origin": "input_products.pipeline_internal",
+                "storage": "shared_disk"
+            },
+
+            {
+                "origin": "input_adfs",
+                "storage": "s3"
+            },
+            {
+                "origin": "output_products.pipeline_output",
+                "storage": "s3"
+            },
+            {
+                "origin": "output_products.pipeline_internal",
+                "storage": "shared_disk"
+            }
+        ],
+        "specific": [
+            {
+                "product_name": "EW_RAW__0S",
+                "storage": "local_disk"
+            },
+            {
+                "product_name": "Orbit",
+                "storage": "shared_disk"
+            }
+        ]
+    },
+    "storage": [
+        {
+            "name": "s3",
+            "storage_options": {
+                "key": "cluster_key_name",
+                "secret": "cluster_secret_name",
+                "endpoint_url": "http://minio:9000",
+                "region_name": "sbg"
+            }
+        },
+        {
+            "name": "shared_disk",
+            "opening_mode": "CREATE_OVERWRITE",
+            "relative_path": "/my_share_directory/here/${JOB_IDENTIFIER}"
+
+        },
+        {
+            "name": "local_disk",
+            "opening_mode": "CREATE_OVERWRITE",
+            "relative_path": "/my_local_path/here/${JOB_IDENTIFIER}"
+        }
+    ]
+}
