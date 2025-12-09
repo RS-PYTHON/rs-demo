@@ -305,7 +305,7 @@ services:
   #   OSAM   #
   ############
 
-  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
+  # From: https://github.com/RS-PYTHON/operational-services/blob/develop/object_storage_access_manager/.github/Dockerfile
   rs-osam:
     image: ghcr.io/rs-python/operational-services-osam:latest
     container_name: rs-osam
