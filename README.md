@@ -386,3 +386,13 @@ If you use the rs-client-libraries poetry environment, it should show something 
 ```shell
 ${HOME}/.cache/pypoetry/virtualenvs/rs-client-libraries-xxxxxxxx-py3.x/bin/python
 ```
+
+## Licensing
+
+The code in this project is licensed under Apache License 2.0.
+
+---
+
+![](https://raw.githubusercontent.com/RS-PYTHON/.github/refs/heads/main/profile/banner_logo.jpg)
+
+This project is funded by the EU and ESA.
