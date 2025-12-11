@@ -152,7 +152,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global apikey, auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client
+    global auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -377,6 +377,8 @@ def temporary_fix_adgs_feature(items_collection):
 
 def init_demo(owner_id=None):
     """Init environment before running a demo notebook."""
+    global apikey
+
     # Some kind of workaround for boto3 to avoid checksum being added inside
     # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
     # See: https://github.com/boto/boto3/issues/4435
@@ -389,6 +391,10 @@ def init_demo(owner_id=None):
 
     # Init the prefect blocks
     init_prefect_blocks(_sync=True)
+
+    # The API key should be set now
+    if cluster_mode:
+        apikey = os.getenv("RSPY_APIKEY")
 
     # Set OAuth2 authentication in the http request session
     if cluster_mode:
