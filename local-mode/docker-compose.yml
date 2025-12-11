@@ -313,6 +313,21 @@ services:
       - 7001:8000
     env_file:
       - .env
+    # environment:
+    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+    #   RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+    #   # OAuth2 authentication
+    #   OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+    #   OIDC_REALM: rspy
+    #   OIDC_CLIENT_ID: apikeymanager
+    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   RSPY_COOKIE_SECRET: secret
+    #   OVH_APPLICATION_KEY: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   OVH_APPLICATION_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   OVH_CONSUMER_KEY: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   OVH_ENDPOINT: ovh-eu
+    #   OVH_SERVICE:
     volumes:
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
