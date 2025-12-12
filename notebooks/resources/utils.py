@@ -39,6 +39,7 @@ from pystac_client import CollectionClient
 from pystac_client.item_search import DatetimeLike
 from rs_client.ogcapi.dpr_client import DprClient
 from rs_client.ogcapi.staging_client import StagingClient
+from rs_client.osam_client import OsamClient
 from rs_client.rs_client import RsClient
 from rs_client.stac.auxip_client import AuxipClient
 from rs_client.stac.cadip_client import CadipClient
@@ -71,6 +72,7 @@ edrs_client: EdrsClient = None
 catalog_client: CatalogClient = None
 staging_client: StagingClient = None
 dpr_client: DprClient = None
+osam_client: OsamClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -152,7 +154,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client
+    global auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client, osam_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -183,6 +185,7 @@ def init_rsclient(owner_id=None):
     catalog_client = generic_client.get_catalog_client()
     staging_client = generic_client.get_staging_client()
     dpr_client = generic_client.get_dpr_client()
+    osam_client = generic_client.get_osam_client()
 
     print(f"Auxip service: {auxip_client.href_service}")
     print(f"PRIP service: {prip_client.href_service}")
@@ -191,6 +194,7 @@ def init_rsclient(owner_id=None):
     print(f"Catalog service: {catalog_client.href_service}")
     print(f"Staging service: {staging_client.href_service}")
     print(f"DPR service: {dpr_client.href_service}")
+    print(f"OSAM service: {osam_client.href_service}")
 
     return (
         auxip_client,
