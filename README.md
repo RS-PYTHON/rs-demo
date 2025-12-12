@@ -76,11 +76,17 @@ On cluster mode, we run the Jupyter notebooks from our JupyterHub session deploy
 ### Initialize the Prefect blocks
 
 Before the first use, you need to initialize the Prefect block that contains the
-environment variables for all users.
+environment variables shared for all users between Jupyter, Prefect and Dask.
 
 Run this command line to get the existing values, if any:
-```sh
-prefect block inspect secret/env-vars
+```python
+# From terminal
+prefect block inspect "secret/env-vars"
+
+# Or from python
+import json
+from prefect.blocks.system import Secret
+print(json.dumps(Secret.load("env-vars").get(), indent=2))
 ```
 
 Run this Python code from any Jupyter notebook to write the new values:
@@ -89,19 +95,13 @@ Run this Python code from any Jupyter notebook to write the new values:
 import os
 from prefect.blocks.system import Secret
 
-await Secret(
-  value={
-    # S3 bucket name and subfolder to share temporary data between Jupyter,
-    # Prefect and Dask.
+value = {
+    # S3 bucket name and subfolder.
     # NOTE: the "share-bucket" block will be created automatically from these
     # variables. So if you change these variables, please also remove the
     # "share-bucket" block and it will be recreated.
     "PREFECT_BUCKET_NAME": "rs-dev-cluster-temp",
     "PREFECT_BUCKET_FOLDER": "prefect-share",
-    "S3_ACCESSKEY": "...", # access_key from ~/.s3cfg
-    "S3_SECRETKEY": "...", # secret_key from ~/.s3cfg
-    "S3_REGION": "...",   # bucket_location from ~/.s3cfg
-    "S3_ENDPOINT": "...",  # host_bucket from ~/.s3cfg
 
     # Token that was used to setup the Dask clusters.
     # See: https://gateway.dask.org/authentication.html#using-jupyterhub-s-authentication
@@ -120,14 +120,25 @@ await Secret(
     #    password: test
     #    username: test
     #    secret: pi-database-password
-    "POSTGRES_HOST": "<cluster_postgres_host>" # default: "postgresql-cluster-rw.database.svc.cluster.local",
+    "POSTGRES_HOST": "<cluster_postgres_host>", # default: "postgresql-cluster-rw.database.svc.cluster.local",
     "POSTGRES_USER": "<pi_postgres_user>",
     "POSTGRES_PASSWORD": "<pi_postgres_password>",
     "POSTGRES_PORT": "<cluster_postgres_port>", # normally, 5432
     "POSTGRES_PI_DB": "performance",
+}
 
-  }
-).save("env-vars", overwrite=True)
+# Jupyter env vars to pass to Prefect and Dask
+for env in [
+    "RSPY_UAC_CHECK_URL",
+    "RSPY_WEBSITE",
+    "TEMPO_ENDPOINT",
+    "DASK_GATEWAY_PUBLIC",
+    "DASK_GATEWAY_ADDRESS",
+]:
+    value[env] = os.environ[env]
+
+# Save Prefect block
+await Secret(value=value).save("env-vars-test", overwrite=True)
 ```
 
 From a bash Terminal in Jupyter, check your values with:
