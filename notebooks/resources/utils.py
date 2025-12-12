@@ -46,7 +46,7 @@ from rs_client.stac.cadip_client import CadipClient
 from rs_client.stac.catalog_client import CatalogClient
 from rs_client.stac.edrs_client import EdrsClient
 from rs_common.logging import Logging
-from rs_common.prefect_utils import init_prefect_blocks
+from rs_common.prefect_utils import init_prefect_blocks, save_bucket_credentials
 
 # Variables
 # Set logger level to info
@@ -404,5 +404,8 @@ def init_demo(owner_id=None):
 
     # Init RsClient instances
     ret = init_rsclient(owner_id)
+
+    # Save bucket credentials for the current user/owner
+    save_bucket_credentials(osam_client, _sync=True)
 
     return ret
