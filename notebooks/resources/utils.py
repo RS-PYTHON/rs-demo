@@ -39,13 +39,14 @@ from pystac_client import CollectionClient
 from pystac_client.item_search import DatetimeLike
 from rs_client.ogcapi.dpr_client import DprClient
 from rs_client.ogcapi.staging_client import StagingClient
+from rs_client.osam_client import OsamClient
 from rs_client.rs_client import RsClient
 from rs_client.stac.auxip_client import AuxipClient
 from rs_client.stac.cadip_client import CadipClient
 from rs_client.stac.catalog_client import CatalogClient
 from rs_client.stac.edrs_client import EdrsClient
 from rs_common.logging import Logging
-from rs_common.prefect_utils import init_prefect_blocks
+from rs_common.prefect_utils import init_prefect_blocks, save_bucket_credentials
 
 # Variables
 # Set logger level to info
@@ -71,6 +72,7 @@ edrs_client: EdrsClient = None
 catalog_client: CatalogClient = None
 staging_client: StagingClient = None
 dpr_client: DprClient = None
+osam_client: OsamClient = None
 
 # HTTP request session
 http_session: requests.Session = requests.Session()
@@ -152,7 +154,7 @@ def create_s3_buckets():
 
 def init_rsclient(owner_id=None):
     """Init RsClient instances"""
-    global auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client
+    global auxip_client, cadip_client, catalog_client, staging_client, dpr_client, prip_client, edrs_client, osam_client
 
     # In local mode, the service URLs are hardcoded in the docker-compose file
     if local_mode:
@@ -183,6 +185,7 @@ def init_rsclient(owner_id=None):
     catalog_client = generic_client.get_catalog_client()
     staging_client = generic_client.get_staging_client()
     dpr_client = generic_client.get_dpr_client()
+    osam_client = generic_client.get_osam_client()
 
     print(f"Auxip service: {auxip_client.href_service}")
     print(f"PRIP service: {prip_client.href_service}")
@@ -191,6 +194,7 @@ def init_rsclient(owner_id=None):
     print(f"Catalog service: {catalog_client.href_service}")
     print(f"Staging service: {staging_client.href_service}")
     print(f"DPR service: {dpr_client.href_service}")
+    print(f"OSAM service: {osam_client.href_service}")
 
     return (
         auxip_client,
@@ -379,12 +383,6 @@ def init_demo(owner_id=None):
     """Init environment before running a demo notebook."""
     global apikey
 
-    # Some kind of workaround for boto3 to avoid checksum being added inside
-    # the file contents uploaded to the s3 bucket e.g. x-amz-checksum-crc32:xxx
-    # See: https://github.com/boto/boto3/issues/4435
-    os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
-    os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
-
     # In local mode, create the s3 buckets, if they do not already exists
     if local_mode:
         create_s3_buckets()
@@ -406,5 +404,8 @@ def init_demo(owner_id=None):
 
     # Init RsClient instances
     ret = init_rsclient(owner_id)
+
+    # Save bucket credentials for the current user/owner
+    save_bucket_credentials(osam_client, _sync=True)
 
     return ret
