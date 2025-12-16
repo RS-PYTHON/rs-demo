@@ -1,4 +1,4 @@
-# Copyright 2025 CS Group
+# Copyright 2025 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ pip install -e /PATH/TO/rs-client-libraries && \
 pip install \
     dask==2024.5.2 \
     dask-gateway==2024.1.0 \
-    prefect[aws]==3.6.4 \
+    prefect[aws]==3.6.5 \
 opentelemetry-bootstrap -a install
 """
 

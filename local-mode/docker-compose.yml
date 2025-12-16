@@ -1,3 +1,17 @@
+# Copyright 2025 Airbus, CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 networks:
   default:
     name: rspy-network
@@ -8,7 +22,8 @@ services:
   # RS-SERVER #
   #############
 
-  # NOTE: tt's only for showning the aggregated endpoints, they don't work in this docker compose.
+  # NOTE: It is included only to display the aggregated endpoints; they are not functional in
+  # this docker compose setup.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
   rs-server-frontend:
     image: ghcr.io/rs-python/rs-server-frontend:latest
@@ -142,6 +157,8 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
+      rs-osam:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -179,6 +196,7 @@ services:
       POSTGRES_PORT: 5432
       PGDATABASE: ${PGSTAC_DB}
       POSTGRES_DB: ${PGSTAC_DB}
+      RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
 
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -191,7 +209,6 @@ services:
       # RSPY_COOKIE_SECRET: secret
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   # NOTE: to debug using a dask LocalCluster, comment the line:
   # DASK_GATEWAY_ADDRESS: ...
@@ -208,6 +225,7 @@ services:
       - cadip-station
       - rs-server-catalog
       - postgres
+      - rs-osam
     env_file:
       - .env
       - ~/.s3cfg
@@ -217,6 +235,8 @@ services:
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
+      RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
+
       PEDC_HOST: edrs-station
       PEDC_PORT: 21
       PEDC_USER: ${EDRS_FTP_USER}
@@ -253,7 +273,6 @@ services:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
       - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
       - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
@@ -281,6 +300,38 @@ services:
       # OIDC_CLIENT_ID: apikeymanager
       # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
       # RSPY_COOKIE_SECRET: secret
+
+  ############
+  #   OSAM   #
+  ############
+
+  # From: https://github.com/RS-PYTHON/operational-services/blob/develop/object_storage_access_manager/.github/Dockerfile
+  rs-osam:
+    image: ghcr.io/rs-python/operational-services-osam:latest
+    container_name: rs-osam
+    ports:
+      - 7001:8000
+    env_file:
+      - .env
+    # environment:
+    #   RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+    #   RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+    #   RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+    #   # OAuth2 authentication
+    #   OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+    #   OIDC_REALM: rspy
+    #   OIDC_CLIENT_ID: apikeymanager
+    #   OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   RSPY_COOKIE_SECRET: secret
+    #   OVH_APPLICATION_KEY: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   OVH_APPLICATION_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   OVH_CONSUMER_KEY: xxx # DON'T SAVE THIS VALUE IN GIT !
+    #   OVH_ENDPOINT: ovh-eu
+    #   OVH_SERVICE:
+    #   S3_ENDPOINT: https://s3.gra.io.cloud.ovh.net
+    #   S3_REGION: gra
+    volumes:
+      - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
   ############
   # STATIONS #
@@ -529,10 +580,14 @@ services:
     env_file:
       - .env
       - ~/.s3cfg
+    environment:
+      RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 1
+    volumes:
+      - ./config/storage_configuration.json:/etc/storage_configuration.json
 
   prefect-worker-general:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
