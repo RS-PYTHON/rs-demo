@@ -138,7 +138,7 @@ for env in [
     value[env] = os.environ[env]
 
 # Save Prefect block
-await Secret(value=value).save("env-vars-test", overwrite=True)
+await Secret(value=value).save("env-vars", overwrite=True)
 ```
 
 From a bash Terminal in Jupyter, check your values with:
