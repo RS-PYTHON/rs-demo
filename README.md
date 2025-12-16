@@ -86,7 +86,7 @@ prefect block inspect "secret/env-vars"
 # Or from python
 import json
 from prefect.blocks.system import Secret
-print(json.dumps(Secret.load("env-vars").get(), indent=2))
+print(json.dumps(Secret.load("env-vars", _sync=True).get(), indent=2))
 ```
 
 Run this Python code from any Jupyter notebook to write the new values:
