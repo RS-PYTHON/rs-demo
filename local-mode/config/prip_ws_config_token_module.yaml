@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2025 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -156,8 +156,8 @@ s1a:
         operations:
           and:
           - contains(Name, '{Name}')
-          - contains(Id, '{prip:id}')
           - Name in ({Names})
+          - contains(Id, '{prip:id}')
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -403,8 +403,8 @@ s2b:
         operations:
           and:
           - contains(Name, '{Name}')
-          - contains(Id, '{prip:id}')
           - Name in ({Names})
+          - contains(Id, '{prip:id}')
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
