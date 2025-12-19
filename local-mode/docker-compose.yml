@@ -127,16 +127,15 @@ services:
     env_file:
       - .env
     environment:
-        EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
-        USE_SSL: True
+      CORS_ORIGINS: http://localhost:8106
+      EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
+      USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/rs_server_edrs_config.yaml:${EDRS_STATION_CONFIG}
       - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
       - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
-    #environment:
-      # CORS_ORIGINS: http://localhost:8102
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # # OAuth2 authentication
@@ -232,6 +231,7 @@ services:
       - ~/.s3cfg
     environment:
       DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
+      USE_SSL: True
       # Token expiration settings
       RSPY_TIME_BEFORE_ACCESS_TOKEN_EXPIRE: 60
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
@@ -252,6 +252,7 @@ services:
       BEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
       BEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
       BEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
+
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
@@ -267,7 +268,6 @@ services:
       # http://mockup-prip...:8080 by  http://prip-station:5000
       # http://mockup-station-cadip...:8080 by  http://cadip-station:5000
       # RSPY__TOKEN__xxx
-      USE_SSL: True
     volumes:
       - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
       - ./config/staging.yaml:/etc/staging.yaml
@@ -328,6 +328,8 @@ services:
     #   OVH_CONSUMER_KEY: xxx # DON'T SAVE THIS VALUE IN GIT !
     #   OVH_ENDPOINT: ovh-eu
     #   OVH_SERVICE:
+    #   S3_ENDPOINT: https://s3.gra.io.cloud.ovh.net
+    #   S3_REGION: gra
     volumes:
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
 
@@ -506,6 +508,31 @@ services:
       SB_allowExternalAccess: false
       SB_historyMode: history
       SB_catalogUrl: http://127.0.0.1:8005/prip
+      SB_detectLocaleFromBrowser: true
+      SB_socialSharing: email,bsky,mastodon
+
+  # STAC browser on rs-server-edrs
+  stac-browser-edrs:
+    image: ghcr.io/rs-python/stac-browser:latest
+    container_name: stac-browser-edrs
+    ports:
+      - 8106:8080
+    depends_on:
+      - rs-server-edrs
+    env_file:
+      - .env
+    environment:
+      SB_authConfig: |
+            {
+              "type": "openIdConnect",
+              "openIdConnectUrl": "https://iam.dev-rspy-ovh.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
+              "oidcConfig": {
+                "client_id": "fastapi_public"
+              }
+            }
+      SB_allowExternalAccess: false
+      SB_historyMode: history
+      SB_catalogUrl: http://127.0.0.1:8006/edrs
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
