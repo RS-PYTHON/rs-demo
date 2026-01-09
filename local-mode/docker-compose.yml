@@ -41,7 +41,7 @@ services:
       - 8001:8000
     depends_on:
       - rspy-pre-actions
-      - minio
+      - seaweedfs-s3
       - adgs-station
     env_file:
       - .env
@@ -69,7 +69,7 @@ services:
       - 8005:8000
     depends_on:
       - rspy-pre-actions
-      - minio
+      - seaweedfs-s3
       - prip-station
     env_file:
       - .env
@@ -97,7 +97,7 @@ services:
       - 8002:8000
     depends_on:
       - rspy-pre-actions
-      - minio
+      - seaweedfs-s3
       - cadip-station
     env_file:
       - .env
@@ -125,7 +125,7 @@ services:
       - 8006:8000
     depends_on:
       - rspy-pre-actions
-      - minio
+      - seaweedfs-s3
       - edrs-station
     env_file:
       - .env
@@ -756,21 +756,20 @@ services:
 # S3 BUCKET #
 #############
 
-  # Use minio for temp s3 storage
-  minio:
-    image: minio/minio
-    container_name: minio
-    ports:
-      - "9100:9000"
-      - "9101:9001"
-    env_file:
-      - .env
+  # Use seaweedfs for temp s3 storage
+  seaweedfs-s3:
+    image: chrislusf/seaweedfs:4.06
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESSKEY}
-      MINIO_ROOT_PASSWORD: ${S3_SECRETKEY}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESSKEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRETKEY}
+    ports:
+      - 9100:9000  # S3 Endpoint
+      - 9101:23646 # Admin UI
+      - 9102:9333  # Master UI
+      - 9103:8888  # Filer UI
     volumes:
-      - minio_storage:/data # docker named volume
-    command: server --console-address ":9001" /data
+      - seaweedfs_storage:/data
+    command: 'mini -dir=/data -s3.port=9000'
 
 ###########
 # JUPYTER #
@@ -785,7 +784,7 @@ services:
     ports:
       - 8888:8888
     depends_on:
-      - minio # used to check manually the s3 bucket contents
+      - seaweedfs-s3 # used to check manually the s3 bucket contents
     env_file:
       - .env
     environment:
@@ -881,7 +880,7 @@ services:
       - tempo
       - postgres
       - catalog-db
-      - minio
+      - seaweedfs-s3
       - jupyter
     entrypoint: tail # use this so this service stays alive
     command: -F anything
@@ -893,7 +892,7 @@ services:
 
 # Docker named volumes
 volumes:
-  minio_storage: {}
+  seaweedfs_storage: {}
   prefect_storage: {}
 
   # Used to:

@@ -40,7 +40,7 @@
             "storage_options": {
                 "key": "cluster_key_name",
                 "secret": "cluster_secret_name",
-                "endpoint_url": "http://minio:9000",
+                "endpoint_url": "http://seaweedfs-s3:9000",
                 "region_name": "sbg"
             }
         },

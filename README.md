@@ -30,9 +30,9 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
 
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
-      * Minio s3 bucket: <http://localhost:9101/browser> with:
+      * SeaweedFS s3 bucket: <http://localhost:9101/object-store/buckets> with:
 
-          * Username: `minio`
+          * Username: `seaweedfs`
           * Password: `Strong#Pass#1234`
 
 ## Prefect and Dask
@@ -295,7 +295,7 @@ The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images 
     * Built from the CI/CD: <https://github.com/RS-PYTHON/rs-testmeans/actions/workflows/publish-docker.yml>
     * Also available in the ghcr.io
   * STAC PostgreSQL database
-  * MinIO S3 bucket server
+  * SeaweedFS S3 bucket server
   * Jupyter server
 
 These containers are run locally (not on a cluster). The Jupyter notebooks accessed from <http://127.0.0.1:8888> are run from the containerized Jupyter server, not from your local environment. This Jupyter environment contains all the Python modules required to call the rs-server HTTP endpoints.

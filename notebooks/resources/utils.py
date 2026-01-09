@@ -79,7 +79,7 @@ http_session: requests.Session = requests.Session()
 
 # We use these bucket names that are deployed on the cluster.
 # RS-Server has read/write access to these buckets, but as an end-user, you won't manipulate them directly.
-# Except in local mode, where we use a local MinIO object storage instance.
+# Except in local mode, where we use a local SeaweedFS object storage instance.
 # We need to manually create the buckets.
 RSPY_TEMP_BUCKET = os.environ["RSPY_TEMP_BUCKET"]
 
