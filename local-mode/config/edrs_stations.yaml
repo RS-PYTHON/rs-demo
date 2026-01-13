@@ -17,11 +17,31 @@
 #  - rs-server/resources/sync_config_files.py
 # DON'T MODIFY IT DIRECTLY !
 
-stations: "pedc:\n  service:\n    name: edrs\n    url: '{URL}'\n    port: '{PORT}'\n\
-  \  domain: mockup-station-pedc.processing.svc.cluster.local\n  authentication:\n\
-  \    auth_type: ftpes\n    username: '{USER}'\n    password: '{PASS}'\n    ca_crt:\
-  \ /certs/ca.crt\n    client_crt: /certs/client.crt\n    client_key: /certs/client.key\n\
-  bedc:\n  service:\n    name: edrs\n    url: '{URL}'\n    port: '{PORT}'\n  domain:\
-  \ mockup-station-pedc.processing.svc.cluster.local\n  authentication:\n    auth_type:\
-  \ ftpes\n    username: '{USER}'\n    password: '{PASS}'\n    ca_crt: /path/to/ca.crt\n\
-  \    client_crt: /path/to/client.crt\n    client_key: /path/to/client.key\n"
+stations: |
+  pedc:
+    service:
+      name: edrs
+      url: {URL}
+      port: {PORT}
+    domain: mockup-station-pedc.processing.svc.cluster.local
+    authentication:
+      auth_type: ftpes
+      username: {USER}
+      password: {PASS}
+      ca_crt: /certs/ca.crt
+      client_crt: /certs/client.crt
+      client_key: /certs/client.key
+
+  bedc:
+    service:
+      name: edrs
+      url: {URL}
+      port: {PORT}
+    domain: mockup-station-pedc.processing.svc.cluster.local
+    authentication:
+      auth_type: ftpes
+      username: {USER}
+      password: {PASS}
+      ca_crt: /path/to/ca.crt
+      client_crt: /path/to/client.crt
+      client_key: /path/to/client.key
