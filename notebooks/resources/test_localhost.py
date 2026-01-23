@@ -73,8 +73,5 @@ os.environ["DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"] = os.environ[
 ]
 os.environ["DASK_GATEWAY_L0_ADDRESS"] = os.environ["DASK_GATEWAY_L0_PUBLIC"]
 os.environ["DASK_GATEWAY_S1ARD_ADDRESS"] = os.environ["DASK_GATEWAY_S1ARD_PUBLIC"]
-# opentelemetry
-os.environ["LOKI_ENDPOINT"] = "http://localhost:3100/loki/api/v1/push"
-os.environ["TEMPO_ENDPOINT"] = "http://localhost:4317"
 
 os.environ["RSPY_OAUTH2_COOKIE"] = "dummy-cookie"
