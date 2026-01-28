@@ -651,49 +651,6 @@ services:
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
 
-  #################
-  # OPENTELEMETRY #
-  #################
-
-  # See: https://github.com/softwarebloat/python-tracing-demo/tree/main
-
-  grafana:
-    image: grafana/grafana:10.4.10
-    ports:
-      - 3000:3000
-    depends_on:
-      - tempo
-    attach: false # hide logs
-    env_file:
-      - .env
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-    volumes:
-      - ./config/grafana.ini:/etc/grafana/grafana.ini
-      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
-
-  loki:
-    image: grafana/loki:2.9.6
-    ports:
-      - 3100:3100
-    attach: false # hide logs
-    env_file:
-      - .env
-    command: -config.file=/etc/loki/local-config.yaml
-
-  tempo:
-    image: grafana/tempo:2.4.1
-    ports:
-      - 4317:4317
-    attach: false # hide logs
-    env_file:
-      - .env
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    volumes:
-      - ./config/tempo.yaml:/etc/tempo.yaml
-
   #############
   # DATABASES #
   #############
@@ -715,7 +672,7 @@ services:
       - ./scripts/init_multiple_dbs.sh:/docker-entrypoint-initdb.d/init_multiple_dbs.sh:ro
 
   catalog-db:
-    image: ghcr.io/stac-utils/pgstac:v0.9.8
+    image: ghcr.io/stac-utils/pgstac:v0.9.9
     ports:
       - ${PGSTAC_PORT}:5432
     env_file:
@@ -737,7 +694,7 @@ services:
 
   pgstac-post-actions: # post actions for catalog-db
     container_name: pgstac-post-actions
-    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.8
+    image: ghcr.io/stac-utils/pgstac-pypgstac:v0.9.9
     depends_on:
       - catalog-db
     env_file:
@@ -876,8 +833,6 @@ services:
       - prefect-worker-general
       - dask-staging
       - dask-eopf-mockup
-      - loki
-      - tempo
       - postgres
       - catalog-db
       - seaweedfs-s3
