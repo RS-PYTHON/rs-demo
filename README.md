@@ -17,7 +17,6 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
       * RS-Server website (Swagger/OpenAPI): <https://rspy.ops.rs-python.eu/docs>
       * Create an API key: <https://apikeymanager.rspy.ops.rs-python.eu/docs#/Manage%20API%20keys/create_api_key_auth_api_key_new_get>
       * Prefect dashboard (orchestrator): <http://localhost:4200>
-      * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
 
   * On local mode:
 
@@ -27,9 +26,10 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
           * <http://localhost:8001/docs> (auxip)
           * <http://localhost:8002/docs> (cadip)
           * <http://localhost:8003/catalog/api.html> (catalog)
+          * <http://localhost:8005/docs> (prip)
+          * <http://localhost:8006/docs> (edrs)
 
       * Prefect dashboard (orchestrator): <http://localhost:4200>
-      * Grafana (logs, traces, metrics): <http://localhost:3000/explore>
       * SeaweedFS s3 bucket: <http://localhost:9101/object-store/buckets> with:
 
           * Username: `seaweedfs`
@@ -125,6 +125,8 @@ value = {
     "POSTGRES_PASSWORD": "<pi_postgres_password>",
     "POSTGRES_PORT": "<cluster_postgres_port>", # normally, 5432
     "POSTGRES_PI_DB": "performance",
+    # osam url, internal to the cluster
+    "RSPY_HOST_OSAM": "http://rs-osam.processing.svc.cluster.local:8080",
 }
 
 # Jupyter env vars to pass to Prefect and Dask
