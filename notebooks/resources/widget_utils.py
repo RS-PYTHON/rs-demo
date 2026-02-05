@@ -24,6 +24,7 @@ import subprocess
 import sys
 from contextlib import chdir
 from importlib import reload
+from os import path as osp
 from pathlib import Path
 from runpy import run_path
 
@@ -134,7 +135,7 @@ async def deploy_prefect(
     """
     deployments = []
     deployed_names = []
-    deploy_file = os.path.realpath(deploy_file)
+    deploy_file = osp.realpath(deploy_file)
 
     # Parent folder of the rs-client-libraries workflows
     rs_workflows_parent = Path(rs_workflows.__path__[0]).parent.absolute()
@@ -188,7 +189,7 @@ async def deploy_prefect(
     elif deploy_prefect_radio.value == "bucket":
 
         # Local source code
-        local_path = os.path.realpath(rs_workflows.__path__[0])
+        local_path = osp.realpath(rs_workflows.__path__[0])
 
         # Use a specific prefect block on the bucket for this subfolder
         code_bucket, _ = await prefect_utils.get_share_bucket(s3_code_folder)
@@ -198,6 +199,10 @@ async def deploy_prefect(
 
         # Upload local workflows package contents
         await code_bucket.put_directory(local_path=local_path, to_path="rs_workflows")
+
+        # Also upload the config folder
+        local_config = osp.realpath(osp.join(local_path, "..", "config"))
+        await code_bucket.put_directory(local_path=local_config, to_path="config")
 
         # Reload all rs-client-libraries modules
         for module in list(sys.modules.values()):
