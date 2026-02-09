@@ -160,7 +160,7 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
-      rs-osam:
+      rs-server-osam:
         condition: service_started
     env_file:
       - .env
@@ -229,7 +229,7 @@ services:
       - cadip-station
       - rs-server-catalog
       - postgres
-      - rs-osam
+      - rs-server-osam
     env_file:
       - .env
       - ~/.s3cfg
