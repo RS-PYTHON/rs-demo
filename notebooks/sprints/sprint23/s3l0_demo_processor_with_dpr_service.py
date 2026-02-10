@@ -634,7 +634,7 @@ async def dpr_service(
         )
 
         job_status = dpr_client.run_process(
-            DprProcessor.MOCKUP if use_dpr_mockup else DprProcessor.S3L0,
+            "mockup" if use_dpr_mockup else DprProcessor.S3L0,
             cluster_info,
             data,
         )
