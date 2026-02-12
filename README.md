@@ -126,7 +126,7 @@ value = {
     "POSTGRES_PORT": "<cluster_postgres_port>", # normally, 5432
     "POSTGRES_PI_DB": "performance",
     # osam url, internal to the cluster
-    "RSPY_HOST_OSAM": "http://rs-osam.processing.svc.cluster.local:8080",
+    "RSPY_HOST_OSAM": "http://rs-server-osam.processing.svc.cluster.local:8080",
 }
 
 # Jupyter env vars to pass to Prefect and Dask
