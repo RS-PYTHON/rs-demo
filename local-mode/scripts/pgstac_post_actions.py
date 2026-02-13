@@ -117,3 +117,55 @@ with conn.cursor() as cur:
     # Ignore duplicates
     except UniqueViolation:
         pass
+
+    # Add externalIds support for CQL2 search:
+    # - Build a token array from externalIds (scheme:value, value, scheme)
+    # - Use a_overlaps() on the token array for fast matching
+    cur.execute(
+        """
+        CREATE OR REPLACE FUNCTION pgstac.external_ids_tokens(ext jsonb) RETURNS jsonb AS $$
+            SELECT CASE
+                WHEN ext IS NULL OR jsonb_typeof(ext) <> 'array' THEN '[]'::jsonb
+                ELSE COALESCE(
+                    (
+                        SELECT jsonb_agg(DISTINCT token)
+                        FROM (
+                            SELECT CASE
+                                WHEN scheme IS NOT NULL AND scheme <> '' AND value IS NOT NULL AND value <> ''
+                                THEN scheme || ':' || value
+                            END AS token
+                            FROM jsonb_to_recordset(ext) AS x(scheme text, value text)
+                            UNION ALL
+                            SELECT value
+                            FROM jsonb_to_recordset(ext) AS x(scheme text, value text)
+                            WHERE value IS NOT NULL AND value <> ''
+                            UNION ALL
+                            SELECT scheme
+                            FROM jsonb_to_recordset(ext) AS x(scheme text, value text)
+                            WHERE scheme IS NOT NULL AND scheme <> ''
+                        ) tokens
+                        WHERE token IS NOT NULL AND token <> ''
+                    ),
+                    '[]'::jsonb
+                )
+            END;
+        $$ LANGUAGE SQL IMMUTABLE;
+        """,
+    )
+    conn.commit()
+
+    try:
+        cur.execute(
+            """
+            INSERT INTO queryables (name, definition, property_path)
+            VALUES (
+                'externalIds',
+                '{"title": "externalIds", "description": "externalIds", "type": "string"}',
+                'pgstac.external_ids_tokens(content->''properties''->''externalIds'')'
+            )
+            ON CONFLICT DO NOTHING;
+            """,
+        )
+        conn.commit()
+    except UniqueViolation:
+        pass

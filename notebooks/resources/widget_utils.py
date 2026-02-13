@@ -20,6 +20,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 import inspect
 import json
 import os
+import re
 import subprocess
 import sys
 from contextlib import chdir
@@ -31,7 +32,8 @@ import ipywidgets as widgets
 import prefect
 import rs_workflows
 import yaml
-from prefect.flows import Flow
+from prefect.client.orchestration import get_client
+from prefect.flows import Flow, State
 from resources import utils
 from rs_client.ogcapi.dpr_client import DprProcessor
 from rs_common import prefect_utils
@@ -45,8 +47,8 @@ from rs_common import prefect_utils
 ########################
 
 dpr_proc_radio = widgets.RadioButtons(
-    options=[(proc.name, proc) for proc in DprProcessor],
-    value=DprProcessor.MOCKUP,
+    options=[("MOCKUP", "mockup")] + [(proc.name, proc.value) for proc in DprProcessor],
+    value="mockup",
     description="DPR processor in this demo:",
     indent=False,
 )
@@ -59,13 +61,13 @@ def get_pipeline_unit_radio():
     units = ["single_unit"]
 
     match dpr_proc_radio.value:
-        case DprProcessor.MOCKUP:
+        case "mockup":
             pipelines = ["mockup_full"]
-        case DprProcessor.S1L0:
+        case DprProcessor.S1L0.value:
             pipelines = ["s1_l0_full"]
-        case DprProcessor.S3L0:
+        case DprProcessor.S3L0.value:
             pipelines = ["s3_l0_full"]
-        case DprProcessor.S1ARD:
+        case DprProcessor.S1ARD.value:
             pipelines = ["s1_ard_full"]
             units = [
                 "calibration",
@@ -85,7 +87,7 @@ def get_pipeline_unit_radio():
 
     return widgets.RadioButtons(
         options=options,
-        description=f"Run {dpr_proc_radio.value.name!r} full pipeline or single processing unit:",
+        description=f"Run {dpr_proc_radio.value!r} full pipeline or single processing unit:",
         indent=False,
     )
 
@@ -248,7 +250,7 @@ run_prefect_radio = widgets.RadioButtons(
 )
 
 
-async def run_prefect(deploy_name: str, py_func: Flow, params: dict):
+async def run_prefect(deploy_name: str, py_func: Flow, params: dict) -> State | None:
     """Run prefect flow"""
 
     deployment_url = f"{os.environ['RSPY_PREFECT_URL']}/deployments"
@@ -257,7 +259,7 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict):
     )
 
     if run_prefect_radio.value == "nothing":
-        return
+        return None
 
     # Using command line
     if run_prefect_radio.value == "cmd":
@@ -271,7 +273,32 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict):
             "--watch",
         ]
         print(f"""Run flow from command line:\n'{"' '".join(cmd)}'""")
-        subprocess.run(cmd)
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        flow_run_id = None
+        uuid_regex = re.compile(r"UUID:\s*([0-9a-fA-F-]{36})")
+
+        for line in process.stdout:
+            print(line, end="")  # keep standard output
+            if flow_run_id is None:
+                match = uuid_regex.search(line)
+                if match:
+                    flow_run_id = match.group(1)
+
+        process.wait()
+
+        if flow_run_id is None:
+            raise RuntimeError("Unable to extract flow_run_id from Prefect CLI output")
+
+        async with get_client() as client:
+            flow_run = await client.read_flow_run(flow_run_id)
+
+        return flow_run.state
 
     # By calling directly the python code
     else:

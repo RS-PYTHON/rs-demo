@@ -38,6 +38,12 @@ cadip:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       Name:
       - null
       - $.Name
@@ -88,6 +94,8 @@ cadip:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -148,6 +156,12 @@ ins:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       Name:
       - null
       - $.Name
@@ -198,6 +212,8 @@ ins:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -258,6 +274,12 @@ mps:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       Name:
       - null
       - $.Name
@@ -308,6 +330,8 @@ mps:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -368,6 +392,12 @@ mti:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       Name:
       - null
       - $.Name
@@ -418,6 +448,8 @@ mti:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -478,6 +510,12 @@ nsg:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       Name:
       - null
       - $.Name
@@ -528,6 +566,8 @@ nsg:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -588,6 +628,12 @@ sgs:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       Name:
       - null
       - $.Name
@@ -638,6 +684,8 @@ sgs:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
             eq {StartPublicationDate#to_iso_utc_datetime})
           - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -698,6 +746,12 @@ cadip_session:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       SessionIds:
       - null
       - $.SessionId
@@ -786,6 +840,8 @@ cadip_session:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - Satellite eq {platform}
           - Satellite in ({platforms})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -815,7 +871,7 @@ cadip_session:
       sort_param_mapping:
         id: SessionId
         start_datetime: DownlinkStart
-        datetime: DownlinkStart
+        datetime: PublicationDate
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
@@ -867,6 +923,12 @@ ins_session:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       SessionIds:
       - null
       - $.SessionId
@@ -955,6 +1017,8 @@ ins_session:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - Satellite eq {platform}
           - Satellite in ({platforms})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -984,7 +1048,7 @@ ins_session:
       sort_param_mapping:
         id: SessionId
         start_datetime: DownlinkStart
-        datetime: DownlinkStart
+        datetime: PublicationDate
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
@@ -1036,6 +1100,12 @@ mps_session:
       id:
       - null
       - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
       SessionIds:
       - null
       - $.SessionId
@@ -1124,6 +1194,8 @@ mps_session:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - Satellite eq {platform}
           - Satellite in ({platforms})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -1153,7 +1225,7 @@ mps_session:
       sort_param_mapping:
         id: SessionId
         start_datetime: DownlinkStart
-        datetime: DownlinkStart
+        datetime: PublicationDate
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
@@ -1205,173 +1277,10 @@ mti_session:
       id:
       - null
       - $.Id
-      SessionIds:
+      externalIds:
       - null
-      - $.SessionId
-      SessionId:
-      - null
-      - $.SessionId
-      NumChannels:
-      - null
-      - $.NumChannels
-      PublicationDate:
-      - null
-      - $.PublicationDate
-      Satellite:
-      - null
-      - $.Satellite
-      platform:
-      - null
-      - $.Satellite
-      platforms:
-      - null
-      - $.Satellite
-      StationId:
-      - null
-      - $.StationId
-      StationUnitId:
-      - null
-      - $.StationUnitId
-      DownlinkOrbit:
-      - null
-      - $.DownlinkOrbit
-      AcquisitionId:
-      - null
-      - $.AcquisitionId
-      AntennaId:
-      - null
-      - $.AntennaId
-      FrontEndId:
-      - null
-      - $.FrontEndId
-      Retransfer:
-      - null
-      - $.Retransfer
-      AntennaStatusOK:
-      - null
-      - $.AntennaStatusOK
-      FrontEndStatusOK:
-      - null
-      - $.FrontEndStatusOK
-      PlannedDataStart:
-      - null
-      - $.PlannedDataStart
-      PlannedDataStop:
-      - null
-      - $.PlannedDataStop
-      DownlinkStart:
-      - null
-      - $.DownlinkStart
-      DownlinkStop:
-      - null
-      - $.DownlinkStop
-      DownlinkStatusOK:
-      - null
-      - $.DownlinkStatusOK
-      DeliveryPushOK:
-      - null
-      - $.DeliveryPushOK
-      Files:
-      - null
-      - $.Files
-      StartPublicationDate:
-      - null
-      - $.PublicationDate
-      StopPublicationDate:
-      - null
-      - $.PublicationDate
-      href:
-      - null
-      - http://cadip-station:5000/Files({id})/$value
-      geometry: POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))
-      title: $.Name
-    free_text_search_operations:
-      $filter:
-        union: ' OR '
-        wrapper: '{}'
-        operations:
-          and:
-          - SessionId in ({SessionIds})
-          - SessionId eq {SessionId}
-          - Satellite eq {platform}
-          - Satellite in ({platforms})
-          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
-            eq {StartPublicationDate#to_iso_utc_datetime})
-          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
-            eq {StopPublicationDate#to_iso_utc_datetime})
-          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
-          - Id eq '{id}'
-          - DownlinkOrbit eq {DownlinkOrbit}
-          - DownlinkStart eq {DownlinkStart}
-          - DownlinkStop eq {DownlinkStop}
-          - NumChannels eq {NumChannels}
-          - AcquisitionId eq '{AcquisitionId}'
-          - AntennaId eq '{AntennaId}'
-          - StationId eq '{StationId}'
-          - StationUnitId eq '{StationUnitId}'
-          - FrontEndId eq {FrontEndId}
-          - PlannedDataStart eq {PlannedDataStart}
-          - PlannedDataStop eq {PlannedDataStop}
-          - Retransfer eq {Retransfer}
-          - AntennaStatusOK eq {AntennaStatusOK}
-          - FrontEndStatusOK eq {FrontEndStatusOK}
-          - DownlinkStatusOK eq {DownlinkStatusOK}
-          - DeliveryPushOK eq {DeliveryPushOK}
-    sort:
-      sort_by_tpl: '&$orderby={sort_param} {sort_order}'
-      sort_param_mapping:
-        id: SessionId
-        start_datetime: DownlinkStart
-        datetime: DownlinkStart
-        end_datetime: DownlinkStop
-        published: PublicationDate
-        platform: Satellite
-        cadip:num_channels: NumChannels
-        cadip:station_id: StationId
-        cadip:station_unit_id: StationUnitId
-        sat:absolute_orbit: DownlinkOrbit
-        cadip:acquisition_id: AcquisitionId
-        cadip:antenna_id: AntennaId
-        cadip:front_end_id: FrontEndId
-        cadip:retransfer: Retransfer
-        cadip:antenna_status_ok: AntennaStatusOK
-        cadip:front_end_status_ok: FrontEndStatusOK
-        cadip:planned_data_start: PlannedDataStart
-        cadip:planned_data_stop: PlannedDataStop
-        cadip:downlink_status_ok: DownlinkStatusOK
-        cadip:delivery_push_ok: DeliveryPushOK
-      sort_order_mapping:
-        ascending: asc
-        descending: desc
-      max_sort_params: 1
-    pagination:
-      max_items_per_page: 10000
-      next_page_url_tpl: '{url}?{search}&$top={items_per_page}&$skip={skip}'
-      total_items_nb_key_path: $.total
-  download:
-    type: HTTPDownload
-    base_uri: https://cadip-station:5000/Sessions
-    metadata_mapping:
-      uid: $.Id
-      downloadLink: http://cadip-station:5000/Files({uid})/$value
-nsg_session:
-  auth:
-    type: HTTPHeaderAuth
-    headers:
-      Authorization: Bearer {token}
-    credentials:
-      token: token_value
-  products:
-    S1_SAR_RAW:
-      productType: RAW
-      collection: Sentinel1
-  search:
-    type: ODataV4Search
-    api_endpoint: http://cadip-station:5000/Sessions
-    need_auth: true
-    results_entry: $.value | $
-    metadata_mapping:
-      id:
+      - $.Id
+      externalIdss:
       - null
       - $.Id
       SessionIds:
@@ -1462,6 +1371,8 @@ nsg_session:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - Satellite eq {platform}
           - Satellite in ({platforms})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -1491,7 +1402,178 @@ nsg_session:
       sort_param_mapping:
         id: SessionId
         start_datetime: DownlinkStart
-        datetime: DownlinkStart
+        datetime: PublicationDate
+        end_datetime: DownlinkStop
+        published: PublicationDate
+        platform: Satellite
+        cadip:num_channels: NumChannels
+        cadip:station_id: StationId
+        cadip:station_unit_id: StationUnitId
+        sat:absolute_orbit: DownlinkOrbit
+        cadip:acquisition_id: AcquisitionId
+        cadip:antenna_id: AntennaId
+        cadip:front_end_id: FrontEndId
+        cadip:retransfer: Retransfer
+        cadip:antenna_status_ok: AntennaStatusOK
+        cadip:front_end_status_ok: FrontEndStatusOK
+        cadip:planned_data_start: PlannedDataStart
+        cadip:planned_data_stop: PlannedDataStop
+        cadip:downlink_status_ok: DownlinkStatusOK
+        cadip:delivery_push_ok: DeliveryPushOK
+      sort_order_mapping:
+        ascending: asc
+        descending: desc
+      max_sort_params: 1
+    pagination:
+      max_items_per_page: 10000
+      next_page_url_tpl: '{url}?{search}&$top={items_per_page}&$skip={skip}'
+      total_items_nb_key_path: $.total
+  download:
+    type: HTTPDownload
+    base_uri: https://cadip-station:5000/Sessions
+    metadata_mapping:
+      uid: $.Id
+      downloadLink: http://cadip-station:5000/Files({uid})/$value
+nsg_session:
+  auth:
+    type: HTTPHeaderAuth
+    headers:
+      Authorization: Bearer {token}
+    credentials:
+      token: token_value
+  products:
+    S1_SAR_RAW:
+      productType: RAW
+      collection: Sentinel1
+  search:
+    type: ODataV4Search
+    api_endpoint: http://cadip-station:5000/Sessions
+    need_auth: true
+    results_entry: $.value | $
+    metadata_mapping:
+      id:
+      - null
+      - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - $.SessionId
+      SessionId:
+      - null
+      - $.SessionId
+      NumChannels:
+      - null
+      - $.NumChannels
+      PublicationDate:
+      - null
+      - $.PublicationDate
+      Satellite:
+      - null
+      - $.Satellite
+      platform:
+      - null
+      - $.Satellite
+      platforms:
+      - null
+      - $.Satellite
+      StationId:
+      - null
+      - $.StationId
+      StationUnitId:
+      - null
+      - $.StationUnitId
+      DownlinkOrbit:
+      - null
+      - $.DownlinkOrbit
+      AcquisitionId:
+      - null
+      - $.AcquisitionId
+      AntennaId:
+      - null
+      - $.AntennaId
+      FrontEndId:
+      - null
+      - $.FrontEndId
+      Retransfer:
+      - null
+      - $.Retransfer
+      AntennaStatusOK:
+      - null
+      - $.AntennaStatusOK
+      FrontEndStatusOK:
+      - null
+      - $.FrontEndStatusOK
+      PlannedDataStart:
+      - null
+      - $.PlannedDataStart
+      PlannedDataStop:
+      - null
+      - $.PlannedDataStop
+      DownlinkStart:
+      - null
+      - $.DownlinkStart
+      DownlinkStop:
+      - null
+      - $.DownlinkStop
+      DownlinkStatusOK:
+      - null
+      - $.DownlinkStatusOK
+      DeliveryPushOK:
+      - null
+      - $.DeliveryPushOK
+      Files:
+      - null
+      - $.Files
+      StartPublicationDate:
+      - null
+      - $.PublicationDate
+      StopPublicationDate:
+      - null
+      - $.PublicationDate
+      href:
+      - null
+      - http://cadip-station:5000/Files({id})/$value
+      geometry: POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))
+      title: $.Name
+    free_text_search_operations:
+      $filter:
+        union: ' OR '
+        wrapper: '{}'
+        operations:
+          and:
+          - SessionId in ({SessionIds})
+          - SessionId eq {SessionId}
+          - Satellite eq {platform}
+          - Satellite in ({platforms})
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
+          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq '{id}'
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq '{AcquisitionId}'
+          - AntennaId eq '{AntennaId}'
+          - StationId eq '{StationId}'
+          - StationUnitId eq '{StationUnitId}'
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
+          - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
+    sort:
+      sort_by_tpl: '&$orderby={sort_param} {sort_order}'
+      sort_param_mapping:
+        id: SessionId
+        start_datetime: DownlinkStart
+        datetime: PublicationDate
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite
@@ -1631,6 +1713,8 @@ sgs_session:
           and:
           - SessionId in ({SessionIds})
           - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
           - Satellite eq {platform}
           - Satellite in ({platforms})
           - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
@@ -1661,6 +1745,183 @@ sgs_session:
         id: SessionId
         start_datetime: DownlinkStart
         datetime: DownlinkStart
+        end_datetime: DownlinkStop
+        published: PublicationDate
+        platform: Satellite
+        cadip:num_channels: NumChannels
+        cadip:station_id: StationId
+        cadip:station_unit_id: StationUnitId
+        sat:absolute_orbit: DownlinkOrbit
+        cadip:acquisition_id: AcquisitionId
+        cadip:antenna_id: AntennaId
+        cadip:front_end_id: FrontEndId
+        cadip:retransfer: Retransfer
+        cadip:antenna_status_ok: AntennaStatusOK
+        cadip:front_end_status_ok: FrontEndStatusOK
+        cadip:planned_data_start: PlannedDataStart
+        cadip:planned_data_stop: PlannedDataStop
+        cadip:downlink_status_ok: DownlinkStatusOK
+        cadip:delivery_push_ok: DeliveryPushOK
+      sort_order_mapping:
+        ascending: asc
+        descending: desc
+      max_sort_params: 1
+    pagination:
+      max_items_per_page: 10000
+      next_page_url_tpl: '{url}?{search}&$top={items_per_page}&$skip={skip}'
+      total_items_nb_key_path: $.total
+  download:
+    type: HTTPDownload
+    base_uri: https://cadip-station:5000/Sessions
+    metadata_mapping:
+      uid: $.Id
+      downloadLink: http://cadip-station:5000/Files({uid})/$value
+sgs_session:
+  auth:
+    type: HTTPHeaderAuth
+    headers:
+      Authorization: Bearer {token}
+    credentials:
+      token: token_value
+  products:
+    S1_SAR_RAW:
+      productType: RAW
+      collection: Sentinel1
+  search:
+    type: ODataV4Search
+    api_endpoint: http://cadip-station:5000/Sessions
+    need_auth: true
+    results_entry: $.value | $
+    metadata_mapping:
+      id:
+      - null
+      - $.Id
+      externalIds:
+      - null
+      - $.Id
+      externalIdss:
+      - null
+      - $.Id
+      SessionIds:
+      - null
+      - $.SessionId
+      SessionId:
+      - null
+      - $.SessionId
+      NumChannels:
+      - null
+      - $.NumChannels
+      PublicationDate:
+      - null
+      - $.PublicationDate
+      Satellite:
+      - null
+      - $.Satellite
+      platform:
+      - null
+      - $.Satellite
+      platforms:
+      - null
+      - $.Satellite
+      StationId:
+      - null
+      - $.StationId
+      StationUnitId:
+      - null
+      - $.StationUnitId
+      DownlinkOrbit:
+      - null
+      - $.DownlinkOrbit
+      AcquisitionId:
+      - null
+      - $.AcquisitionId
+      AntennaId:
+      - null
+      - $.AntennaId
+      FrontEndId:
+      - null
+      - $.FrontEndId
+      Retransfer:
+      - null
+      - $.Retransfer
+      AntennaStatusOK:
+      - null
+      - $.AntennaStatusOK
+      FrontEndStatusOK:
+      - null
+      - $.FrontEndStatusOK
+      PlannedDataStart:
+      - null
+      - $.PlannedDataStart
+      PlannedDataStop:
+      - null
+      - $.PlannedDataStop
+      DownlinkStart:
+      - null
+      - $.DownlinkStart
+      DownlinkStop:
+      - null
+      - $.DownlinkStop
+      DownlinkStatusOK:
+      - null
+      - $.DownlinkStatusOK
+      DeliveryPushOK:
+      - null
+      - $.DeliveryPushOK
+      Files:
+      - null
+      - $.Files
+      StartPublicationDate:
+      - null
+      - $.PublicationDate
+      StopPublicationDate:
+      - null
+      - $.PublicationDate
+      href:
+      - null
+      - http://cadip-station:5000/Files({id})/$value
+      geometry: POLYGON((180 -90, 180 90, -180 90, -180 -90, 180 -90))
+      title: $.Name
+    free_text_search_operations:
+      $filter:
+        union: ' OR '
+        wrapper: '{}'
+        operations:
+          and:
+          - SessionId in ({SessionIds})
+          - SessionId eq {SessionId}
+          - Id eq {externalIds}
+          - Id in ({externalIdss})
+          - Satellite eq {platform}
+          - Satellite in ({platforms})
+          - (PublicationDate gt {StartPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StartPublicationDate#to_iso_utc_datetime})
+          - (PublicationDate lt {StopPublicationDate#to_iso_utc_datetime} or PublicationDate
+            eq {StopPublicationDate#to_iso_utc_datetime})
+          - PublicationDate eq {PublicationDate#to_iso_utc_datetime}
+          - Id eq '{id}'
+          - DownlinkOrbit eq {DownlinkOrbit}
+          - DownlinkStart eq {DownlinkStart}
+          - DownlinkStop eq {DownlinkStop}
+          - NumChannels eq {NumChannels}
+          - AcquisitionId eq '{AcquisitionId}'
+          - AntennaId eq '{AntennaId}'
+          - StationId eq '{StationId}'
+          - StationUnitId eq '{StationUnitId}'
+          - FrontEndId eq {FrontEndId}
+          - PlannedDataStart eq {PlannedDataStart}
+          - PlannedDataStop eq {PlannedDataStop}
+          - Retransfer eq {Retransfer}
+          - AntennaStatusOK eq {AntennaStatusOK}
+          - FrontEndStatusOK eq {FrontEndStatusOK}
+          - DownlinkStatusOK eq {DownlinkStatusOK}
+          - DeliveryPushOK eq {DeliveryPushOK}
+    sort:
+      sort_by_tpl: '&$orderby={sort_param} {sort_order}'
+      sort_param_mapping:
+        id: SessionId
+        start_datetime: DownlinkStart
+        datetime: PublicationDate
         end_datetime: DownlinkStop
         published: PublicationDate
         platform: Satellite

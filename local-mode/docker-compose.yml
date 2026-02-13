@@ -29,7 +29,7 @@ services:
     image: ghcr.io/rs-python/rs-server-frontend:latest
     container_name: rs-server-frontend
     ports:
-      - 8000:8000
+      - 8007:8000
     env_file:
       - .env
 
@@ -160,7 +160,7 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
-      rs-osam:
+      rs-server-osam:
         condition: service_started
     env_file:
       - .env
@@ -229,7 +229,7 @@ services:
       - cadip-station
       - rs-server-catalog
       - postgres
-      - rs-osam
+      - rs-server-osam
     env_file:
       - .env
       - ~/.s3cfg
@@ -282,38 +282,9 @@ services:
       - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
-  # NOTE: to debug using a dask LocalCluster, use one of the images:
-  # image: ghcr.io/rs-python/dask/l0/localcluster
-  # image: ghcr.io/rs-python/dask/s1ard/localcluster
-  rs-dpr-service:
-    image: ghcr.io/rs-python/rs-dpr-service:latest
-    container_name: rs-dpr-service
-    ports:
-      - 6003:8000
-    depends_on:
-      - postgres
-    env_file:
-      - .env
-      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
-    # environment:
-      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
-      # # OAuth2 authentication
-      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
-      # OIDC_REALM: rspy
-      # OIDC_CLIENT_ID: apikeymanager
-      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-      # RSPY_COOKIE_SECRET: secret
-
-  ############
-  #   OSAM   #
-  ############
-
-  # From: https://github.com/RS-PYTHON/operational-services/blob/develop/object_storage_access_manager/.github/Dockerfile
-  rs-osam:
-    image: ghcr.io/rs-python/operational-services-osam:latest
-    container_name: rs-osam
+  rs-server-osam:
+    image: ghcr.io/rs-python/rs-server-osam:latest
+    container_name: rs-server-osam
     ports:
       - 7001:8000
     env_file:
@@ -338,6 +309,30 @@ services:
     #   S3_REGION: gra
     volumes:
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
+
+  # NOTE: to debug using a dask LocalCluster, use one of the images:
+  # image: ghcr.io/rs-python/dask/l0/localcluster
+  # image: ghcr.io/rs-python/dask/s1ard/localcluster
+  rs-dpr-service:
+    image: ghcr.io/rs-python/rs-dpr-service:latest
+    container_name: rs-dpr-service
+    ports:
+      - 6003:8000
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
+    # environment:
+      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
+      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
+      # RSPY_UAC_HOMEPAGE: ${RSPY_UAC_HOMEPAGE}
+      # # OAuth2 authentication
+      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
+      # OIDC_REALM: rspy
+      # OIDC_CLIENT_ID: apikeymanager
+      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
+      # RSPY_COOKIE_SECRET: secret
 
   ############
   # STATIONS #
@@ -542,6 +537,23 @@ services:
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
+  rs-local-gateway:
+    image: nginx:alpine
+    container_name: rs-local-gateway
+    ports:
+      - 8000:80
+    depends_on:
+      - rs-server-frontend
+      - rs-server-adgs
+      - rs-server-cadip
+      - rs-server-prip
+      - rs-server-edrs
+      - rs-server-catalog
+      - rs-server-staging
+      - rs-dpr-service
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
   ###########
   # PREFECT #
   ###########
@@ -715,7 +727,7 @@ services:
 
   # Use seaweedfs for temp s3 storage
   seaweedfs-s3:
-    image: chrislusf/seaweedfs:4.06
+    image: chrislusf/seaweedfs:4.12
     environment:
       AWS_ACCESS_KEY_ID: ${S3_ACCESSKEY}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRETKEY}
