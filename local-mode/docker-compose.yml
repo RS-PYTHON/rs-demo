@@ -625,7 +625,7 @@ services:
   ########
 
   dask-staging:
-    image: ghcr.io/rs-python/dask/staging:latest
+    image: ghcr.io/rs-python/dask/staging/local:latest
     ports:
       - 8701:8000
     volumes:
@@ -635,7 +635,7 @@ services:
       - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   dask-l0:
-    image: ghcr.io/rs-python/dask/l0:latest
+    image: ghcr.io/rs-python/dask/l0/local:latest
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
@@ -644,18 +644,19 @@ services:
     ports:
       - 8702:8000
 
-  dask-s1ard:
-    image: ghcr.io/rs-python/dask/s1ard:latest
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
-    entrypoint: > # don't use '|' it doesn't work
-      tini -g -- dask-gateway-server
-      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
-      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
-    ports:
-      - 8704:8000
+  # Dask-s1ard is disabled until we regain access to their Gitlab registry.
+  # dask-s1ard:
+  #   image: ghcr.io/rs-python/dask/s1ard/local:latest
+  #   # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+  #   entrypoint: > # don't use '|' it doesn't work
+  #     tini -g -- dask-gateway-server
+  #     --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+  #     --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+  #   ports:
+  #     - 8704:8000
 
   dask-eopf-mockup:
-    image: ghcr.io/rs-python/dask/mockup:latest
+    image: ghcr.io/rs-python/dask/mockup/local:latest
     ports:
       - 8703:8000
     entrypoint: > # don't use '|' it doesn't work
