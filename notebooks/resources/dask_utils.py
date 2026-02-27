@@ -450,7 +450,7 @@ def get_existing_cluster(
 
 def close_dask_clusters():
     """Close dask gateway, cluster and client python objects."""
-    global dask_cluster_staging_process, dask_client_eopf, dask_cluster_eopf, dask_gateway_eopf
+    global dask_client_eopf, dask_cluster_eopf, dask_gateway_eopf
 
     # First client, then cluster, then gateway
     for obj in (
@@ -461,15 +461,21 @@ def close_dask_clusters():
         if obj:
             obj.close()
 
-    # Send STOP signal to subprocess to stop the staging cluster
-    dask_cluster_staging_process.stdin.write(b"STOP\n")
-    dask_cluster_staging_process.stdin.flush()
-    dask_cluster_staging_process.wait()
-
     dask_client_eopf = None
     dask_cluster_eopf = None
     dask_gateway_eopf = None
-    dask_cluster_staging_process = None
+
+
+def shutdown_dask_cluster_staging():
+    """Shutdown the staging dask cluster by killing the subprocess."""
+    global dask_cluster_staging_process
+
+    if dask_cluster_staging_process:
+        # Send STOP signal to subprocess to stop the staging cluster
+        dask_cluster_staging_process.stdin.write(b"STOP\n")
+        dask_cluster_staging_process.stdin.flush()
+        dask_cluster_staging_process.wait()
+        dask_cluster_staging_process = None
 
 
 def shutdown_dask_clusters(gateway: Gateway, name: str | None):
