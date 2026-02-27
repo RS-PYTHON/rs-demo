@@ -60,6 +60,9 @@ def get_dask_gateway(
 
     if cluster_mode:
         try:
+            # NOTE: JUPYTERHUB_API_TOKEN is the token that was used to setup the Dask clusters.
+            # It is saved and read in the Prefect block "env-vars".
+            # This is not the JUPYTERHUB_API_TOKEN that is initialized automatically at the Jupyter session startup.
             auth = JupyterHubAuth(os.environ["JUPYTERHUB_API_TOKEN"])
         except KeyError as error:
             raise KeyError(
