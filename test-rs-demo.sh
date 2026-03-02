@@ -27,7 +27,7 @@ set -x
 #############################
 
 COMPOSE_FILE="docker-compose-test-tag.yml"
-LOG_LINES=100
+LOG_LINES=200
 
 #############################
 # S3 configuration
