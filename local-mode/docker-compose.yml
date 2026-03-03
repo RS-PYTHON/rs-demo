@@ -684,7 +684,7 @@ services:
       - ./scripts/init_multiple_dbs.sh:/docker-entrypoint-initdb.d/init_multiple_dbs.sh:ro
 
   catalog-db:
-    image: ghcr.io/stac-utils/pgstac:v0.10.0
+    image: ghcr.io/stac-utils/pgstac:v0.9.10
     ports:
       - ${PGSTAC_PORT}:5432
     env_file:
