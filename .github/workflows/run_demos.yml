@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: 3.13.11
+  PYTHON_VERSION: 3.13.12
   DOCKER_REGISTRY: ghcr.io
 
 jobs:
@@ -50,36 +50,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Init environment and run all demos in local mode
+      - name: Run all demos in local mode
+        env:
+          S3CFG_OVH_BUCKET: ${{ secrets.S3CFG_OVH_BUCKET }}
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
           set -x
 
-          # Copy the s3cmd config file to be able to access the "real" s3 bucket
-          echo "${{ secrets.S3CFG_OVH_BUCKET }}" > ~/.s3cfg
-
-          # We want to use docker images with tag=this_branch_name.
-          branch_name=${{ github.ref_name }}
-
           # For main or develop, use the :latest image tags
-          if [[ "$branch_name" == "main" || "$branch_name" == "develop" ]]; then
-            docker_tag=latest
+          if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" ]]; then
+            export DOCKER_TAG=latest
 
           # Else, replace special characters by -
           else
-            docker_tag=$(sed "s/[^a-zA-Z0-9]/-/g" <<< "$branch_name")
+            export DOCKER_TAG=$(sed "s/[^a-zA-Z0-9]/-/g" <<< "$BRANCH_NAME")
           fi
 
-          # Run the rs-demo local mode using these docker images, if they exist
-          cd ${GITHUB_WORKSPACE}/local-mode
-          ./test-docker-tag.sh "$docker_tag"
-
-          # Run all services
-          docker compose -f docker-compose-test-tag.yml up cicd -d
-
           # Run all demos
-          ./run-notebooks.sh
-
-          # Shutdown docker services and volumes
-          docker compose down -v
-
+          ./test-rs-demo.sh
         shell: bash
