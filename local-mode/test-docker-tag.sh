@@ -79,7 +79,18 @@ while IFS= read -r old_image ; do
 done <<< "$all_images"
 
 # Pull these images
-(set -x; docker compose -f "$dc_file" --progress quiet pull --include-deps cicd)
+if ! docker compose -f "${dc_file}" --progress quiet pull --include-deps cicd; then
+  echo
+  echo "⚠️ Pull failed, retrying with verbose output:"
+  echo
+  docker compose -f "${dc_file}" pull --include-deps cicd
+  rc=$?
+  if [[ $rc -ne 0 ]]; then
+    echo
+    echo "❌ Pull failed again (exit code ${rc})"
+    exit $rc
+  fi
+fi
 
 # Show usage
 echo -e "\nRun with:
