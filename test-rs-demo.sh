@@ -46,6 +46,31 @@ git checkout "${BRANCH_NAME:-}" || true
 git status
 
 #############################
+# Override branch in prefect yaml config files if it exists in rs-client-libraries
+#############################
+
+REPO_URL="https://github.com/RS-PYTHON/rs-client-libraries.git"
+
+if [[ -n "${BRANCH_NAME:-}" ]]; then
+  echo "Checking if branch '${BRANCH_NAME}' exists in rs-client-libraries..."
+
+  if git ls-remote --exit-code --heads "${REPO_URL}" "${BRANCH_NAME}" >/dev/null 2>&1; then
+    echo "✅ Branch exists. Updating YAML files."
+
+    FILES=$(grep -rl "branch: develop" . --include="*.yaml" --include="*.yml" || true)
+
+    for f in ${FILES}; do
+      echo "Updating ${f}"
+      sed -i "s/branch: develop/branch: ${BRANCH_NAME}/g" "${f}"
+    done
+  else
+    echo "ℹ️ Branch '${BRANCH_NAME}' does not exist in rs-client-libraries. No YAML modification."
+  fi
+else
+  echo "ℹ️ BRANCH_NAME not set. No YAML modification."
+fi
+
+#############################
 # Start local mode
 #############################
 
