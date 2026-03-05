@@ -17,6 +17,7 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
+import asyncio
 import os
 import socket
 import subprocess
@@ -185,7 +186,7 @@ def init_dask_cluster(
     return gateway, cluster, client
 
 
-def init_dask_cluster_staging(
+async def init_dask_cluster_staging(
     scale: int,
     image: str = (
         "ghcr.io/rs-python/dask/staging/k8s:latest"
@@ -200,56 +201,66 @@ def init_dask_cluster_staging(
     Make sure the location of the environment used (first arg) is the same as the one defined in the Dockerfile.
     """
     global dask_cluster_staging_process
-    dask_cluster_staging_process = subprocess.Popen(
-        [
-            "/opt/venv/dask-staging/bin/python",
-            "/home/jovyan/notebooks/resources/init_dask_cluster_staging.py",
-            "--scale",
-            str(scale),
-            "--image",
-            image,
-            "--cluster-label",
-            cluster_label,
-        ],
+
+    # Timeout to make sure we don't get stuck in an infinite loop
+    timout_time = time.time() + timeout
+
+    dask_cluster_staging_process = await asyncio.create_subprocess_exec(
+        "/opt/venv/dask-staging/bin/python",
+        "/home/jovyan/notebooks/resources/init_dask_cluster_staging.py",
+        "--scale",
+        str(scale),
+        "--image",
+        image,
+        "--cluster-label",
+        cluster_label,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
 
-    # Timeout to make sure we don't get stuck in an infinite loop
-    timout_time = time.time() + timeout
-
-    full_output = full_error = output = error = ""
+    output = None
+    full_error = error = ""
     # Wait for the message from the script signaling that the cluster is ready
-    while "Dask cluster initialized" not in output:
+    while not output or "Dask cluster initialized" not in output.decode():
 
-        # Read an output line
-        output = dask_cluster_staging_process.stdout.readline().decode()
-        error = dask_cluster_staging_process.stderr.readline().decode()
-        full_output += output
-        full_error += error
+        # Read an output line or pass if there is none yet
+        try:
+            output = await asyncio.wait_for(
+                dask_cluster_staging_process.stdout.readline(),
+                timeout=1,
+            )
+            print(output.decode())
+        except asyncio.TimeoutError:
+            pass
+
+        # Read an error line or pass if there is none yet
+        try:
+            error = await asyncio.wait_for(
+                dask_cluster_staging_process.stderr.readline(),
+                timeout=1,
+            )
+            full_error += error.decode()
+        except asyncio.TimeoutError:
+            pass
 
         # If error contains "Error", raise an error. Sometimes only warnings are printed in stderr that's why we check the keyword "Error"
         if "Error" in error:
-            print(full_output)
             print("=== AN ERROR OCCURRED ===")
             print(full_error)
-            subprocess.Popen.kill(dask_cluster_staging_process)
+            dask_cluster_staging_process.kill()
             dask_cluster_staging_process = None
             raise RuntimeError(f"Error initializing staging dask cluster: {error}")
 
         # Stop if we reach the timeout
         if time.time() > timout_time:
-            print(full_output)
-            print("=== ERROR OUTPUT ===")
+            print("=== TIMEOUT REACHED - ERROR OUTPUT ===")
             print(full_error)
-            subprocess.Popen.kill(dask_cluster_staging_process)
+            dask_cluster_staging_process.kill()
             dask_cluster_staging_process = None
             raise TimeoutError(
                 f"Timeout: staging dask cluster did not initialize after {timeout} seconds.",
             )
-
-    print(full_output)
 
 
 def init_dask_cluster_eopf(
