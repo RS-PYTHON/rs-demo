@@ -136,6 +136,7 @@ def init_dask_cluster_staging(
     )
 
     print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
+    sys.stdout.flush()
     gateway = get_dask_gateway(address)
 
     # Sort the clusters by newest first
@@ -146,6 +147,7 @@ def init_dask_cluster_staging(
     )
     for cluster in clusters:
         print(f"image = {cluster.name}")
+        sys.stdout.flush()
     # Get existing dask cluster name, if any.
     existing = None
     if clusters:
@@ -169,15 +171,18 @@ def init_dask_cluster_staging(
     # If a cluster has already been initialized, retrieve it
     if existing:
         print(f"Get existing dask cluster: {existing!r}")
+        sys.stdout.flush()
         cluster = gateway.connect(existing)
 
     # Else create one
     elif local_mode:
         print(f"Create new dask cluster")
+        sys.stdout.flush()
         cluster = gateway.new_cluster()
 
     else:  # cluster_mode
         print(f"Create new dask cluster from docker image: {image!r}")
+        sys.stdout.flush()
         worker_cores = 1
         worker_memory = 2.0
         scheduler_memory_limit = 2
@@ -199,6 +204,7 @@ def init_dask_cluster_staging(
     print(
         f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(address, public_domain)}",
     )
+    sys.stdout.flush()
 
     # Scale the cluster and get the client
     gateway.scale_cluster(cluster.name, scale)
@@ -209,6 +215,7 @@ def init_dask_cluster_staging(
     while True:
         scaled = len(client.scheduler_info()["workers"])
         print(f"Dask workers for {cluster_label!r} are up: {scaled}/{scale}")
+        sys.stdout.flush()
         if scaled >= scale:
             break
         tries += 1
@@ -245,7 +252,9 @@ def main():
     )
     args = parser.parse_args()
 
-    print(f"Using Dask version: {dask.__version__}")
+    print("Initializing dask cluster for staging. This can take some time...")
+    print(f"Dask version used: {dask.__version__}")
+    sys.stdout.flush()
 
     init_dask_cluster_staging(
         scale=args.scale,
