@@ -220,8 +220,8 @@ async def init_dask_cluster_staging(
         stderr=subprocess.PIPE,
     )
 
-    output = None
-    full_error = error = ""
+    output = error = None
+    full_error = ""
     # Wait for the message from the script signaling that the cluster is ready
     while not output or "Dask cluster initialized" not in output.decode():
 
@@ -246,12 +246,14 @@ async def init_dask_cluster_staging(
             pass
 
         # If error contains "Error", raise an error. Sometimes only warnings are printed in stderr that's why we check the keyword "Error"
-        if "Error" in error:
+        if error and "Error" in error.decode():
             print("=== AN ERROR OCCURRED ===")
             print(full_error)
             dask_cluster_staging_process.kill()
             dask_cluster_staging_process = None
-            raise RuntimeError(f"Error initializing staging dask cluster: {error}")
+            raise RuntimeError(
+                f"Error initializing staging dask cluster: {error.decode()}",
+            )
 
         # Stop if we reach the timeout
         if time.time() > timout_time:
