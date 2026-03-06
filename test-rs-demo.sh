@@ -61,7 +61,7 @@ if [[ -n "${BRANCH_NAME:-}" ]]; then
 
     for f in ${FILES}; do
       echo "Updating ${f}"
-      sed -i "s/branch: develop/branch: ${BRANCH_NAME}/g" "${f}"
+      sed -i "s?branch: develop?branch: ${BRANCH_NAME}?g" "${f}"
     done
   else
     echo "ℹ️ Branch '${BRANCH_NAME}' does not exist in rs-client-libraries. No YAML modification."
