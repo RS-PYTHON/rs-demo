@@ -205,9 +205,10 @@ async def init_dask_cluster_staging(
     # Timeout to make sure we don't get stuck in an infinite loop
     timout_time = time.time() + timeout
 
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     dask_cluster_staging_process = await asyncio.create_subprocess_exec(
         "/opt/venv/dask-staging/bin/python",
-        "/home/jovyan/notebooks/resources/init_dask_cluster_staging.py",
+        f"{dir_path}/init_dask_cluster_staging.py",
         "--scale",
         str(scale),
         "--image",
