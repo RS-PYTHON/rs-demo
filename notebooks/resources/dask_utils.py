@@ -194,7 +194,7 @@ async def init_dask_cluster_staging(
         else "ghcr.io/rs-python/dask/staging/local:latest"
     ),
     cluster_label: str = os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
-    timeout: int = 120,
+    timeout: int = 600,
 ):
     """Init existing staging dask cluster or create one.
     This calls the script `init_dask_cluster_staging.py` with a different Python environment, to have the correct version of Dask for the staging.
