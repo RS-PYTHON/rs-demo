@@ -35,6 +35,12 @@ local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
 
+def printflush(message: str):
+    """Utility function to print messages and flush the output immediately."""
+    print(message)
+    sys.stdout.flush()
+
+
 def get_dask_gateway(
     address: str,
 ) -> Gateway:
@@ -135,8 +141,7 @@ def init_dask_cluster_staging(
         else os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
     )
 
-    print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
-    sys.stdout.flush()
+    printflush(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
     gateway = get_dask_gateway(address)
 
     # Sort the clusters by newest first
@@ -146,8 +151,7 @@ def init_dask_cluster_staging(
         reverse=True,
     )
     for cluster in clusters:
-        print(f"image = {cluster.name}")
-        sys.stdout.flush()
+        printflush(f"image = {cluster.name}")
     # Get existing dask cluster name, if any.
     existing = None
     if clusters:
@@ -170,19 +174,16 @@ def init_dask_cluster_staging(
 
     # If a cluster has already been initialized, retrieve it
     if existing:
-        print(f"Get existing dask cluster: {existing!r}")
-        sys.stdout.flush()
+        printflush(f"Get existing dask cluster: {existing!r}")
         cluster = gateway.connect(existing)
 
     # Else create one
     elif local_mode:
-        print(f"Create new dask cluster")
-        sys.stdout.flush()
+        printflush(f"Create new dask cluster")
         cluster = gateway.new_cluster()
 
     else:  # cluster_mode
-        print(f"Create new dask cluster from docker image: {image!r}")
-        sys.stdout.flush()
+        printflush(f"Create new dask cluster from docker image: {image!r}")
         worker_cores = 1
         worker_memory = 2.0
         scheduler_memory_limit = 2
@@ -201,10 +202,9 @@ def init_dask_cluster_staging(
             **(dpr_tuning),
         )
 
-    print(
+    printflush(
         f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(address, public_domain)}",
     )
-    sys.stdout.flush()
 
     # Scale the cluster and get the client
     gateway.scale_cluster(cluster.name, scale)
@@ -214,8 +214,7 @@ def init_dask_cluster_staging(
     tries = 0
     while True:
         scaled = len(client.scheduler_info()["workers"])
-        print(f"Dask workers for {cluster_label!r} are up: {scaled}/{scale}")
-        sys.stdout.flush()
+        printflush(f"Dask workers for {cluster_label!r} are up: {scaled}/{scale}")
         if scaled >= scale:
             break
         tries += 1
@@ -252,9 +251,8 @@ def main():
     )
     args = parser.parse_args()
 
-    print("Initializing dask cluster for staging. This can take some time...")
-    print(f"Dask version used: {dask.__version__}")
-    sys.stdout.flush()
+    printflush("Initializing dask cluster for staging. This can take some time...")
+    printflush(f"Dask version used: {dask.__version__}")
 
     init_dask_cluster_staging(
         scale=args.scale,
@@ -262,13 +260,12 @@ def main():
         cluster_label=args.cluster_label,
     )
 
-    print("Dask cluster initialized. Waiting for STOP signal to exit...")
-    sys.stdout.flush()
+    printflush("Dask cluster initialized. Waiting for STOP signal to exit...")
 
     # Keep the script alive to keep the cluster up until "STOP" is sent to the stdin.
     for line in sys.stdin:
         if line.strip() == "STOP":
-            print("STOP signal received. Exiting...")
+            printflush("STOP signal received. Exiting...")
             break
         time.sleep(1)
 

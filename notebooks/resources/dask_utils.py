@@ -231,7 +231,7 @@ async def init_dask_cluster_staging(
                 dask_cluster_staging_process.stdout.readline(),
                 timeout=1,
             )
-            print(output.decode())
+            print(output.decode(), end="")
         except asyncio.TimeoutError:
             pass
 
