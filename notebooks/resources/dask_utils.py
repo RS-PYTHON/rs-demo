@@ -189,9 +189,9 @@ def init_dask_cluster(
 async def init_dask_cluster_staging(
     scale: int,
     image: str = (
-        "ghcr.io/rs-python/dask/staging/k8s:latest"
-        if cluster_mode
-        else "ghcr.io/rs-python/dask/staging/local:latest"
+        "ghcr.io/rs-python/dask/staging/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/staging/k8s:latest"
     ),
     cluster_label: str = os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
     timeout: int = 600,
@@ -395,7 +395,11 @@ def init_dask_cluster_eopf(
 
 def init_dask_cluster_mockup(
     *args,
-    image="ghcr.io/rs-python/dask/mockup:latest",
+    image=(
+        "ghcr.io/rs-python/dask/mockup/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/mockup/k8s:latest"
+    ),
     cluster_label="dask-eopf-mockup",
     **kwargs,
 ):
@@ -411,7 +415,11 @@ def init_dask_cluster_mockup(
 
 def init_dask_cluster_l0(
     *args,
-    image="ghcr.io/rs-python/dask/l0:latest",
+    image=(
+        "ghcr.io/rs-python/dask/l0/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/l0/k8s:latest"
+    ),
     cluster_label="dask-l0",
     **kwargs,
 ):
@@ -427,7 +435,11 @@ def init_dask_cluster_l0(
 
 def init_dask_cluster_s1ard(
     *args,
-    image="ghcr.io/rs-python/dask/s1ard:latest",
+    image=(
+        "ghcr.io/rs-python/dask/s1ard/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/s1ard/k8s:latest"
+    ),
     cluster_label="dask-s1ard",
     **kwargs,
 ):
