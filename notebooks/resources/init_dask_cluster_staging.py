@@ -13,6 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Script to initialize a dask cluster for staging.
+Most of the code is copy-pasted from the "dask_utils.py" file, but the dask images for
+the staging use a different dask version than the processors so we need a separate virtual
+environment for these functions.
+"""
+
 import argparse
 import os
 import sys
@@ -21,12 +27,6 @@ import time
 import dask
 from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
-
-"""Script to initialize a dask cluster for staging.
-Most of the code is copy-pasted from the "dask_utils.py" file, but the dask images for
-the staging use a different dask version than the processors so we need a separate virtual
-environment for these functions.
-"""
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -230,6 +230,7 @@ def main():
     """Function to control the script execution through commmand line arguments.
     When launched, the script will initialize the dask cluster and keep it alive until it receives a "STOP" signal through the stdin.
     """
+    # Get arguments from input
     parser = argparse.ArgumentParser(description="Initialize dask cluster for staging")
     parser.add_argument(
         "--scale",
@@ -254,12 +255,14 @@ def main():
     printflush("Initializing dask cluster for staging. This can take some time...")
     printflush(f"Dask version used: {dask.__version__}")
 
+    # Start staging cluster
     init_dask_cluster_staging(
         scale=args.scale,
         image=args.image,
         cluster_label=args.cluster_label,
     )
 
+    # Send message that cluster is ready
     printflush("Dask cluster initialized. Waiting for STOP signal to exit...")
 
     # Keep the script alive to keep the cluster up until "STOP" is sent to the stdin.

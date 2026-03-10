@@ -40,7 +40,7 @@ local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
 # Dask gateways, clusters and clients
-dask_cluster_staging_process: subprocess.Popen = None
+dask_cluster_staging_process: asyncio.subprocess.Process = None
 dask_gateway_eopf: Gateway = None
 dask_cluster_eopf: GatewayCluster = None
 dask_client_eopf: DaskClient = None
@@ -205,6 +205,7 @@ async def init_dask_cluster_staging(
     # Timeout to make sure we don't get stuck in an infinite loop
     timout_time = time.time() + timeout
 
+    # Call the subprocess with the correct environment
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dask_cluster_staging_process = await asyncio.create_subprocess_exec(
         "/opt/venv/dask-staging/bin/python",
