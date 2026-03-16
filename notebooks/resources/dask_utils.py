@@ -17,8 +17,10 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
+import asyncio
 import os
 import socket
+import subprocess
 import tempfile
 import time
 import zipfile
@@ -38,9 +40,7 @@ local_mode: bool = os.getenv("RSPY_LOCAL_MODE") == "1"
 cluster_mode: bool = not local_mode
 
 # Dask gateways, clusters and clients
-dask_gateway_staging: Gateway = None
-dask_cluster_staging: GatewayCluster = None
-dask_client_staging: DaskClient = None
+dask_cluster_staging_process: asyncio.subprocess.Process = None
 dask_gateway_eopf: Gateway = None
 dask_cluster_eopf: GatewayCluster = None
 dask_client_eopf: DaskClient = None
@@ -186,90 +186,85 @@ def init_dask_cluster(
     return gateway, cluster, client
 
 
-def init_dask_cluster_staging(
+async def init_dask_cluster_staging(
     scale: int,
-    image: str = "ghcr.io/rs-python/dask/staging:latest",
+    image: str = (
+        "ghcr.io/rs-python/dask/staging/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/staging/k8s:latest"
+    ),
     cluster_label: str = os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
-    *args,
-    **kwargs,
+    timeout: int = 600,
 ):
-    """Init existing staging dask cluster or create one"""
-    global dask_gateway_staging, dask_cluster_staging, dask_client_staging
+    """Init existing staging dask cluster or create one.
+    This calls the script `init_dask_cluster_staging.py` with a different Python environment, to have the correct version of Dask for the staging.
+    Make sure the location of the environment used (first arg) is the same as the one defined in the Dockerfile.
+    """
+    global dask_cluster_staging_process
 
-    # Additional arguments to pass to the DPR cluster.
-    # See: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md
-    dpr_tuning = {
-        "worker_extra_pod_config": {
-            "affinity": {
-                "nodeAffinity": {
-                    "requiredDuringSchedulingIgnoredDuringExecution": {
-                        "nodeSelectorTerms": [
-                            {
-                                "matchExpressions": [
-                                    {
-                                        "key": "node-role.kubernetes.io/access_csc",
-                                        "operator": "Exists",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                },
-            },
-            "tolerations": [
-                {
-                    "key": "role",
-                    "operator": "Equal",
-                    "value": "access_csc",
-                    "effect": "NoSchedule",
-                },
-            ],
-        },
-        "scheduler_extra_pod_config": {
-            "affinity": {
-                "nodeAffinity": {
-                    "requiredDuringSchedulingIgnoredDuringExecution": {
-                        "nodeSelectorTerms": [
-                            {
-                                "matchExpressions": [
-                                    {
-                                        "key": "node-role.kubernetes.io/access_csc",
-                                        "operator": "Exists",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                },
-            },
-            "tolerations": [
-                {
-                    "key": "role",
-                    "operator": "Equal",
-                    "value": "access_csc",
-                    "effect": "NoSchedule",
-                },
-            ],
-        },
-    }
+    # Timeout to make sure we don't get stuck in an infinite loop
+    timout_time = time.time() + timeout
 
-    dask_gateway_staging, dask_cluster_staging, dask_client_staging = init_dask_cluster(
-        (
-            os.environ["DASK_GATEWAY_ADDRESS"]
-            if cluster_mode
-            else os.environ["DASK_GATEWAY_STAGING_ADDRESS"]
-        ),
-        (
-            os.environ["DASK_GATEWAY_PUBLIC"]
-            if cluster_mode
-            else os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
-        ),
-        scale,
-        image=image,
-        cluster_label=cluster_label,
-        *args,
-        **(dpr_tuning | kwargs),  # set default DPR tuning
+    # Call the subprocess with the correct environment
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dask_cluster_staging_process = await asyncio.create_subprocess_exec(
+        "/opt/venv/dask-staging/bin/python",
+        f"{dir_path}/init_dask_cluster_staging.py",
+        "--scale",
+        str(scale),
+        "--image",
+        image,
+        "--cluster-label",
+        cluster_label,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
+
+    output = error = None
+    full_error = ""
+    # Wait for the message from the script signaling that the cluster is ready
+    while not output or "Dask cluster initialized" not in output.decode():
+
+        # Read an output line or pass if there is none yet
+        try:
+            output = await asyncio.wait_for(
+                dask_cluster_staging_process.stdout.readline(),
+                timeout=1,
+            )
+            print(output.decode(), end="")
+        except asyncio.TimeoutError:
+            pass
+
+        # Read an error line or pass if there is none yet
+        try:
+            error = await asyncio.wait_for(
+                dask_cluster_staging_process.stderr.readline(),
+                timeout=1,
+            )
+            full_error += error.decode()
+        except asyncio.TimeoutError:
+            pass
+
+        # If error contains "Error", raise an error. Sometimes only warnings are printed in stderr that's why we check the keyword "Error"
+        if error and "Error" in error.decode():
+            print("=== AN ERROR OCCURRED ===")
+            print(full_error)
+            dask_cluster_staging_process.kill()
+            dask_cluster_staging_process = None
+            raise RuntimeError(
+                f"Error initializing staging dask cluster: {error.decode()}",
+            )
+
+        # Stop if we reach the timeout
+        if time.time() > timout_time:
+            print("=== TIMEOUT REACHED - ERROR OUTPUT ===")
+            print(full_error)
+            dask_cluster_staging_process.kill()
+            dask_cluster_staging_process = None
+            raise TimeoutError(
+                f"Timeout: staging dask cluster did not initialize after {timeout} seconds.",
+            )
 
 
 def init_dask_cluster_eopf(
@@ -401,7 +396,11 @@ def init_dask_cluster_eopf(
 
 def init_dask_cluster_mockup(
     *args,
-    image="ghcr.io/rs-python/dask/mockup:latest",
+    image=(
+        "ghcr.io/rs-python/dask/mockup/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/mockup/k8s:latest"
+    ),
     cluster_label="dask-eopf-mockup",
     **kwargs,
 ):
@@ -417,7 +416,11 @@ def init_dask_cluster_mockup(
 
 def init_dask_cluster_l0(
     *args,
-    image="ghcr.io/rs-python/dask/l0:latest",
+    image=(
+        "ghcr.io/rs-python/dask/l0/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/l0/k8s:latest"
+    ),
     cluster_label="dask-l0",
     **kwargs,
 ):
@@ -433,7 +436,11 @@ def init_dask_cluster_l0(
 
 def init_dask_cluster_s1ard(
     *args,
-    image="ghcr.io/rs-python/dask/s1ard:latest",
+    image=(
+        "ghcr.io/rs-python/dask/s1ard/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/s1ard/k8s:latest"
+    ),
     cluster_label="dask-s1ard",
     **kwargs,
 ):
@@ -470,26 +477,32 @@ def get_existing_cluster(
 
 def close_dask_clusters():
     """Close dask gateway, cluster and client python objects."""
-    global dask_client_staging, dask_client_eopf, dask_cluster_staging, dask_cluster_eopf, dask_gateway_staging, dask_gateway_eopf
+    global dask_client_eopf, dask_cluster_eopf, dask_gateway_eopf
 
     # First client, then cluster, then gateway
     for obj in (
-        dask_client_staging,
         dask_client_eopf,
-        dask_cluster_staging,
         dask_cluster_eopf,
-        dask_gateway_staging,
         dask_gateway_eopf,
     ):
         if obj:
             obj.close()
 
-    dask_client_staging = None
     dask_client_eopf = None
-    dask_cluster_staging = None
     dask_cluster_eopf = None
-    dask_gateway_staging = None
     dask_gateway_eopf = None
+
+
+def shutdown_dask_cluster_staging():
+    """Shutdown the staging dask cluster by killing the subprocess."""
+    global dask_cluster_staging_process
+
+    if dask_cluster_staging_process:
+        # Send STOP signal to subprocess to stop the staging cluster
+        dask_cluster_staging_process.stdin.write(b"STOP\n")
+        dask_cluster_staging_process.stdin.flush()
+        dask_cluster_staging_process.wait()
+        dask_cluster_staging_process = None
 
 
 def shutdown_dask_clusters(gateway: Gateway, name: str | None):
