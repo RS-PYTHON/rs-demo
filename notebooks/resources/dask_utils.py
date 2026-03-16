@@ -365,6 +365,8 @@ def init_dask_cluster_eopf(
     if local_mode:
         os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[local_mode_address]
         os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[local_mode_address_public]
+        # Refresh Prefect blocks so flow workers read the gateway selected in the notebook.
+        utils.init_prefect_blocks(_sync=True)
 
     # Add the owner id to the label
     final_label = cluster_label + f".{utils.OWNER_ID}"
