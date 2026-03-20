@@ -22,6 +22,24 @@ services:
   # RS-SERVER #
   #############
 
+  # Redirections to all rs-server services
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - 8000:80
+    depends_on:
+      - rs-server-frontend
+      - rs-server-adgs
+      - rs-server-cadip
+      - rs-server-prip
+      - rs-server-edrs
+      - rs-server-catalog
+      - rs-server-staging
+      - rs-dpr-service
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
   # NOTE: It is included only to display the aggregated endpoints; they are not functional in
   # this docker compose setup.
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/frontend/.github/Dockerfile
@@ -536,23 +554,6 @@ services:
       SB_catalogUrl: http://127.0.0.1:8006/edrs
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
-
-  rs-local-gateway:
-    image: nginx:alpine
-    container_name: rs-local-gateway
-    ports:
-      - 8000:80
-    depends_on:
-      - rs-server-frontend
-      - rs-server-adgs
-      - rs-server-cadip
-      - rs-server-prip
-      - rs-server-edrs
-      - rs-server-catalog
-      - rs-server-staging
-      - rs-dpr-service
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
   ###########
   # PREFECT #
