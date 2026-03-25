@@ -33,7 +33,6 @@ services:
       - rs-server-adgs
       - rs-server-cadip
       - rs-server-prip
-      - rs-server-edrs
       - rs-server-catalog
       - rs-server-staging
       - rs-dpr-service
@@ -135,41 +134,6 @@ services:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
 
-  # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/edrs/.github/Dockerfile
-  rs-server-edrs:
-    image: ghcr.io/rs-python/rs-server-edrs:latest
-    container_name: rs-server-edrs
-    ports:
-      - 8006:8000
-    depends_on:
-      - rspy-pre-actions
-      - seaweedfs-s3
-      - edrs-station
-    env_file:
-      - .env
-    environment:
-      CORS_ORIGINS: http://localhost:8106
-      EDRS_STATIONS_CONFIG_YAML: ${EDRS_STATION_CONFIG}
-      USE_SSL: True
-      # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
-      # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
-      # RSPY_OAUTH2_ATTRIBUTES: "monthly-download-volume-limit-gb"
-      # # OAuth2 authentication
-      # OIDC_ENDPOINT: https://iam.dev-rspy-ovh.esa-copernicus.eu
-      # OIDC_REALM: rspy
-      # OIDC_CLIENT_ID: apikeymanager
-      # OIDC_CLIENT_SECRET: xxx # DON'T SAVE THIS VALUE IN GIT !
-      # RSPY_COOKIE_SECRET: secret
-      # RSPY__TOKEN__xxx # from the k8s pod, replace http://mockup-station-cadip...:8080 by  http://cadip-station:5000
-    volumes:
-      - rspy_working_dir:${RSPY_WORKING_DIR} # docker named volume
-      - ./config/edrs_stations.yaml:${EDRS_STATION_CONFIG}
-      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
-      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
-      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
-      #- ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      #- ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
-
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
     container_name: rs-server-catalog
@@ -259,22 +223,6 @@ services:
       RSPY_TIME_BEFORE_REFRESH_TOKEN_EXPIRE: 60
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
 
-      PEDC_HOST: edrs-station
-      PEDC_PORT: 21
-      PEDC_USER: ${EDRS_FTP_USER}
-      PEDC_PASS: ${EDRS_FTP_PASS}
-      PEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
-      PEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
-      PEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
-      # similar values for now, use same ftp.
-      BEDC_HOST: edrs-station
-      BEDC_PORT: 21
-      BEDC_USER: ${EDRS_FTP_USER}
-      BEDC_PASS: ${EDRS_FTP_PASS}
-      BEDC_CLIENT_CRT: ${EDRS_CLIENT_CRT_PATH}
-      BEDC_CLIENT_KEY: ${EDRS_CLIENT_KEY_PATH}
-      BEDC_CA_CRT: ${EDRS_CA_CRT_PATH}
-
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
       # RSPY_OAUTH2_ATTRIBUTES: "monthly-download-volume-limit-gb"
@@ -296,9 +244,6 @@ services:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
-      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
-      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   rs-server-osam:
     image: ghcr.io/rs-python/rs-server-osam:latest
@@ -395,22 +340,6 @@ services:
       - 5003:5000
     # env_file:
     #   - .env # WARNING: does not work because it overrides env vars
-
-  edrs-station:
-    image: ghcr.io/rs-python/rs-testmeans_edrs-station-mock:latest
-    container_name: edrs-station
-    platform: linux/amd64
-    ports:
-      - "5005:21"
-      - "21100-21110:21100-21110"
-    environment:
-      FTP_USER: ${EDRS_FTP_USER}
-      FTP_PASS: ${EDRS_FTP_PASS}
-      USE_SSL: "TRUE"  # TLS enabled
-    volumes:
-      - ./certs/server.crt:/app/vsftpd/cert/server.crt:ro
-      - ./certs/server.key:/app/vsftpd/cert/server.key:ro
-      - ./certs/ca.crt:/app/vsftpd/cert/ca.crt:ro
 
   prip-station:
     image: ghcr.io/rs-python/rs-testmeans_prip-station-mock:latest
@@ -530,31 +459,6 @@ services:
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
 
-  # STAC browser on rs-server-edrs
-  stac-browser-edrs:
-    image: ghcr.io/rs-python/stac-browser:latest
-    container_name: stac-browser-edrs
-    ports:
-      - 8106:8080
-    depends_on:
-      - rs-server-edrs
-    env_file:
-      - .env
-    environment:
-      SB_authConfig: |
-            {
-              "type": "openIdConnect",
-              "openIdConnectUrl": "https://iam.dev-rspy-ovh.esa-copernicus.eu/realms/rspy/.well-known/openid-configuration",
-              "oidcConfig": {
-                "client_id": "fastapi_public"
-              }
-            }
-      SB_allowExternalAccess: false
-      SB_historyMode: history
-      SB_catalogUrl: http://127.0.0.1:8006/edrs
-      SB_detectLocaleFromBrowser: true
-      SB_socialSharing: email,bsky,mastodon
-
   ###########
   # PREFECT #
   ###########
@@ -629,11 +533,6 @@ services:
     image: ghcr.io/rs-python/dask/staging/local:latest
     ports:
       - 8701:8000
-    volumes:
-      # Each dask worker needs these files in order to securely connect to edrs.
-      - ./certs/client.crt:${EDRS_CLIENT_CRT_PATH}
-      - ./certs/client.key:${EDRS_CLIENT_KEY_PATH}
-      - ./certs/ca.crt:${EDRS_CA_CRT_PATH}
 
   dask-l0:
     image: ghcr.io/rs-python/dask/l0/local:latest
@@ -834,7 +733,6 @@ services:
       - rs-server-catalog
       - rs-server-prip
       - rs-server-staging
-      - rs-server-edrs
       - rs-dpr-service
       - adgs-station
       - cadip-station
