@@ -156,9 +156,16 @@ def init_dask_cluster_staging(
     existing = None
     if clusters:
 
-        # In local mode, just get the first existing cluster.
+        # In local mode, get the existing cluster with the expected cluster name.
         if local_mode:
-            existing = clusters[0].name
+            existing = next(
+                (
+                    report.name
+                    for report in clusters
+                    if report.options.get("cluster_name") == cluster_label
+                ),
+                None,
+            )
 
         # In cluster mode, also check the docker image name and cluster name
         else:
