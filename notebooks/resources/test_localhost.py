@@ -54,7 +54,6 @@ os.environ["RSPY_HOST_CADIP"] = "http://localhost:8002"
 os.environ["RSPY_HOST_CATALOG"] = "http://localhost:8003"
 os.environ["RSPY_HOST_STAGING"] = "http://localhost:8004"
 os.environ["RSPY_HOST_PRIP"] = "http://localhost:8005"
-os.environ["RSPY_HOST_EDRS"] = "http://localhost:8006"
 os.environ["RSPY_HOST_DPR_SERVICE"] = "http://localhost:6003"
 # s3 bucket
 os.environ["S3_ENDPOINT"] = "http://localhost:9100"

@@ -27,7 +27,6 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
           * <http://localhost:8002/docs> (cadip)
           * <http://localhost:8003/catalog/api.html> (catalog)
           * <http://localhost:8005/docs> (prip)
-          * <http://localhost:8006/docs> (edrs)
 
       * Prefect dashboard (orchestrator): <http://localhost:4200>
       * SeaweedFS s3 bucket: <http://localhost:9101/object-store/buckets> with:
