@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dask_gateway_local_ext import MyLocalClusterConfig
+from dask_gateway_local_ext import NamedLocalClusterConfig
 from dask_gateway_server.options import Options, String
 
 # Local docker-compose runs the gateway with the local unsafe backend.
 c.DaskGateway.backend_class = "dask_gateway_server.backends.local.UnsafeLocalBackend"
 # Use our custom config class so the local backend accepts cluster_name.
-c.LocalBackend.cluster_config_class = MyLocalClusterConfig
+c.LocalBackend.cluster_config_class = NamedLocalClusterConfig
 # Expose cluster_name as a valid option for gateway.new_cluster(...).
 c.Backend.cluster_options = Options(
     String("cluster_name", default="", label="Cluster Name"),
