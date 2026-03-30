@@ -16,7 +16,9 @@ from dask_gateway_server.backends.local import LocalClusterConfig
 from traitlets import Unicode
 
 
+# Extend the upstream local cluster config with a client-supplied name.
 class MyLocalClusterConfig(LocalClusterConfig):
+    # This allows the local backend to accept cluster_name in the config.
     cluster_name = Unicode(
         "",
         config=True,
