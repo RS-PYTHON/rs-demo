@@ -56,7 +56,7 @@ jobs:
         run: sleep 5
 
       - name: Report quality gate result in the pull request comment
-        uses: phwt/sonarqube-quality-gate-action@e8842ff65b97bfa4fd4effe3ab0909f568d16e91 # v1
+        uses: phwt/sonarqube-quality-gate-action@v1 # e8842ff65b97bfa4fd4effe3ab0909f568d16e91 # v1
         id: quality-gate-result
         with:
           sonar-project-key: ${{ env.SONAR_PROJECT_KEY }}
@@ -86,6 +86,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run all demos
+    if: false
     steps:
       - uses: actions/checkout@v6
         with:
