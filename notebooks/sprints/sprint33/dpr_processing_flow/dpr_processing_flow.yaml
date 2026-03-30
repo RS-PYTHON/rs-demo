@@ -41,4 +41,4 @@ deployments:
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
   work_pool: *prefect_work_pool_eopf
-  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_cadip_staging
+  entrypoint: ./rs_workflows/cadip_flow.py:on_demand_cadip_staging
