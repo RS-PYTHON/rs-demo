@@ -187,7 +187,7 @@ def init_dask_cluster_staging(
     # Else create one
     elif local_mode:
         printflush(f"Create new dask cluster")
-        cluster = gateway.new_cluster()
+        cluster = gateway.new_cluster(cluster_name=cluster_label)
 
     else:  # cluster_mode
         printflush(f"Create new dask cluster from docker image: {image!r}")
