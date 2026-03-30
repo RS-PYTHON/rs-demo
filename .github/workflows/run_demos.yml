@@ -100,7 +100,7 @@ jobs:
           ":information_source: This job checks that you have run \`pre-commit run --all-files\` in
           your local git repository before committing."
           >> $GITHUB_STEP_SUMMARY
-      - uses: pre-commit/action@v3.0.1
+      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
 
       - name: Log into Docker registry
         uses: docker/login-action@v3
