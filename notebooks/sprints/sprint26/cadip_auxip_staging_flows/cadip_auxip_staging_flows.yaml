@@ -27,7 +27,7 @@ definitions:
 deployments:
 - name: On-demand Cadip staging
   tags: ["demo", "sprint 26"]
-  entrypoint: ./rs_workflows/on_demand_processing.py:on_demand_cadip_staging
+  entrypoint: ./rs_workflows/cadip_flow.py:on_demand_cadip_staging
   work_pool: *my_work_pool
 
 - name: On-demand Auxip staging
