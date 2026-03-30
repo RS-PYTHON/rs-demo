@@ -86,7 +86,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run all demos
-    if: false
     steps:
       - uses: actions/checkout@v6
         with:
