@@ -77,12 +77,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - if: always()
-        run: >
-          echo "SonarCloud report:
-          https://sonarcloud.io/dashboard?id=${{ env.SONAR_PROJECT_KEY }}&branch=${{ github.ref_name }}"
-          >> $GITHUB_STEP_SUMMARY
-
   test:
     runs-on: ubuntu-latest
     name: Run all demos
