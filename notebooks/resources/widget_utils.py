@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ async def deploy_prefect(
     rs_workflows_parent = Path(rs_workflows.__path__[0]).parent.absolute()
 
     print(f"Read Prefect deployment file: {deploy_file!r}")
-    with open(deploy_file, "r", encoding="utf-8") as opened:
+    with open(deploy_file, encoding="utf-8") as opened:
         deploy_contents = yaml.safe_load(opened)
 
     # Read deployment info from yaml file

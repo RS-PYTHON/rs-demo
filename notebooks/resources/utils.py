@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -291,7 +291,7 @@ def stage_test_objects(
     nb_of_objects,
     collection_id=None,
     objects_are_files=True,
-    timestamp: Optional[DatetimeLike] = None,
+    timestamp: DatetimeLike | None = None,
 ) -> ItemCollection:
     """Stage several files from cadip or auxip into the STAC catalog and return it."""
 

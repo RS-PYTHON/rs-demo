@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -233,7 +233,7 @@ async def init_dask_cluster_staging(
                 timeout=1,
             )
             print(output.decode(), end="")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
 
         # Read an error line or pass if there is none yet
@@ -243,7 +243,7 @@ async def init_dask_cluster_staging(
                 timeout=1,
             )
             full_error += error.decode()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
 
         # If error contains "Error", raise an error. Sometimes only warnings are printed in stderr that's why we check the keyword "Error"
