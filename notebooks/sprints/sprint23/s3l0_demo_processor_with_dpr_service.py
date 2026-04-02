@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -244,7 +244,7 @@ def extract_module_and_processing_unit(payload_file: str):
     """Extract module and processing unit from the payload file."""
     logger = get_run_logger()
 
-    with open(os.path.join(THIS_DIR, "l0", "config", payload_file), "r") as file:
+    with open(os.path.join(THIS_DIR, "l0", "config", payload_file)) as file:
         payload = yaml.safe_load(file)
 
     workflow = payload.get("workflow", [])
@@ -359,7 +359,7 @@ async def config_file(
     # Read the payload file from the local config directory
     local_payload_path = os.path.join(THIS_DIR, "l0", "config", payload_file)
     try:
-        with open(local_payload_path, "r", encoding="utf-8") as f:
+        with open(local_payload_path, encoding="utf-8") as f:
             try:
                 payload = yaml.safe_load(f)
             except yaml.YAMLError as ye:
@@ -481,7 +481,7 @@ async def config_file(
         return False
 
     try:
-        with open(local_payload_path, "r", encoding="utf-8") as f:
+        with open(local_payload_path, encoding="utf-8") as f:
             payload_after = f.read()
         logger.info("Payload file AFTER config_file:\n" + payload_after)
     except Exception as e:
@@ -622,7 +622,7 @@ async def dpr_service(
 
         # Create the reports dir
         os.makedirs(report_dirname, exist_ok=True)
-        with open(payload_abs_path, "r") as payload_data:
+        with open(payload_abs_path) as payload_data:
             data = yaml.safe_load(payload_data)
 
         # Create cluster info from JUPYTERHUB_API_TOKEN env var (only in cluster mode) and Dask cluster label.

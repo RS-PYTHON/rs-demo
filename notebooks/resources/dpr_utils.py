@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -188,7 +188,7 @@ class DprDemo:
             )
             if local_log_file:
                 local_log_file = local_log_file[0]
-                with open(local_log_file, "r", encoding="utf-8") as openend:
+                with open(local_log_file, encoding="utf-8") as openend:
                     print(f"Log file {local_log_file!r}:\n{openend.read()}")
             else:
                 print(f"No processor log file was uploaded under: {local_report_dir!r}")
