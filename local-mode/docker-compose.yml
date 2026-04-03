@@ -549,6 +549,14 @@ services:
 
   dask-staging:
     image: ghcr.io/rs-python/dask/staging/local:latest
+    environment:
+      PYTHONPATH: /opt/rs-demo-ext
+    volumes:
+      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
+      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      -f /opt/rs-demo-ext/dask_gateway_config.py
     ports:
       - 8701:8000
 
