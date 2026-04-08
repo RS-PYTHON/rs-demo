@@ -1,4 +1,4 @@
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -85,11 +85,9 @@ S3:
     S03OLCCR0: 30000
     S03OLCCR1: 30000
     S03OLCL0_: 30000
-    S03OLCCR0: 30000
     S03SLSL0_: 30000
     S03SRCRL0: 30000
     S03ALTL0_: 30000
-    S03SRCRL0: 30000
     S03MWRL0_: 30000
     S03GNSL0_: 30000
     S03DORNAV: 30000

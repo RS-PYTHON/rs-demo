@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2025 Airbus, CS Group
+# Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ with conn.cursor() as cur:
         for u in urls:
             url = u[0]
             try:
-                with open(url, "r") as f:
+                with open(url) as f:
                     content = f.read()
                     # pgstac._db.query( # this does not work
                     cur.execute(

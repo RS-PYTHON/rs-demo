@@ -12,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-import time
+from dask_gateway_local_ext import NamedLocalClusterConfig
+from dask_gateway_server.options import Options, String
 
-from prefect import flow, get_run_logger
-from rs_common.prefect_utils import get_ip_address
-
-
-@flow(name="lazy-flow-deployment")
-def lazy_flow_deployment(flow_id: int, should_raise: bool):
-    logger = get_run_logger()
-    logger.info(f"Hello from flow B {flow_id} {get_ip_address()!r}")
-    sleep_time = random.randint(1, 10)
-    logger.info(f"Flow B {flow_id} will sleep {sleep_time} seconds")
-    time.sleep(sleep_time)
-    if should_raise:
-        raise RuntimeError(f"Flow B {flow_id} failed")
-    return
+# Local docker-compose runs the gateway with the local unsafe backend.
+c.DaskGateway.backend_class = "dask_gateway_server.backends.local.UnsafeLocalBackend"
+# Use our custom config class so the local backend accepts cluster_name.
+c.LocalBackend.cluster_config_class = NamedLocalClusterConfig
+# Expose cluster_name as a valid option for gateway.new_cluster(...).
+c.Backend.cluster_options = Options(
+    String("cluster_name", default="", label="Cluster Name"),
+)
