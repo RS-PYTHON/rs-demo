@@ -44,6 +44,7 @@ notebooks/sprints/sprint25/605_606_osam_s3_user_access_policy.ipynb
 notebooks/sprints/sprint29/test_s1_ard/test_s1_ard.ipynb
 notebooks/sprints/sprint30/test_s3_l0/test_s3_l0.ipynb
 notebooks/sprints/sprint31/test_s1_l0/test_s1_l0.ipynb
+notebooks/sprints/sprint35/test_s3_l1olci/test_s3_l1olci.ipynb
 
 # Ignore the prefect block notebook, the values inside must be completed before running it
 notebooks/sprints/sprint33/796_create_prefect_secret_block.ipynb

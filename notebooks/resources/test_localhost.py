@@ -72,5 +72,6 @@ os.environ["DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"] = os.environ[
 ]
 os.environ["DASK_GATEWAY_L0_ADDRESS"] = os.environ["DASK_GATEWAY_L0_PUBLIC"]
 os.environ["DASK_GATEWAY_S1ARD_ADDRESS"] = os.environ["DASK_GATEWAY_S1ARD_PUBLIC"]
+os.environ["DASK_GATEWAY_S3OLCI_ADDRESS"] = os.environ["DASK_GATEWAY_S3OLCI_PUBLIC"]
 
 os.environ["RSPY_OAUTH2_COOKIE"] = "dummy-cookie"
