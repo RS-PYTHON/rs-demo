@@ -580,6 +580,16 @@ services:
     ports:
       - 8704:8000
 
+  dask-s3olci:
+    image: ghcr.io/rs-python/dask/s3olci/local:latest
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+    ports:
+      - 8705:8000
+
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask/mockup/local:latest
     ports:
