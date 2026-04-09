@@ -214,8 +214,6 @@ services:
       - rs-server-osam
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
-    command: ["python", "-m", "uvicorn", "rs_server_staging.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     environment:
       DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       USE_SSL: True
@@ -245,8 +243,6 @@ services:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
-      - ./scripts:/scripts:ro
-      - ~/.s3cfg:/.s3cfg:ro
 
   rs-server-osam:
     image: ghcr.io/rs-python/rs-server-osam:latest
@@ -288,11 +284,6 @@ services:
       - postgres
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
-    command: ["python", "-m", "uvicorn", "rs_dpr_service.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-    volumes:
-      - ./scripts:/scripts:ro
-      - ~/.s3cfg:/.s3cfg:ro
     # environment:
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -320,8 +311,6 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
@@ -337,8 +326,6 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
@@ -359,8 +346,6 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
 
   ########
   # STAC #
@@ -478,15 +463,11 @@ services:
       - postgres
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
     environment:
       - PREFECT_API_URL=http://127.0.0.1:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
       - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     command: ["prefect", "server", "start"]
-    volumes:
-      - ./scripts:/scripts:ro
-      - ~/.s3cfg:/.s3cfg:ro
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import requests; assert requests.get('http://127.0.0.1:4200/api/health').ok\""]
       interval: 2s
@@ -499,11 +480,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
-    volumes:
-      - ./scripts:/scripts:ro
-      - ~/.s3cfg:/.s3cfg:ro
     deploy:
       mode: replicated
       replicas: 1
@@ -515,7 +492,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
     environment:
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
@@ -523,8 +499,6 @@ services:
       mode: replicated
       replicas: 1
     volumes:
-      - ./scripts:/scripts:ro
-      - ~/.s3cfg:/.s3cfg:ro
       - ./config/storage_configuration.json:/etc/storage_configuration.json
 
   prefect-worker-general:
@@ -534,11 +508,7 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
-    volumes:
-      - ./scripts:/scripts:ro
-      - ~/.s3cfg:/.s3cfg:ro
     deploy:
       mode: replicated
       replicas: 1
@@ -692,8 +662,6 @@ services:
       - seaweedfs-s3 # used to check manually the s3 bucket contents
     env_file:
       - .env
-    entrypoint: ["/bin/sh", "/scripts/prepare_s3_env_from_s3cfg.sh"]
-    command: ["start-notebook.sh"]
     environment:
       RSPY_HOST_USER: ${USER}
       # to import resources/ from the mounted volume below
@@ -712,7 +680,6 @@ services:
       - ../notebooks:/home/jovyan/notebooks
       - ./config/expiration_bucket.csv:${BUCKET_CONFIG_FILE_PATH}
       - ./scripts:/scripts # used by rs-demo/local-mode/run-notebooks.sh
-      - ~/.s3cfg:/.s3cfg:ro
 
   # Optional: test the api-key manager.
   # Uncomment these lines and add to the rs-server-xxx services:
