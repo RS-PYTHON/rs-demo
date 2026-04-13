@@ -28,7 +28,7 @@ general_configuration:
 workflow:
 
   - name: calibration
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: Calibration
     adfs:
       CONFIG: CONFIG
@@ -42,7 +42,7 @@ workflow:
       indices: [0,1,9,10,18,19,27,28,36,37,45,46]
 
   - name: reference_dem
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: ReferenceDEM
     inputs:
       slcs: calibration.slcs # Contains the input SLCs
@@ -54,7 +54,7 @@ workflow:
       spacing: { "x": 30, "y": 30 }
 
   - name: reference_geometry
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: ReferenceGeometry
     inputs:
       slcs: calibration.slcs # Contains the input SLCs
@@ -68,7 +68,7 @@ workflow:
       recompute: true
 
   - name: coregistration
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: Coregistration
     inputs:
       slcs: calibration.slcs # Contains the input SLCs
@@ -84,7 +84,7 @@ workflow:
       cslcs: cslcs
 
   - name: geocoding
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: Geocoding
     inputs:
       slcs: coregistration.slcs # Contains the input SLCs
@@ -98,7 +98,7 @@ workflow:
       recompute: true
 
   - name: mosaicking
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: Mosaicking
     inputs:
       gslcs: geocoding.gslcs # Contains the input SLCs

@@ -28,7 +28,7 @@ general_configuration:
 
 workflow:
   - name: calibration
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: Calibration
     adfs:
       CONFIG: CONFIG

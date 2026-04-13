@@ -28,7 +28,7 @@ general_configuration:
 
 workflow:
   - name: calibration
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: Calibration
     adfs:
       CONFIG: CONFIG
@@ -42,7 +42,7 @@ workflow:
       dynamic_working_directory: *dynamic_working_directory
 
   - name: reference_dem
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: ReferenceDEM
     inputs:
       slcs: calibration.slcs # Contains the input SLCs
@@ -55,7 +55,7 @@ workflow:
       chunks: { "x": 512, "y": 512 }
 
   - name: reference_geometry
-    module: s1_l12_rp.computing.ard_processing_units
+    module: s1_ard.computing.ard_processing_units
     processing_unit: ReferenceGeometry
     inputs:
       slcs: calibration.slcs # Contains the input SLCs
