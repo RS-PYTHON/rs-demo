@@ -456,6 +456,26 @@ def init_dask_cluster_s1ard(
     )
 
 
+def init_dask_cluster_s3olci(
+    *args,
+    image=(
+        "ghcr.io/rs-python/dask/s3olci/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/s3olci/k8s:latest"
+    ),
+    cluster_label="dask-s3olci",
+    **kwargs,
+):
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address="DASK_GATEWAY_S3OLCI_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_S3OLCI_PUBLIC",
+        image=image,
+        cluster_label=cluster_label,
+        **kwargs,
+    )
+
+
 def get_existing_cluster(
     address: str,
     name: str,

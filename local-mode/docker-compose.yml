@@ -182,6 +182,7 @@ services:
       PGDATABASE: ${PGSTAC_DB}
       POSTGRES_DB: ${PGSTAC_DB}
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
+      RSPY_DATA_LIFECYCLE_PERIOD: "10"
 
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -531,6 +532,14 @@ services:
 
   dask-staging:
     image: ghcr.io/rs-python/dask/staging/local:latest
+    environment:
+      PYTHONPATH: /opt/rs-demo-ext
+    volumes:
+      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
+      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      -f /opt/rs-demo-ext/dask_gateway_config.py
     ports:
       - 8701:8000
 
@@ -553,6 +562,16 @@ services:
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
     ports:
       - 8704:8000
+
+  dask-s3olci:
+    image: ghcr.io/rs-python/dask/s3olci/local:latest
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+    ports:
+      - 8705:8000
 
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask/mockup/local:latest
