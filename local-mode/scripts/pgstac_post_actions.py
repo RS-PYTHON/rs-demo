@@ -91,27 +91,32 @@ with conn.cursor() as cur:
 
     # Insert hardcoded queryables
     try:
-        cur.execute(
-            """
-            INSERT INTO queryables (name)
-            VALUES
-                ('eo:snow_cover'),
-                ('sat:absolute_orbit'),
-                ('sat:relative_orbit'),
-                ('processing:level'),
-                ('processing:facility'),
-                ('processing:datetime'),
-                ('processing:version'),
-                ('product:type'),
-                ('product:timeliness'),
-                ('product:timeliness_category'),
-                ('sar:instrument_mode'),
-                ('published'),
-                ('expires'),
-                ('unpublished')
-            ON CONFLICT DO NOTHING;
-            """,
-        )
+        for queryable in (
+            "eo:snow_cover",
+            "sat:absolute_orbit",
+            "sat:relative_orbit",
+            "processing:level",
+            "processing:facility",
+            "processing:datetime",
+            "processing:version",
+            "product:type",
+            "product:timeliness",
+            "product:timeliness_category",
+            "sar:instrument_mode",
+            "published",
+            "expires",
+            "unpublished",
+        ):
+            cur.execute(
+                """
+                INSERT INTO queryables (name)
+                SELECT %s
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM queryables WHERE name = %s
+                );
+                """,
+                (queryable, queryable),
+            )
         conn.commit()
 
     # Ignore duplicates
@@ -158,12 +163,13 @@ with conn.cursor() as cur:
         cur.execute(
             """
             INSERT INTO queryables (name, definition, property_path)
-            VALUES (
+            SELECT
                 'externalIds',
                 '{"title": "externalIds", "description": "externalIds", "type": "string"}',
                 'pgstac.external_ids_tokens(content->''properties''->''externalIds'')'
-            )
-            ON CONFLICT DO NOTHING;
+            WHERE NOT EXISTS (
+                SELECT 1 FROM queryables WHERE name = 'externalIds'
+            );
             """,
         )
         conn.commit()
