@@ -215,7 +215,6 @@ services:
       - rs-server-osam
     env_file:
       - .env
-      - ~/.s3cfg
     environment:
       DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       USE_SSL: True
@@ -286,7 +285,6 @@ services:
       - postgres
     env_file:
       - .env
-      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
     # environment:
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -314,8 +312,6 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
 
   # From: https://github.com/RS-PYTHON/rs-testmeans/blob/develop/src/CADIP/Dockerfile
   cadip-station:
@@ -331,8 +327,6 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
 
   lta-station:
     image: ghcr.io/rs-python/rs-testmeans_lta-station-mock:latest
@@ -353,8 +347,6 @@ services:
       # Token expiration settings
       RSPY_EXPIRES_IN: ${RSPY_EXPIRES_IN}
       RSPY_REFRESH_EXPIRES_IN: ${RSPY_REFRESH_EXPIRES_IN}
-    volumes:
-      - ~/.s3cfg:/.s3cfg
 
   ########
   # STAC #
@@ -472,7 +464,6 @@ services:
       - postgres
     env_file:
       - .env
-      - ~/.s3cfg # hack in local mode to use the s3cmd config file to access the cluster s3 bucket
     environment:
       - PREFECT_API_URL=http://127.0.0.1:4200/api
       - PREFECT_SERVER_API_HOST=0.0.0.0
@@ -490,7 +481,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
-      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
     deploy:
       mode: replicated
@@ -503,7 +493,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
-      - ~/.s3cfg
     environment:
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
@@ -520,7 +509,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
-      - ~/.s3cfg
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
     deploy:
       mode: replicated
