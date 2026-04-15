@@ -51,7 +51,6 @@ jobs:
 
       - name: Run all demos in local mode
         env:
-          S3CFG_OVH_BUCKET: ${{ secrets.S3CFG_OVH_BUCKET }}
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
           set -x
