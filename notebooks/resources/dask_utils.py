@@ -126,7 +126,8 @@ def init_dask_cluster(
                 (
                     report.name
                     for report in clusters
-                    if isinstance(report.options, dict) and report.options.get("cluster_name") == cluster_label
+                    if isinstance(report.options, dict)
+                    and report.options.get("cluster_name") == cluster_label
                 ),
                 None,
             )
