@@ -104,7 +104,8 @@ I/O:
           region_name: ${S3_REGION}
 
 # Any logging file(s) to load to the EOLogging facility
-logging: ../logging_config.yaml
+logging:
+  - ../logging_config.yaml
 
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
