@@ -16,37 +16,63 @@
 
 # This script is called by run-notebooks.sh to run all the notebooks from inside a docker container.
 
-set -euo pipefail
+set -uo pipefail
+# NOTE: -e is intentionally omitted at the top level so that individual notebook
+# failures don't abort the whole script. Each subshell uses its own set -e.
 
 # This script is run from the ci/cd
 export RSPY_FROM_CICD=1
 
-all_ok=
-all_errors=
 all_ignored=
+
+# Arrays to track background jobs: parallel pids and their notebook paths
+declare -a pids=()
+declare -a pid_notebooks=()
 
 # For each demo notebook, sorted by name
 for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*checkpoints*" | sort); do
-
-    _dirname="$(dirname $notebook)"
-    _filename="$(basename $notebook)"
-    _relative="$(realpath $notebook --relative-to $HOME)"
+    _dirname="$(dirname "$notebook")"
+    _filename="$(basename "$notebook")"
+    _relative="$(realpath "$notebook" --relative-to "$HOME")"
 
     # For testing. Keep this line commented in git.
     # if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
 
     # Ignore these notebooks
     if grep -q "$_relative" "/scripts/ignored-notebooks.txt"; then
-        all_ignored="${all_ignored:-}  - '$_relative'\n"
+        all_ignored="${all_ignored:-} - '$_relative'\n"
         continue
     fi
 
-    # Run the notebook in a new shell.
-    # In case of error, save the notebook path relative to the root project.
+    # Block until a slot is available (fewer than MAX_PARALLEL jobs running)
+    # wait_for_slot
+
+    # Run each notebook in a background subshell.
     # NOTE: you can add '--log-output' to view outputs.
-    (set -x && cd "$_dirname" && time papermill "$_filename" /tmp/out.ipynb) && \
-    all_ok="${all_ok:-}  - '$_relative'\n" || \
-    all_errors="${all_errors:-}  - '$_relative'\n"
+    (
+        set -e
+        set -x
+        cd "$_dirname"
+        time papermill "$_filename" /tmp/out_$(basename "$_dirname")_${_filename%.ipynb}.ipynb
+    ) &
+
+    pids+=($!)
+    pid_notebooks+=("$_relative")
+done
+
+# Wait for all background jobs and collect results
+all_ok=
+all_errors=
+
+for i in "${!pids[@]}"; do
+    pid="${pids[$i]}"
+    nb="${pid_notebooks[$i]}"
+
+    if wait "$pid"; then
+        all_ok="${all_ok:-} - '$nb'\n"
+    else
+        all_errors="${all_errors:-} - '$nb'\n"
+    fi
 done
 
 if [[ -n "$all_ok" ]]; then

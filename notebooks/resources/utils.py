@@ -52,6 +52,9 @@ from rs_common.prefect_utils import init_prefect_blocks, save_bucket_credentials
 Logging.level = logging.INFO
 logger = Logging.default(__name__)
 
+# Is this run from the CI/CD ?
+from_cicd: bool = os.getenv("RSPY_FROM_CICD") == "1"
+
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
 # This configuration is set in an environment variable.
@@ -88,8 +91,9 @@ if local_mode:
 
 OWNER_ID = os.environ["JUPYTERHUB_USER"] if cluster_mode else RSPY_HOST_USER
 
-# STAC catalog sample collection name
-TEST_COLLECTION: str = "my_test_collection"
+# STAC catalog sample collection name.
+# If run from the ci/cd, add the current process ID, to avoid conflicts on parallel notebooks (=run at the same time)
+TEST_COLLECTION: str = "my_test_collection" + (f"_{os.getpid()}" if from_cicd else "")
 
 # Define a search interval
 start_date = datetime(2000, 1, 1)
