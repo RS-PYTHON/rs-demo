@@ -342,7 +342,6 @@ On hybrid mode, we run the Jupyter notebooks locally, but they connect to the se
 
 * You have access to the RS-Server website: <https://rspy.ops.rs-python.eu/docs>
 * You have generated an API key from the RS-Server website.
-* You have saved the S3 bucket configuration in you local file: `~/.s3cfg`
 * Python is installed on your system.
 
 You also need the rs-client-libraries project:

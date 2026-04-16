@@ -30,13 +30,6 @@ COMPOSE_FILE="docker-compose-test-tag.yml"
 LOG_LINES=200
 
 #############################
-# S3 configuration
-#############################
-
-# Copy the s3cmd config file to be able to access the "real" s3 bucket
-echo "${S3CFG_OVH_BUCKET:-}" > ~/.s3cfg
-
-#############################
 # Checkout branch
 #############################
 
