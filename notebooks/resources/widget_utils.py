@@ -37,6 +37,7 @@ from prefect.client.orchestration import get_client
 from prefect.flows import Flow, State
 from resources import utils
 from rs_client.ogcapi.dpr_client import DprProcessor
+from rs_workflows.flow_utils import AdfType
 from rs_common import prefect_utils
 
 #
@@ -92,6 +93,16 @@ def get_pipeline_unit_radio():
         indent=False,
     )
 
+
+########################
+# Choose ADF type #
+########################
+
+adf_proc_radio = widgets.RadioButtons(
+    options=[(adf_type.name, adf_type.value) for adf_type in AdfType],
+    description="ADF type in this demo:",
+    indent=False,
+)
 
 ########################
 # Deploy Prefect flows #
