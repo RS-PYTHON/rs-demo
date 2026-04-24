@@ -77,6 +77,10 @@ services:
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/adgs_ws_config.yaml:${EODAG_ADGS_CONFIG}
+      - ./config/export_vars.py:/home/user/.config/export_vars.py
+      - ./scripts/entrypoint.sh:/home/user/.config/entrypoint.sh
+    entrypoint: ["/home/user/.config/entrypoint.sh"]
+    command: ["rs_server_adgs.fastapi.adgs_app:app"]
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/prip/.github/Dockerfile
   rs-server-prip:
@@ -105,6 +109,10 @@ services:
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/prip_ws_config.yaml:${EODAG_PRIP_CONFIG}
+      - ./config/export_vars.py:/home/user/.config/export_vars.py
+      - ./scripts/entrypoint.sh:/home/user/.config/entrypoint.sh
+    entrypoint: ["/home/user/.config/entrypoint.sh"]
+    command: ["rs_server_prip.fastapi.prip_app:app"]
 
   # From: https://github.com/RS-PYTHON/rs-server/blob/develop/services/cadip/.github/Dockerfile
   rs-server-cadip:
@@ -133,6 +141,10 @@ services:
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
+      - ./config/export_vars.py:/home/user/.config/export_vars.py
+      - ./scripts/entrypoint.sh:/home/user/.config/entrypoint.sh
+    entrypoint: ["/home/user/.config/entrypoint.sh"]
+    command: ["rs_server_cadip.fastapi.cadip_app:app"]
 
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest
