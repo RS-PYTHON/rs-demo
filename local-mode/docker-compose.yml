@@ -256,6 +256,10 @@ services:
       - ./config/staging.yaml:/etc/staging.yaml
       - ./config/openapi.json:/etc/openapi.json
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
+      - ./config/export_vars.py:/home/user/.config/export_vars.py
+      - ./scripts/entrypoint.sh:/home/user/.config/entrypoint.sh
+    entrypoint: ["/home/user/.config/entrypoint.sh"]
+    command: ["rs_server_staging.main:app"]
 
   rs-server-osam:
     image: ghcr.io/rs-python/rs-server-osam:latest
