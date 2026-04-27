@@ -68,7 +68,7 @@ def main():
             env_vars[env_key] = value
 
         if "domain" in station_data:
-            env_key = to_env_key(service, station, "DOMAIN", "VALUE")
+            env_key = to_env_key(service, station, "DOMAIN")
             env_vars[env_key] = station_data["domain"]
 
         trusted = station_data.get("trusteddomains", [])
