@@ -31,9 +31,4 @@ deployments:
   work_pool: *prefect_work_pool_eopf
   entrypoint: ./rs_workflows/adf_flow.py:adf_conversion
 
-- name: Auxip staging
-  version: "todo-version"
-  tags: ["adf", "sprint 35"]
-  work_pool: *prefect_work_pool_eopf
-  entrypoint: ./rs_workflows/auxip_flow.py:auxip_staging
 
