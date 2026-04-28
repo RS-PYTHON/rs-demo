@@ -21,6 +21,12 @@ general_configuration:
   triggering__wait_before_exit: 10
   triggering__use_default_filename: false
 
+external_modules:
+- name : l0.cadu_processing.cadu_store
+  nested : true
+- name : l0.s3.s3_cache_store
+  nested : true
+
 workflow:
 - name: s1_l0_processor
   # Activate or not this unit, if not active its outputs will not be available
@@ -38,6 +44,7 @@ workflow:
   adfs:
     osf: OSF
     fro: FRO
+    calibration: calibration
 
   parameters:
     streaming_mode: false
@@ -76,6 +83,17 @@ I/O:
 
   - id: FRO
     path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBPRE_20250612T021934_20250619T021933_0001.EOF
+    store_params:
+      # s3_secret_alias: s3_cluster # see secrets.json
+      storage_options:
+        key: ${S3_ACCESSKEY_CLUSTER}
+        secret: ${S3_SECRETKEY_CLUSTER}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT_CLUSTER}
+          region_name: ${S3_REGION_CLUSTER}
+
+  - id: calibration
+    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S1A_AUX_CAL_V20190228T092500_G20210104T141310.SAFE/S1A_AUX_CAL_V20190228T092500_G20210104T141310.SAFE
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:

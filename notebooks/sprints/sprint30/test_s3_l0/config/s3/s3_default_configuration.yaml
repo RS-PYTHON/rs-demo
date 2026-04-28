@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# NOTE: taken from https://gitlab.eopf.copernicus.eu/L0/validation/-/blob/238a291d0114c3dac7680ada752613d4871c5cbd/s3/configs/s3_default_configuration.yaml
+
 # =============================================================
 # L0 Processor Configuration File for Sentinel-3
 # =============================================================
