@@ -17,14 +17,38 @@ import sys
 
 import yaml
 
+# Prefix used for all generated environment variable keys
 PREFIX = "RSPY__TOKEN__"
 
 
 def to_env_key(*parts):
+    """
+    Build a standardized environment variable key.
+
+    Each part is uppercased and joined using double underscores,
+    and prefixed with a constant PREFIX.
+
+    Example:
+        to_env_key("service", "station1", "authentication", "username")
+        -> "RSPY__TOKEN__SERVICE__STATION1__AUTHENTICATION__USERNAME"
+
+    Args:
+        *parts (str): Components of the environment variable name.
+
+    Returns:
+        str: Formatted environment variable key.
+    """
     return PREFIX + "__".join(part.upper() for part in parts)
 
 
 def write_env_file(env_vars, path="local-mode/.env-external-data-sources"):
+    """
+    Write environment variables to .env-external-data-sources in local-mode/ .
+
+    Args:
+        env_vars (dict): Dictionary of environment variables (key -> value).
+        path (str): Output file path.
+    """
     with open(path, "w", encoding="utf-8") as f:
         for key, value in env_vars.items():
             if value:
@@ -32,6 +56,29 @@ def write_env_file(env_vars, path="local-mode/.env-external-data-sources"):
 
 
 def main():
+    """
+    Main entry point for the script.
+
+    This function:
+    1. Validates CLI arguments.
+    2. Loads a YAML configuration file.
+    3. Extracts external data source definitions.
+    4. Converts them into environment variables.
+    5. Writes them to .env-external-data-sources.
+
+    Expected YAML structure:
+        external_data_sources:
+            domain:
+                service:
+                    name: <service_name>
+                    ...
+                authentication:
+                    <key>: <value>
+                trusteddomains: [list]
+
+    Usage:
+        python generate_env_from_yaml.py <yaml_file>
+    """
     if len(sys.argv) != 2:
         print("Usage: generate_env_from_yaml.py <yaml_file>", file=sys.stderr)
         sys.exit(1)

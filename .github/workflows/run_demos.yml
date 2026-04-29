@@ -35,11 +35,11 @@ jobs:
           ref: ${{ case(github.event_name == 'pull_request', github.head_ref, '') }}
       - run: |
           set -x
-
+          # This script creates .env-external-data-sources in local-mode/
           python local-mode/scripts/export_vars.py local-mode/config/rs-server.yaml
 
           # Commit the file if it changed
-          to_commit=".env-external-data-sources"
+          to_commit="local-mode/.env-external-data-sources"
           if [[ -n $(git status -s $to_commit) ]]; then
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
