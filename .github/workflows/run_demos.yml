@@ -35,7 +35,7 @@ jobs:
       - run: |
           set -x
 
-          python local-mode/scripts/export_vars.py .config/rs-server.yaml
+          python local-mode/scripts/export_vars.py local-mode/config/rs-server.yaml
           while IFS= read -r line; do
             export "$line"
           done < .env-external-data-sources
