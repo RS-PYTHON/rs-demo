@@ -21,6 +21,7 @@ header:
   paths-ignore:
     - '**/*.csv'
     - '**/*.env'
+    - '**/*.env-external-data-sources'
     - '**/*.json'
     - '**/*.lock'
     - '**/*.md'
