@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +24,7 @@ def to_env_key(*parts):
     return PREFIX + "__".join(part.upper() for part in parts)
 
 
-def write_env_file(env_vars, path=".env-external-data-sources"):
+def write_env_file(env_vars, path="local-mode/.env-external-data-sources"):
     with open(path, "w", encoding="utf-8") as f:
         for key, value in env_vars.items():
             if value:

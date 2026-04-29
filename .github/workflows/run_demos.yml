@@ -38,7 +38,7 @@ jobs:
           python local-mode/scripts/export_vars.py local-mode/config/rs-server.yaml
           while IFS= read -r line; do
             export "$line"
-          done < .env-external-data-sources
+          done < local-mode/.env-external-data-sources
 
           # Commit the file if it changed
           to_commit=".env-external-data-sources"
