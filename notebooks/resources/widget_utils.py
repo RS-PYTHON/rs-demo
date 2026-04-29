@@ -37,8 +37,8 @@ from prefect.client.orchestration import get_client
 from prefect.flows import Flow, State
 from resources import utils
 from rs_client.ogcapi.dpr_client import DprProcessor
-from rs_workflows.flow_utils import AdfType
 from rs_common import prefect_utils
+from rs_workflows.flow_utils import AdfType
 
 #
 # Jupyter doc: https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20List.html

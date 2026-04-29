@@ -30,5 +30,3 @@ deployments:
   tags: ["adf", "on-demand"]
   work_pool: *prefect_work_pool_eopf
   entrypoint: ./rs_workflows/adf_flow.py:adf_conversion
-
-
