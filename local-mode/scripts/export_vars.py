@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This script converts a YAML configuration describing external data sources
+into a `.env` file containing environment variables.
+
+It is run by build-env-external-data-sources job from rs-demo/.github/workflows/run_demos.yml
+"""
 
 import sys
 
