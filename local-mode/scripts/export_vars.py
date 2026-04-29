@@ -25,7 +25,7 @@ def to_env_key(*parts):
     return PREFIX + "__".join(part.upper() for part in parts)
 
 
-def write_env_file(env_vars, path=".env2"):
+def write_env_file(env_vars, path=".env-external-data-sources"):
     with open(path, "w", encoding="utf-8") as f:
         for key, value in env_vars.items():
             if value:
