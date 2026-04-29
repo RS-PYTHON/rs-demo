@@ -28,8 +28,9 @@ if [[ -z "$tag" || "$tag" == "-h" || "$tag" == "--help" ]]; then
     exit 1
 fi
 
-# Replace special characters by -
-tag=$(sed "s/[^a-zA-Z0-9]/-/g" <<< "$tag")
+# Only alphanumeric characters, . - and _ are allowed in docker image tags.
+# Replace other characters by -
+tag=$(sed "s/[^a-zA-Z0-9\.\-\_]/-/g" <<< "$tag")
 
 # Manual login to our container registry (only from a terminal)
 [[ -t 1 ]] && docker login https://ghcr.io/v2/rs-python
