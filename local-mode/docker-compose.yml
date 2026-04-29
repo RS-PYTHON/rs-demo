@@ -136,7 +136,6 @@ services:
     volumes:
       - ./config/rs-server.yaml:/home/user/.config/rs-server.yaml # auth to external stations
       - ./config/cadip_ws_config.yaml:${EODAG_CADIP_CONFIG}
-      - ./config/export_vars.py:/home/user/.config/export_vars.py
 
   rs-server-catalog:
     image: ghcr.io/rs-python/rs-server-catalog:latest

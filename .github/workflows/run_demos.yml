@@ -31,14 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          # Checkout branch not pr (needed by git push)
           ref: ${{ case(github.event_name == 'pull_request', github.head_ref, '') }}
       - run: |
           set -x
 
           python local-mode/scripts/export_vars.py local-mode/config/rs-server.yaml
-          while IFS= read -r line; do
-            export "$line"
-          done < local-mode/.env-external-data-sources
 
           # Commit the file if it changed
           to_commit=".env-external-data-sources"
