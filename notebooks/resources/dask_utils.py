@@ -424,6 +424,22 @@ def init_dask_cluster_mockup(
     )
 
 
+def init_dask_cluster_cpm(
+    *args,
+    image=("ghcr.io/rs-python/dask/cpm/k8s:latest"),
+    cluster_label="dask-cpm",
+    **kwargs,
+):
+    return init_dask_cluster_eopf(
+        *args,
+        local_mode_address=None,
+        local_mode_address_public=None,
+        image=image,
+        cluster_label=cluster_label,
+        **kwargs,
+    )
+
+
 def init_dask_cluster_l0(
     *args,
     image=(
