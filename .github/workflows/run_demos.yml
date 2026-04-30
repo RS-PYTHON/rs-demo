@@ -23,9 +23,35 @@ env:
   DOCKER_REGISTRY: ghcr.io
 
 jobs:
+  build-env-external-data-sources:
+    name: Build env for external data sources
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Checkout branch not pr (needed by git push)
+          ref: ${{ case(github.event_name == 'pull_request', github.head_ref, '') }}
+      - run: |
+          set -x
+          # This script creates .env-external-data-sources in local-mode/
+          python local-mode/scripts/export_vars.py local-mode/config/rs-server.yaml
+
+          # Commit the file if it changed
+          to_commit="local-mode/.env-external-data-sources"
+          if [[ -n $(git status -s $to_commit) ]]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add $to_commit
+            git commit -m "Updated env for external data sources"
+            git push
+          fi
+
   test:
     runs-on: ubuntu-latest
     name: Run all demos
+    needs: build-env-external-data-sources
     steps:
       - uses: actions/checkout@v6
         with:

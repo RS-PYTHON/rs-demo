@@ -62,6 +62,7 @@ services:
       - adgs-station
     env_file:
       - .env
+      - .env-external-data-sources
     environment:
       CORS_ORIGINS: 'http://localhost:8101'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
@@ -90,6 +91,7 @@ services:
       - prip-station
     env_file:
       - .env
+      - .env-external-data-sources
     environment:
       CORS_ORIGINS: 'http://localhost:8105'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
@@ -118,6 +120,7 @@ services:
       - cadip-station
     env_file:
       - .env
+      - .env-external-data-sources
     environment:
       CORS_ORIGINS: 'http://localhost:8102'
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
@@ -215,6 +218,7 @@ services:
       - rs-server-osam
     env_file:
       - .env
+      - .env-external-data-sources
     environment:
       DASK_GATEWAY_ADDRESS: ${DASK_GATEWAY_STAGING_ADDRESS}
       USE_SSL: True
