@@ -49,3 +49,6 @@ notebooks/sprints/sprint35/test_s3_l1olci/test_s3_l1olci.ipynb
 
 # Ignore the prefect block notebook, the values inside must be completed before running it
 notebooks/sprints/sprint33/796_create_prefect_secret_block.ipynb
+
+# Ignore the adf conversion, the script runs only with real inputs
+notebooks/sprints/sprint36/adf_conversion_flow/adf_conversion_flow.ipynb
