@@ -28,8 +28,9 @@ if [[ -z "$tag" || "$tag" == "-h" || "$tag" == "--help" ]]; then
     exit 1
 fi
 
-# Replace special characters by -
-tag=$(sed "s/[^a-zA-Z0-9]/-/g" <<< "$tag")
+# Only alphanumeric characters, . - and _ are allowed in docker image tags.
+# Replace other characters by -
+tag=$(sed "s/[^a-zA-Z0-9\.\-\_]/-/g" <<< "$tag")
 
 # Manual login to our container registry (only from a terminal)
 [[ -t 1 ]] && docker login https://ghcr.io/v2/rs-python
@@ -64,7 +65,7 @@ while IFS= read -r old_image ; do
         # If yes, use it in the docker-compose file
         if [[ "$error" == 0 ]]; then
             echo "Use new '$new_image'"
-            sed -i "s|$old_image|$new_image|g" "$dc_file"
+            sed -i "s|${old_image}\s*$|$new_image|g" "$dc_file"
 
         # If not found, use the default tag
         elif [[ "$error_message" == "manifest unknown" ]]; then
