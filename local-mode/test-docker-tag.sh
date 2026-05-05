@@ -65,7 +65,7 @@ while IFS= read -r old_image ; do
         # If yes, use it in the docker-compose file
         if [[ "$error" == 0 ]]; then
             echo "Use new '$new_image'"
-            sed -i "s|$old_image|$new_image|g" "$dc_file"
+            sed -i "s|${old_image}\s*$|$new_image|g" "$dc_file"
 
         # If not found, use the default tag
         elif [[ "$error_message" == "manifest unknown" ]]; then
