@@ -41,10 +41,25 @@ notebooks/sprints/sprint24/100_deployments/100_flows_with_deployments.ipynb
 notebooks/sprints/sprint24/604_s3_rights.ipynb
 notebooks/sprints/sprint25/605_606_osam_s3_user_access_policy.ipynb
 
+notebooks/sprints/sprint27/init_pi_db_flow.ipynb
+notebooks/sprints/sprint27/record_flow.ipynb
+notebooks/sprints/sprint28/324_761_prip_search_staging.ipynb
+notebooks/sprints/sprint30/eopf_origin_datetime.ipynb
+notebooks/sprints/sprint30/rspy_834_temporal_filters_in_cadip_server.ipynb
+
 # These should be run in the cluster only
 notebooks/sprints/sprint29/test_s1_ard/test_s1_ard.ipynb
 notebooks/sprints/sprint30/test_s3_l0/test_s3_l0.ipynb
 notebooks/sprints/sprint31/test_s1_l0/test_s1_l0.ipynb
+notebooks/sprints/sprint31/prefect_block_env_vars.ipynb
+notebooks/sprints/sprint32/dpr_processing_flow/.ipynb_checkpoints/dpr_processing_flow-checkpoint.ipynb
+notebooks/sprints/sprint32/read_keycloak_quota.ipynb
+notebooks/sprints/sprint32/rspy79_patch_endpoint_in_catalog.ipynb
+
+notebooks/sprints/sprint33/dpr_processing_flow/dpr_processing_flow.ipynb
+notebooks/sprints/sprint33/.ipynb_checkpoints/796_create_prefect_secret_block-checkpoint.ipynb
+notebooks/sprints/sprint33/.ipynb_checkpoints/906_search_extrenalIds-checkpoint.ipynb
+notebooks/sprints/sprint33/906_search_extrenalIds.ipynb
 notebooks/sprints/sprint35/test_s3_l1olci/test_s3_l1olci.ipynb
 
 # Ignore the prefect block notebook, the values inside must be completed before running it
