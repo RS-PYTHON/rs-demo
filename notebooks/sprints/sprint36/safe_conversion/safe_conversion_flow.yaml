@@ -17,7 +17,7 @@ prefect-version: "3"
 pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/RS-PYTHON/rs-client-libraries.git
-    branch: develop # should be 'develop' in git
+    branch: feat-rspy1041/on-demand-safe-conversion # should be 'develop' in git
 
 definitions:
     work_pools:
@@ -25,7 +25,7 @@ definitions:
             name: "{{ PREFECT_WORK_POOL_EOPF }}"
 
 deployments:
-- name: ADF conversion
+- name: SAFE conversion
   version: "todo-version"
   tags: ["adf", "on-demand"]
   work_pool: *prefect_work_pool_eopf
