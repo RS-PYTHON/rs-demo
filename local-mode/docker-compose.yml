@@ -281,7 +281,9 @@ services:
   # image: ghcr.io/rs-python/dask/l0/localcluster
   # image: ghcr.io/rs-python/dask/s1ard/localcluster
   rs-dpr-service:
-    image: ghcr.io/rs-python/rs-dpr-service:latest
+    # Use rs-dpr-service with python 3.11 and dask 2024.5.2 because it is compatible with
+    # the mockup DPR processor, which is the only processor used in the demos.
+    image: ghcr.io/rs-python/rs-dpr-service_py3.11.7-2024.5.2:latest
     container_name: rs-dpr-service
     ports:
       - 6003:8000
