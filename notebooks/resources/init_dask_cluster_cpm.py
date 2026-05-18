@@ -40,7 +40,9 @@ def get_dask_gateway(address: str) -> Gateway:
         try:
             auth = JupyterHubAuth(os.environ["JUPYTERHUB_API_TOKEN"])
         except KeyError as error:
-            raise KeyError("JUPYTERHUB_API_TOKEN environment variable is missing") from error
+            raise KeyError(
+                "JUPYTERHUB_API_TOKEN environment variable is missing",
+            ) from error
     else:
         auth = BasicAuth(
             os.environ["LOCAL_DASK_USERNAME"],
@@ -116,8 +118,16 @@ def init_dask_cluster_cpm(
         "scheduler_extra_pod_config": scheduler_tuning,
     }
 
-    address = os.environ["DASK_GATEWAY_ADDRESS"] if cluster_mode else os.environ["DASK_GATEWAY_CPM_ADDRESS"]
-    public_domain = os.environ["DASK_GATEWAY_PUBLIC"] if cluster_mode else os.environ["DASK_GATEWAY_CPM_PUBLIC"]
+    address = (
+        os.environ["DASK_GATEWAY_ADDRESS"]
+        if cluster_mode
+        else os.environ["DASK_GATEWAY_CPM_ADDRESS"]
+    )
+    public_domain = (
+        os.environ["DASK_GATEWAY_PUBLIC"]
+        if cluster_mode
+        else os.environ["DASK_GATEWAY_CPM_PUBLIC"]
+    )
 
     printflush(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
     gateway = get_dask_gateway(address)
@@ -135,7 +145,8 @@ def init_dask_cluster_cpm(
                 (
                     report.name
                     for report in clusters
-                    if isinstance(report.options, dict) and report.options.get("cluster_name") == cluster_label
+                    if isinstance(report.options, dict)
+                    and report.options.get("cluster_name") == cluster_label
                 ),
                 None,
             )
@@ -144,7 +155,8 @@ def init_dask_cluster_cpm(
                 (
                     report.name
                     for report in clusters
-                    if report.options.get("image") == image and report.options.get("cluster_name") == cluster_label
+                    if report.options.get("image") == image
+                    and report.options.get("cluster_name") == cluster_label
                 ),
                 None,
             )
@@ -175,7 +187,9 @@ def init_dask_cluster_cpm(
         )
 
     printflush(f"Dask cluster name: {cluster.name}")
-    printflush(f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(address, public_domain)}")
+    printflush(
+        f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(address, public_domain)}",
+    )
 
     gateway.scale_cluster(cluster.name, scale)
     client = cluster.get_client()
@@ -188,7 +202,9 @@ def init_dask_cluster_cpm(
             break
         tries += 1
         if tries >= float("inf"):
-            raise TimeoutError(f"Error waiting for all Dask workers for {cluster_label!r} to be up: {scaled}/{scale}")
+            raise TimeoutError(
+                f"Error waiting for all Dask workers for {cluster_label!r} to be up: {scaled}/{scale}",
+            )
         time.sleep(5)
 
     return cluster.name
@@ -197,14 +213,24 @@ def init_dask_cluster_cpm(
 def main():
     """Initialize the CPM dask cluster and keep it alive until STOP."""
     parser = argparse.ArgumentParser(description="Initialize dask-cpm cluster")
-    parser.add_argument("--scale", type=int, default=1, help="Number of dask workers to create")
+    parser.add_argument(
+        "--scale",
+        type=int,
+        default=1,
+        help="Number of dask workers to create",
+    )
     parser.add_argument(
         "--image",
         type=str,
         default="ghcr.io/rs-python/dask/cpm/k8s:latest",
         help="Docker image name to use for the workers",
     )
-    parser.add_argument("--cluster-label", type=str, default="dask-cpm", help="Custom cluster label")
+    parser.add_argument(
+        "--cluster-label",
+        type=str,
+        default="dask-cpm",
+        help="Custom cluster label",
+    )
     args = parser.parse_args()
 
     printflush("Initializing dask-cpm cluster. This can take some time...")
