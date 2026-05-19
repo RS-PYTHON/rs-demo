@@ -426,7 +426,7 @@ def init_dask_cluster_mockup(
 
 def init_dask_cluster_cpm(
     *args,
-    image=("ghcr.io/rs-python/dask/cpm/k8s:latest"),
+    image=("ghcr.io/rs-python/dask/cpm2/k8s:latest"),
     cluster_label="dask-cpm",
     **kwargs,
 ):
