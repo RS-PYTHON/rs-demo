@@ -25,7 +25,7 @@ definitions:
             name: "{{ PREFECT_WORK_POOL_EOPF }}"
 
 deployments:
-- name: ADF conversion
+- name: Convert Adf
   version: "todo-version"
   tags: ["adf", "on-demand"]
   work_pool: *prefect_work_pool_eopf
