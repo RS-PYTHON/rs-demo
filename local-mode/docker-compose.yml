@@ -790,6 +790,7 @@ services:
   cicd: # all needed services for the ci/cd demos
     image: bash:latest
     depends_on:
+      - nginx
       - rs-server-adgs
       - rs-server-cadip
       - rs-server-catalog
