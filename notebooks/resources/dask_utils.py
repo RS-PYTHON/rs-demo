@@ -18,6 +18,7 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import asyncio
+import json
 import os
 import socket
 import subprocess
@@ -41,6 +42,7 @@ cluster_mode: bool = not local_mode
 
 # Dask gateways, clusters and clients
 dask_cluster_staging_process: asyncio.subprocess.Process = None
+dask_cluster_cpm_process: asyncio.subprocess.Process = None
 dask_gateway_eopf: Gateway = None
 dask_cluster_eopf: GatewayCluster = None
 dask_client_eopf: DaskClient = None
@@ -424,20 +426,159 @@ def init_dask_cluster_mockup(
     )
 
 
-def init_dask_cluster_cpm(
-    *args,
-    image=("ghcr.io/rs-python/dask/cpm2/k8s:latest"),
-    cluster_label="dask-cpm",
-    **kwargs,
+async def init_dask_cluster_cpm(
+    scale: int,
+    image: str = (
+        "ghcr.io/rs-python/dask/cpm2/local:local"
+        if local_mode
+        else "ghcr.io/rs-python/dask/cpm/k8s:latest"
+    ),
+    cluster_label: str = "dask-cpm",
+    timeout: int = 600,
 ):
-    return init_dask_cluster_eopf(
-        *args,
-        local_mode_address=None,
-        local_mode_address_public=None,
-        image=image,
-        cluster_label=cluster_label,
-        **kwargs,
+    """Init existing CPM dask cluster or create one with the CPM Dask environment."""
+    global dask_cluster_cpm_process, cluster_info_eopf
+
+    timeout_time = time.time() + timeout
+
+    if local_mode:
+        os.environ["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_CPM_ADDRESS"]
+        os.environ["DASK_GATEWAY_PUBLIC"] = os.environ["DASK_GATEWAY_CPM_PUBLIC"]
+        utils.init_prefect_blocks(_sync=True)
+
+    final_label = cluster_label + f".{utils.OWNER_ID}"
+    if len(splits := image.split(":")) > 1:
+        final_label += f".{splits[-1]}"
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dask_cluster_cpm_process = await asyncio.create_subprocess_exec(
+        "/opt/venv/dask-cpm/bin/python",
+        f"{dir_path}/init_dask_cluster_cpm.py",
+        "--scale",
+        str(scale),
+        "--image",
+        image,
+        "--cluster-label",
+        final_label,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
+
+    output = error = None
+    full_error = ""
+    cluster_instance = ""
+    while not output or "Dask cluster initialized" not in output.decode():
+        try:
+            output = await asyncio.wait_for(
+                dask_cluster_cpm_process.stdout.readline(),
+                timeout=1,
+            )
+            decoded_output = output.decode()
+            print(decoded_output, end="")
+            if decoded_output.startswith("Dask cluster name: "):
+                cluster_instance = decoded_output.split(": ", maxsplit=1)[1].strip()
+        except TimeoutError:
+            pass
+
+        try:
+            error = await asyncio.wait_for(
+                dask_cluster_cpm_process.stderr.readline(),
+                timeout=1,
+            )
+            full_error += error.decode()
+        except TimeoutError:
+            pass
+
+        if error and "Error" in error.decode():
+            print("=== AN ERROR OCCURRED ===")
+            print(full_error)
+            dask_cluster_cpm_process.kill()
+            dask_cluster_cpm_process = None
+            raise RuntimeError(f"Error initializing CPM dask cluster: {error.decode()}")
+
+        if time.time() > timeout_time:
+            print("=== TIMEOUT REACHED - ERROR OUTPUT ===")
+            print(full_error)
+            dask_cluster_cpm_process.kill()
+            dask_cluster_cpm_process = None
+            raise TimeoutError(
+                f"Timeout: CPM dask cluster did not initialize after {timeout} seconds.",
+            )
+
+    cluster_info_eopf = ClusterInfo(
+        jupyter_token=os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
+        cluster_label=final_label,
+        cluster_instance=cluster_instance,
+    )
+
+
+def submit_dask_cpm_task(task_source: str, task_name: str = "task"):
+    """Submit a small Python function to dask-cpm using the CPM Dask client environment."""
+    if not cluster_info_eopf:
+        raise RuntimeError(
+            "CPM cluster is not initialized. Run: await init_dask_cluster_cpm(scale=1)",
+        )
+
+    cfg = {
+        "cluster_instance": cluster_info_eopf.cluster_instance,
+        "local_mode": local_mode,
+        "jupyter_token": cluster_info_eopf.jupyter_token,
+        "task_source": task_source,
+        "task_name": task_name,
+    }
+
+    script = r"""
+import json
+import os
+import sys
+
+from dask_gateway import Gateway
+from dask_gateway.auth import BasicAuth, JupyterHubAuth
+
+cfg = json.loads(sys.argv[1])
+
+if cfg["local_mode"]:
+    address = os.environ["DASK_GATEWAY_CPM_ADDRESS"]
+    auth = BasicAuth(os.environ["LOCAL_DASK_USERNAME"], os.environ["LOCAL_DASK_PASSWORD"])
+else:
+    address = os.environ["DASK_GATEWAY_ADDRESS"]
+    auth = JupyterHubAuth(cfg["jupyter_token"])
+
+gateway = Gateway(address=address, auth=auth)
+cluster = gateway.connect(cfg["cluster_instance"])
+dask_client = cluster.get_client()
+
+def set_dask_env(host_env: dict):
+    for name in ["S3_ACCESSKEY", "S3_SECRETKEY", "S3_ENDPOINT", "S3_REGION"]:
+        if name in host_env:
+            os.environ[name] = host_env[name]
+
+dask_client.run(set_dask_env, os.environ)
+
+def make_runner():
+    def runner(task_source: str, task_name: str):
+        namespace = {}
+        exec(task_source, namespace)
+        return namespace[task_name]()
+    return runner
+
+future = dask_client.submit(make_runner(), cfg["task_source"], cfg["task_name"], pure=False)
+print(json.dumps(future.result()))
+dask_client.close()
+"""
+
+    result = subprocess.run(  # nosec B603
+        ["/opt/venv/dask-cpm/bin/python", "-c", script, json.dumps(cfg)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"CPM task failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}",
+        )
+    return json.loads(result.stdout)
 
 
 def init_dask_cluster_l0(
@@ -549,6 +690,18 @@ def shutdown_dask_cluster_staging():
         dask_cluster_staging_process.stdin.flush()
         dask_cluster_staging_process.wait()
         dask_cluster_staging_process = None
+
+
+def shutdown_dask_cluster_cpm():
+    """Shutdown the CPM dask cluster by killing the subprocess."""
+    global dask_cluster_cpm_process
+
+    if dask_cluster_cpm_process:
+        # Send STOP signal to subprocess to stop the CPM cluster
+        dask_cluster_cpm_process.stdin.write(b"STOP\n")
+        dask_cluster_cpm_process.stdin.flush()
+        dask_cluster_cpm_process.wait()
+        dask_cluster_cpm_process = None
 
 
 def shutdown_dask_clusters(gateway: Gateway, name: str | None):
