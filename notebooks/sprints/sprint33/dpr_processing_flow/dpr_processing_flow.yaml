@@ -25,19 +25,19 @@ definitions:
             name: "{{ PREFECT_WORK_POOL_EOPF }}"
 
 deployments:
-- name: DPR processing
+- name: Process Generic
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
   work_pool: *prefect_work_pool_eopf
   entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
 
-- name: Auxip staging
+- name: Stage Auxip
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
   work_pool: *prefect_work_pool_eopf
   entrypoint: ./rs_workflows/auxip_flow.py:auxip_staging
 
-- name: Cadip staging
+- name: Stage Cadip
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
   work_pool: *prefect_work_pool_eopf

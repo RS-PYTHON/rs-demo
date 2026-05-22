@@ -12,11 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: python
-description: Install python with hardcoded version
-runs:
-  using: "composite"
-  steps:
-    - uses: actions/setup-python@v6
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+prefect-version: "3"
+
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/RS-PYTHON/rs-client-libraries.git
+    branch: feat-rspy1041/on-demand-safe-conversion # should be 'develop' in git
+
+definitions:
+    work_pools:
+        prefect_work_pool_eopf: &prefect_work_pool_eopf
+            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+
+deployments:
+- name: SAFE conversion
+  version: "todo-version"
+  tags: ["adf", "on-demand"]
+  work_pool: *prefect_work_pool_eopf
+  entrypoint: ./rs_workflows/on_demand_conversion.py:on_demand_conversion
