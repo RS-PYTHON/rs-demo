@@ -502,7 +502,9 @@ async def init_dask_cluster_cpm(
             print(full_error)
             dask_cluster_cpm_process.kill()
             dask_cluster_cpm_process = None
-            raise TimeoutError(f"Timeout: CPM dask cluster did not initialize after {timeout} seconds.")
+            raise TimeoutError(
+                f"Timeout: CPM dask cluster did not initialize after {timeout} seconds.",
+            )
 
     cluster_info_eopf = ClusterInfo(
         jupyter_token=os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
@@ -514,7 +516,9 @@ async def init_dask_cluster_cpm(
 def submit_dask_cpm_task(task_source: str, task_name: str = "task"):
     """Submit a small Python function to dask-cpm using the CPM Dask client environment."""
     if not cluster_info_eopf:
-        raise RuntimeError("CPM cluster is not initialized. Run: await init_dask_cluster_cpm(scale=1)")
+        raise RuntimeError(
+            "CPM cluster is not initialized. Run: await init_dask_cluster_cpm(scale=1)",
+        )
 
     cfg = {
         "cluster_instance": cluster_info_eopf.cluster_instance,
@@ -571,7 +575,9 @@ dask_client.close()
         check=False,
     )
     if result.returncode != 0:
-        raise RuntimeError(f"CPM task failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
+        raise RuntimeError(
+            f"CPM task failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}",
+        )
     return json.loads(result.stdout)
 
 
