@@ -568,7 +568,7 @@ print(json.dumps(future.result()))
 dask_client.close()
 """
 
-    result = subprocess.run(
+    result = subprocess.run(  # nosec B603
         ["/opt/venv/dask-cpm/bin/python", "-c", script, json.dumps(cfg)],
         capture_output=True,
         text=True,
