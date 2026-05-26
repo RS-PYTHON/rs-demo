@@ -121,12 +121,12 @@ def init_dask_cluster_cpm(
     address = (
         os.environ["DASK_GATEWAY_ADDRESS"]
         if cluster_mode
-        else os.environ["DASK_GATEWAY_CPM_ADDRESS"]
+        else os.environ["DASK_GATEWAY_CPM2_ADDRESS"]
     )
     public_domain = (
         os.environ["DASK_GATEWAY_PUBLIC"]
         if cluster_mode
-        else os.environ["DASK_GATEWAY_CPM_PUBLIC"]
+        else os.environ["DASK_GATEWAY_CPM2_PUBLIC"]
     )
 
     printflush(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")

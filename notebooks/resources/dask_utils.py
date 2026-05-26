@@ -442,8 +442,8 @@ async def init_dask_cluster_cpm(
     timeout_time = time.time() + timeout
 
     if local_mode:
-        os.environ["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_CPM_ADDRESS"]
-        os.environ["DASK_GATEWAY_PUBLIC"] = os.environ["DASK_GATEWAY_CPM_PUBLIC"]
+        os.environ["DASK_GATEWAY_ADDRESS"] = os.environ["DASK_GATEWAY_CPM2_ADDRESS"]
+        os.environ["DASK_GATEWAY_PUBLIC"] = os.environ["DASK_GATEWAY_CPM2_PUBLIC"]
         utils.init_prefect_blocks(_sync=True)
 
     final_label = cluster_label + f".{utils.OWNER_ID}"
@@ -539,7 +539,7 @@ from dask_gateway.auth import BasicAuth, JupyterHubAuth
 cfg = json.loads(sys.argv[1])
 
 if cfg["local_mode"]:
-    address = os.environ["DASK_GATEWAY_CPM_ADDRESS"]
+    address = os.environ["DASK_GATEWAY_CPM2_ADDRESS"]
     auth = BasicAuth(os.environ["LOCAL_DASK_USERNAME"], os.environ["LOCAL_DASK_PASSWORD"])
 else:
     address = os.environ["DASK_GATEWAY_ADDRESS"]

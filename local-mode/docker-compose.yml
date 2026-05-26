@@ -549,66 +549,31 @@ services:
   # DASK #
   ########
 
-  dask-staging:
-    image: ghcr.io/rs-python/dask/staging/local:latest
+  dask-cpm2:
+    image: ghcr.io/rs-python/dask/cpm2/local:feat-rspy1044-multiple-dask-versions
     environment:
       PYTHONPATH: /opt/rs-demo-ext
     volumes:
       - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
       - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
-    entrypoint: > # don't use '|' it doesn't work
-      tini -g -- dask-gateway-server
-      -f /opt/rs-demo-ext/dask_gateway_config.py
-    ports:
-      - 8701:8000
-
-  dask-l0:
-    image: ghcr.io/rs-python/dask/l0/local:latest
-    environment:
-      PYTHONPATH: /opt/rs-demo-ext
-    volumes:
-      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
-      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       -f /opt/rs-demo-ext/dask_gateway_config.py
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
-    ports:
-      - 8702:8000
 
-  dask-s1ard:
-    image: ghcr.io/rs-python/dask/s1ard/local:latest
+  dask-cpm3:
+    image: ghcr.io/rs-python/dask/cpm3/local:feat-rspy1044-multiple-dask-versions
     environment:
       PYTHONPATH: /opt/rs-demo-ext
     volumes:
       - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
       - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       -f /opt/rs-demo-ext/dask_gateway_config.py
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
-    ports:
-      - 8704:8000
-
-  dask-s3olci:
-    image: ghcr.io/rs-python/dask/s3olci/local:latest
-    environment:
-      PYTHONPATH: /opt/rs-demo-ext
-    volumes:
-      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
-      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
-    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
-    entrypoint: > # don't use '|' it doesn't work
-      tini -g -- dask-gateway-server
-      -f /opt/rs-demo-ext/dask_gateway_config.py
-      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
-      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
-    ports:
-      - 8705:8000
 
   dask-eopf-mockup:
     image: ghcr.io/rs-python/dask/mockup/local:latest
@@ -624,6 +589,59 @@ services:
       -f /opt/rs-demo-ext/dask_gateway_config.py
       --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+
+  dask-l0:
+    image: ghcr.io/rs-python/dask/l0/local:latest
+    environment:
+      PYTHONPATH: /opt/rs-demo-ext
+    volumes:
+      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
+      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      -f /opt/rs-demo-ext/dask_gateway_config.py
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+
+  dask-s1ard:
+    image: ghcr.io/rs-python/dask/s1ard/local:latest
+    environment:
+      PYTHONPATH: /opt/rs-demo-ext
+    volumes:
+      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
+      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      -f /opt/rs-demo-ext/dask_gateway_config.py
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+
+  dask-s3olci:
+    image: ghcr.io/rs-python/dask/s3olci/local:latest
+    environment:
+      PYTHONPATH: /opt/rs-demo-ext
+    volumes:
+      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
+      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      -f /opt/rs-demo-ext/dask_gateway_config.py
+      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
+      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
+
+  dask-staging:
+    image: ghcr.io/rs-python/dask/staging/local:latest
+    environment:
+      PYTHONPATH: /opt/rs-demo-ext
+    volumes:
+      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
+      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    entrypoint: > # don't use '|' it doesn't work
+      tini -g -- dask-gateway-server
+      -f /opt/rs-demo-ext/dask_gateway_config.py
 
   #############
   # DATABASES #
@@ -710,7 +728,7 @@ services:
   # The logs will show shomething like: http://127.0.0.1:8888/lab?token=<token-value> in your terminal.
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
-    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
+    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:feat-rspy1044-multiple-dask-versions
     container_name: jupyter
     ports:
       - 8888:8888
