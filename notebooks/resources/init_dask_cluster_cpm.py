@@ -1,4 +1,4 @@
-#!/opt/venv/dask-cpm/bin/python
+#!/opt/conda/envs/py3.11.7-2026.1.2/bin/python
 # Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -222,7 +222,7 @@ def main():
     parser.add_argument(
         "--image",
         type=str,
-        default="ghcr.io/rs-python/dask/cpm/k8s:latest",
+        default="ghcr.io/rs-python/dask/cpm2/k8s:latest",
         help="Docker image name to use for the workers",
     )
     parser.add_argument(

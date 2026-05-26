@@ -218,7 +218,7 @@ async def init_dask_cluster_staging(
     # Call the subprocess with the correct environment
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dask_cluster_staging_process = await asyncio.create_subprocess_exec(
-        "/opt/venv/dask-staging/bin/python",
+        "/opt/conda/envs/py3.13.12-2026.1.2/bin/python",
         f"{dir_path}/init_dask_cluster_staging.py",
         "--scale",
         str(scale),
@@ -431,7 +431,7 @@ async def init_dask_cluster_cpm(
     image: str = (
         "ghcr.io/rs-python/dask/cpm2/local:local"
         if local_mode
-        else "ghcr.io/rs-python/dask/cpm/k8s:latest"
+        else "ghcr.io/rs-python/dask/cpm2/k8s:latest"
     ),
     cluster_label: str = "dask-cpm",
     timeout: int = 600,
@@ -452,7 +452,7 @@ async def init_dask_cluster_cpm(
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dask_cluster_cpm_process = await asyncio.create_subprocess_exec(
-        "/opt/venv/dask-cpm/bin/python",
+        "/opt/conda/envs/py3.11.7-2026.1.2/bin/python",
         f"{dir_path}/init_dask_cluster_cpm.py",
         "--scale",
         str(scale),
@@ -569,7 +569,7 @@ dask_client.close()
 """
 
     result = subprocess.run(  # nosec B603
-        ["/opt/venv/dask-cpm/bin/python", "-c", script, json.dumps(cfg)],
+        ["/opt/conda/envs/py3.11.7-2026.1.2/bin/python", "-c", script, json.dumps(cfg)],
         capture_output=True,
         text=True,
         check=False,
