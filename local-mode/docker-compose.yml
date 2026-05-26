@@ -27,7 +27,7 @@ services:
     image: nginx:alpine
     container_name: nginx
     ports:
-      - 8000:80
+      - 80:80 # just access it with http://localhost (without port)
     depends_on:
       - rs-server-frontend
       - rs-server-adgs
