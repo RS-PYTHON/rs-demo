@@ -332,6 +332,12 @@ def init_dask_cluster_eopf(
                 "effect": "NoSchedule",
             },
         ],
+        "volumes": [
+            {
+                "name": "rspython-dev-cs-01",
+                "persistentVolumeClaim": {"claimName": "rspython-dev-cs-01"},
+            },
+        ],
     }
     scheduler_tuning = {
         "affinity": {
@@ -358,6 +364,30 @@ def init_dask_cluster_eopf(
                 "effect": "NoSchedule",
             },
         ],
+        "volumes": [
+            {
+                "name": "rspython-dev-cs-01",
+                "persistentVolumeClaim": {"claimName": "rspython-dev-cs-01"},
+            },
+        ],
+    }
+    scheduler_extra_config_tuning = {
+        "volumeMounts": [
+            {
+                "name": "rspython-dev-cs-01",
+                "mountPath": "/mnt/share/cs-01",
+                "readOnly": False,
+            },
+        ],
+    }
+    worker_extra_config_tuning = {
+        "volumeMounts": [
+            {
+                "name": "rspython-dev-cs-01",
+                "mountPath": "/mnt/share/cs-01",
+                "readOnly": False,
+            },
+        ],
     }
     dpr_tuning = {
         "worker_cores": 3,
@@ -367,6 +397,8 @@ def init_dask_cluster_eopf(
             scheduler_tuning if big_resources else worker_tuning
         ),
         "scheduler_extra_pod_config": scheduler_tuning,
+        "scheduler_extra_container_config": scheduler_extra_config_tuning,
+        "worker_extra_container_config": worker_extra_config_tuning,
     }
 
     # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
