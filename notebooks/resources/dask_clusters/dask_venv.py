@@ -1,0 +1,393 @@
+# Copyright 2023-2026 Airbus, CS Group
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Init dask clusters from Jupyter virtual environment kernels.
+
+Main env --calls--> papermill (in venv) --calls--> notebook to init cluster --calls--> this module.
+"""
+
+import os
+import sys
+import time
+
+from dask_gateway import Gateway
+from dask_gateway.client import GatewayCluster
+from distributed.client import Client as DaskClient
+from IPython import get_ipython
+from resources.dask_clusters.dask_utils import (
+    OWNER_ID,
+    cluster_mode,
+    get_dask_gateway,
+    local_mode,
+)
+from resources.dask_clusters.pod_affinity.dpr_scheduler import dpr_scheduler_affinity
+from resources.dask_clusters.pod_affinity.dpr_worker import dpr_worker_affinity
+from resources.dask_clusters.pod_affinity.staging_scheduler import (
+    staging_scheduler_affinity,
+)
+from resources.dask_clusters.pod_affinity.staging_worker import staging_worker_affinity
+
+##########################
+# Global implementations #
+##########################
+
+
+def printflush(message: str):
+    """Print and flush immediately so the calling notebook sees the progress."""
+    print(message)
+    sys.stdout.flush()
+
+
+def dpr_label(image: str, base_label: str) -> str:
+    """Format label for DPR dask clusters as base_label.OWNER_ID.DOCKER_VERSION e.g. 'dask-l0.userA.latest'"""
+
+    # Add the owner id to the label
+    final_label = f"{base_label}.{OWNER_ID}"
+
+    # Add the docker image version (after the ':', if any) to the label
+    if len(splits := image.split(":")) > 1:
+        final_label += f".{splits[-1]}"
+
+    return final_label
+
+
+def _init_dask_cluster_venv(
+    scale: int,
+    image: str,
+    cluster_label: str,
+    worker_cores: int,
+    worker_memory: float,
+    scheduler_memory_limit: int,
+    worker_extra_pod_config: dict,
+    scheduler_extra_pod_config: dict,
+    local_mode_address: str,
+    local_mode_address_public: str,
+    gateway_namespace="dask-gateway",
+    **kwargs,
+) -> tuple[Gateway, GatewayCluster, DaskClient]:
+    """
+    Read existing or create new dask cluster from Jupyter virtual environment kernels.
+
+    Args:
+        scale: number of dask workers to create
+        image: docker image name to use for the workers
+        cluster_label: custom label to identify the cluster e.g. "dask-proc"
+        worker_cores: number of CPU per worker
+        worker_memory: memory per worker in GB
+        scheduler_memory_limit: memory for scheduler in GB
+        worker_extra_pod_config: pod affinity for workers
+        scheduler_extra_pod_config: pod affinity for scheduler
+        local_mode_address: name of the env var that contains the dask gateway url in local mode
+        local_mode_address_public: name of the env var that contains the public dask gateway url in local mode
+        gateway_namespace: dask gateway namespace
+        kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
+
+    NOTE: to find the maximum cluster resources that you can request per node, first init a dask cluster, then in k9s
+    go to your allocated dask-worker -> push 'o' (Show Node) -> push 'd' (Describe) -> check 'Allocatable' values.
+    Then decrease a little bit these values because the nodes also run other services.
+
+    Several workers can fit into a single node depending on the resources you requested for each worker. Else new nodes
+    will be allocated. To find the maximum of nodes you can request, in k9s, type
+    ':nodepools' -> find your nodeAffinity -> check the 'MAX' column value.
+
+    For worker_extra_pod_config=dpr_worker_affinity and nodeAffinity=dask_worker_on_demand
+    we have max: 3 CPU, 12GB RAM, 8 nodes.
+
+    For worker_extra_pod_config=dpr_scheduler_affinity and nodeAffinity=dask_scheduler
+    we have max: 7 CPU, 58GB RAM, 1 node.
+    """
+    gateway_address = os.environ[
+        "DASK_GATEWAY_ADDRESS" if cluster_mode else local_mode_address
+    ]
+    gateway_public = os.environ[
+        "DASK_GATEWAY_PUBLIC" if cluster_mode else local_mode_address_public
+    ]
+
+    printflush(
+        f"Connecting to dask gateway for {cluster_label!r}: {gateway_address} ...",
+    )
+    gateway = get_dask_gateway(gateway_address)
+
+    # Sort the clusters by newest first
+    clusters = sorted(
+        gateway.list_clusters(),
+        key=lambda cluster: cluster.start_time,
+        reverse=True,
+    )
+    for cluster in clusters:
+        printflush(f"image = {cluster.name}")
+
+    # Get existing dask cluster name, if any.
+    existing = None
+    if clusters:
+
+        # In local mode, get the existing cluster with the expected cluster name.
+        if local_mode:
+            existing = next(
+                (
+                    report.name
+                    for report in clusters
+                    if isinstance(report.options, dict)
+                    and report.options.get("cluster_name") == cluster_label
+                ),
+                None,
+            )
+
+        # In cluster mode, also check the docker image name and cluster name
+        else:
+            existing = next(
+                (
+                    report.name
+                    for report in clusters
+                    if (report.options.get("image") == image)
+                    and (report.options.get("cluster_name") == cluster_label)
+                ),
+                None,
+            )
+
+    # If a cluster has already been initialized, retrieve it
+    if existing:
+        printflush(f"Get existing dask cluster: {existing!r}")
+        cluster = gateway.connect(existing)
+
+    # Else create one
+    elif local_mode:
+        printflush("Create new dask cluster")
+        cluster = gateway.new_cluster(cluster_name=cluster_label)
+
+    else:  # cluster_mode
+        printflush(f"Create new dask cluster from docker image: {image!r}")
+        cluster = gateway.new_cluster(
+            worker_cores=worker_cores,
+            worker_memory=worker_memory,
+            cluster_max_workers=scale + 1,
+            cluster_max_cores=(scale + 1) * worker_cores,
+            cluster_max_memory=(scale + 1) * worker_memory * (2**30),  # from GB to B
+            scheduler_memory_limit=scheduler_memory_limit,
+            namespace=gateway_namespace,
+            image=image,
+            cluster_name=cluster_label,
+            scheduler_extra_pod_labels={"cluster_name": cluster_label},
+            worker_extra_pod_config=worker_extra_pod_config,
+            scheduler_extra_pod_config=scheduler_extra_pod_config,
+            **kwargs,
+        )
+
+    printflush(
+        f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(gateway_address, gateway_public)}",
+    )
+
+    # Scale the cluster and get the client
+    gateway.scale_cluster(cluster.name, scale)
+    client = cluster.get_client()
+
+    # Wait for all workers to be up
+    tries = 0
+    while True:
+        scaled = len(client.scheduler_info()["workers"])
+        printflush(f"Dask workers for {cluster_label!r} are up: {scaled}/{scale}")
+        if scaled >= scale:
+            break
+        tries += 1
+        if tries >= float("inf"):  # deactivate timeout
+            raise TimeoutError(
+                f"Error waiting for all Dask workers for {cluster_label!r} to be up: {scaled}/{scale}",
+            )
+        time.sleep(5)
+
+    # Save ClusterInfo value as a IPython variable, so it is shared with other notebooks,
+    # even from different kernels.
+    # NOTE: this is not thread-safe, maybe we should use a more specific variable name.
+    cluster_info = {
+        "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
+        "cluster_label": cluster_label,
+        "cluster_instance": cluster.name,
+    }
+    ipython = get_ipython()
+    ipython.db["cluster_info"] = cluster_info
+
+    # Save other vars to be read from main env
+    if local_mode:
+        ipython.db["local_mode_address"] = local_mode_address
+        ipython.db["local_mode_address_public"] = local_mode_address_public
+
+    return gateway, cluster, client
+
+
+###############################
+# Init each dask cluster type #
+###############################
+
+
+def init_dask_cluster_cpm2_venv(
+    image: str = (
+        "ghcr.io/rs-python/dask/cpm2/local:local"
+        if local_mode
+        else "ghcr.io/rs-python/dask/cpm2/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = dpr_worker_affinity,
+    scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-cpm2"),
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_CPM2_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_CPM2_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_cpm3_venv(
+    image: str = (
+        "ghcr.io/rs-python/dask/cpm3/local:local"
+        if local_mode
+        else "ghcr.io/rs-python/dask/cpm3/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = dpr_worker_affinity,
+    scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-cpm3"),
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_CPM3_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_CPM3_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_eopf_mockup_venv(
+    image=(
+        "ghcr.io/rs-python/dask/mockup/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/mockup/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = dpr_worker_affinity,
+    scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-eopf-mockup"),
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_l0_venv(
+    image=(
+        "ghcr.io/rs-python/dask/l0/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/l0/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = dpr_worker_affinity,
+    scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-l0"),
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_L0_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_L0_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_s1ard_venv(
+    image=(
+        "ghcr.io/rs-python/dask/s1ard/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/s1ard/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = dpr_worker_affinity,
+    scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-s1ard"),
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_S1ARD_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_s3olci_venv(
+    image=(
+        "ghcr.io/rs-python/dask/s3olci/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/s3olci/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = dpr_worker_affinity,
+    scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-s3olci"),
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_S3OLCI_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_S3OLCI_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_staging_venv(
+    image=(
+        "ghcr.io/rs-python/dask/staging/local:latest"
+        if local_mode
+        else "ghcr.io/rs-python/dask/staging/k8s:latest"
+    ),
+    cluster_label: str = "",
+    worker_extra_pod_config: dict = staging_worker_affinity,
+    scheduler_extra_pod_config: dict = staging_scheduler_affinity,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        # Same staging cluster for all users
+        cluster_label=cluster_label or os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
+        worker_extra_pod_config=worker_extra_pod_config,
+        scheduler_extra_pod_config=scheduler_extra_pod_config,
+        local_mode_address="DASK_GATEWAY_STAGING_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_STAGING_PUBLIC",
+        **kwargs,
+    )
