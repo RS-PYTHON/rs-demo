@@ -20,6 +20,7 @@ import subprocess
 from pathlib import Path
 
 from IPython import get_ipython
+from IPython.display import Markdown, display
 from resources import utils
 from resources.dask_clusters import dask_utils
 from resources.dask_clusters.dask_utils import local_mode
@@ -47,7 +48,15 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
         f"{Path.home()}/.papermill.ipynb",
         "--log-output",
     ]
-    print(f"Run command line: {' '.join(cmd)!r}")
+
+    # Display markdown link to the notebook
+    relative_from_home = str(notebook_path.relative_to(Path.home(), walk_up=True))
+    relative_from_current = str(notebook_path.relative_to(Path.cwd(), walk_up=True))
+    display(
+        Markdown(f"### Run notebook: [{relative_from_home}]({relative_from_current})"),
+    )
+
+    print(f"Command line: {' '.join(cmd)!r}")
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=subprocess.PIPE,
@@ -91,6 +100,8 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
     if "staging" not in str(notebook_path):
 
         # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
+        # NOTE: not sure this is used in fact. Maybe this info is already calculated by rs-dpr-service.
+        # To be confirmed.
         if local_mode:
             os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[
                 ipython.db["local_mode_address"]
@@ -99,12 +110,9 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
                 ipython.db["local_mode_address_public"]
             ]
 
-        # Update the dask cluster instance that is used in payload files, for local and cluster modes
-        os.environ["DASK_CLUSTER_INSTANCE"] = cluster_info.cluster_instance
-
-        # Refresh Prefect blocks to pass these env vars to the dask workers
-        # NOTE: this is not thread-safe, these variables will be overridden if we init several clusters from the same demo.
-        utils.init_prefect_blocks(_sync=True)
+            # Refresh Prefect blocks to pass these env vars to the dask workers
+            # NOTE: this is not thread-safe, these variables will be overridden if we init several clusters from the same demo.
+            utils.init_prefect_blocks(_sync=True)
 
     return cluster_info
 
