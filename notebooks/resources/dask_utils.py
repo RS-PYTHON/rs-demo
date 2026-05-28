@@ -108,6 +108,9 @@ def init_dask_cluster(
         kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
     """
     print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
+    if cluster_mode:
+        namespace = os.getenv("DASK_GATEWAY_NAMESPACE", namespace)
+
     gateway = get_dask_gateway(address)
 
     # Sort the clusters by newest first
