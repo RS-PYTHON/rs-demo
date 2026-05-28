@@ -605,7 +605,7 @@ services:
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
 
   dask-s1ard:
-    image: ghcr.io/rs-python/dask/s1ard/local:latest
+    image: ghcr.io/rs-python/dask/s1ard/local:feat-rspy1044-multiple-dask-versions
     environment:
       PYTHONPATH: /opt/rs-demo-ext
     volumes:

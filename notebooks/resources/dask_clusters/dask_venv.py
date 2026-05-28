@@ -82,7 +82,7 @@ def _init_dask_cluster_venv(
 
     Args:
         scale: number of dask workers to create
-        image: docker image name to use for the workers
+        image: docker image name to use for the workers. Only needed in cluster mode.
         cluster_label: custom label to identify the cluster e.g. "dask-proc"
         worker_cores: number of CPU per worker
         worker_memory: memory per worker in GB
@@ -232,11 +232,7 @@ def _init_dask_cluster_venv(
 
 
 def init_dask_cluster_cpm2_venv(
-    image: str = (
-        "ghcr.io/rs-python/dask/cpm2/local:local"
-        if local_mode
-        else "ghcr.io/rs-python/dask/cpm2/k8s:latest"
-    ),
+    image: str = "ghcr.io/rs-python/dask/cpm2/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = dpr_worker_affinity,
     scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
@@ -255,11 +251,7 @@ def init_dask_cluster_cpm2_venv(
 
 
 def init_dask_cluster_cpm3_venv(
-    image: str = (
-        "ghcr.io/rs-python/dask/cpm3/local:local"
-        if local_mode
-        else "ghcr.io/rs-python/dask/cpm3/k8s:latest"
-    ),
+    image: str = "ghcr.io/rs-python/dask/cpm3/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = dpr_worker_affinity,
     scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
@@ -277,12 +269,8 @@ def init_dask_cluster_cpm3_venv(
     )
 
 
-def init_dask_cluster_eopf_mockup_venv(
-    image=(
-        "ghcr.io/rs-python/dask/mockup/local:latest"
-        if local_mode
-        else "ghcr.io/rs-python/dask/mockup/k8s:latest"
-    ),
+def init_dask_cluster_mockup_venv(
+    image: str = "ghcr.io/rs-python/dask/mockup/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = dpr_worker_affinity,
     scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
@@ -301,11 +289,7 @@ def init_dask_cluster_eopf_mockup_venv(
 
 
 def init_dask_cluster_l0_venv(
-    image=(
-        "ghcr.io/rs-python/dask/l0/local:latest"
-        if local_mode
-        else "ghcr.io/rs-python/dask/l0/k8s:latest"
-    ),
+    image: str = "ghcr.io/rs-python/dask/l0/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = dpr_worker_affinity,
     scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
@@ -324,11 +308,7 @@ def init_dask_cluster_l0_venv(
 
 
 def init_dask_cluster_s1ard_venv(
-    image=(
-        "ghcr.io/rs-python/dask/s1ard/local:latest"
-        if local_mode
-        else "ghcr.io/rs-python/dask/s1ard/k8s:latest"
-    ),
+    image: str = "ghcr.io/rs-python/dask/s1ard/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = dpr_worker_affinity,
     scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
@@ -347,11 +327,7 @@ def init_dask_cluster_s1ard_venv(
 
 
 def init_dask_cluster_s3olci_venv(
-    image=(
-        "ghcr.io/rs-python/dask/s3olci/local:latest"
-        if local_mode
-        else "ghcr.io/rs-python/dask/s3olci/k8s:latest"
-    ),
+    image: str = "ghcr.io/rs-python/dask/s3olci/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = dpr_worker_affinity,
     scheduler_extra_pod_config: dict = dpr_scheduler_affinity,
@@ -370,11 +346,7 @@ def init_dask_cluster_s3olci_venv(
 
 
 def init_dask_cluster_staging_venv(
-    image=(
-        "ghcr.io/rs-python/dask/staging/local:latest"
-        if local_mode
-        else "ghcr.io/rs-python/dask/staging/k8s:latest"
-    ),
+    image: str = "ghcr.io/rs-python/dask/staging/k8s:latest",
     cluster_label: str = "",
     worker_extra_pod_config: dict = staging_worker_affinity,
     scheduler_extra_pod_config: dict = staging_scheduler_affinity,

@@ -44,10 +44,10 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
     cmd = [
         "papermill",
         str(notebook_path),
-        "/tmp/out.ipynb",
+        f"{Path.home()}/.papermill.ipynb",
         "--log-output",
     ]
-    print(f"Run command line:\n{' '.join(cmd)}")
+    print(f"Run command line: {' '.join(cmd)!r}")
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=subprocess.PIPE,
@@ -55,6 +55,7 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
     )
 
     # Read papermill output line by line
+    keep_open = False
     while proc.stdout:
         line = (await proc.stdout.readline()).decode("utf-8")
         if not line:  # process has finished
@@ -66,11 +67,15 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
 
         # The notebook will hit this line after it has finished initializing the dask cluster
         if dask_utils.KEEP_THIS_NOTEBOOK_OPEN in line:
+            keep_open = True
             break
 
-    if proc.returncode not in [None, 0]:
+    # Test subprocess status code when it ends (if we don't keep it alive)
+    if (not keep_open) and (status_code := await proc.wait()):
         print("=== AN ERROR OCCURRED ===")
-        raise RuntimeError(f"Error initializing dask cluster")
+        raise RuntimeError(
+            f"Dask cluster initialization failed with status: {status_code}",
+        )
 
     # NOTE: we don't want to kill the subprocess, we need to keep it alive.
     # It will be killed when you restart your Jupyter kernel.
@@ -81,19 +86,24 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
     _cluster_info = ipython.db["cluster_info"]
     cluster_info = ClusterInfo(**_cluster_info)
 
-    # Set environment to run static payload (=job order) files.
-    # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
-    # We need this address in some config files. So we update this env var from the current cluster value.
-    # NOTE: this is not thread-safe, these variables will be overridden if we init several clusters from the same demo.
-    if local_mode:
-        os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[
-            ipython.db["local_mode_address"]
-        ]
-        os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[
-            ipython.db["local_mode_address_public"]
-        ]
+    # Set environment for payload (=job order) files.
+    # Don't do it for the staging.
+    if "staging" not in str(notebook_path):
+
+        # In local mode, the dask gateway address is different for each eopf cluster (l0, l1, ...)
+        if local_mode:
+            os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[
+                ipython.db["local_mode_address"]
+            ]
+            os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[
+                ipython.db["local_mode_address_public"]
+            ]
+
+        # Update the dask cluster instance that is used in payload files, for local and cluster modes
         os.environ["DASK_CLUSTER_INSTANCE"] = cluster_info.cluster_instance
+
         # Refresh Prefect blocks to pass these env vars to the dask workers
+        # NOTE: this is not thread-safe, these variables will be overridden if we init several clusters from the same demo.
         utils.init_prefect_blocks(_sync=True)
 
     return cluster_info
@@ -118,10 +128,10 @@ async def init_dask_cluster_cpm3():
     )
 
 
-async def init_dask_cluster_eopf_mockup():
+async def init_dask_cluster_mockup():
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
-        NOTEBOOK_DIR / "init_dask_cluster_eopf_mockup.ipynb",
+        NOTEBOOK_DIR / "init_dask_cluster_mockup.ipynb",
     )
 
 
