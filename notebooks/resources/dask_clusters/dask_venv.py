@@ -74,7 +74,7 @@ def _init_dask_cluster_venv(
     scheduler_extra_pod_config: dict,
     local_mode_address: str,
     local_mode_address_public: str,
-    gateway_namespace="dask-gateway",
+    gateway_namespace=os.getenv("DASK_GATEWAY_NAMESPACE", "dask-gateway"),
     **kwargs,
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
     """
