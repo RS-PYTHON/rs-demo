@@ -34,8 +34,8 @@ from distributed import worker_client
 from distributed.client import Future
 from prefect import flow, get_run_logger, task
 from prefect_dask import DaskTaskRunner
-from resources import dask_utils
-from resources.dask_utils import get_ip_address
+from resources.dask_clusters import dask_utils
+from resources.dask_clusters.dask_utils import get_ip_address
 from rs_common import prefect_utils
 
 # Read prefect blocks into env vars
