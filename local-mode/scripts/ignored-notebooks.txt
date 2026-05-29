@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Ignore notebooks from the ci/cd
+# Ignore notebooks from the ci/cd. Wildcards are allowed.
+
+# These notebooks are used only by the user to init dask clusters
+notebooks/init-dask-clusters/*
+
+# Ignore public demos that deal with HUGE real data
+notebooks/demos/*
+notebooks/sprints/sprint25/675_convert_safe_to_zarr.ipynb
+
+# Ignore dask and prefect tutorials, they take time and their functionnalities should be covered by demos
+notebooks/tutorials/*
 
 # Notebooks that work only on cluster mode
 notebooks/sprints/sprint21/350-staging-roles.ipynb
@@ -20,18 +30,6 @@ notebooks/sprints/sprint24/604_s3_rights.ipynb
 
 # Old versions of the on-demand processing flow
 notebooks/sprints/sprint23/s3l0_demo_processor.ipynb
-
-# Ignore dask and prefect tutorials, they take time and their functionnalities should be covered by demos
-notebooks/tutorials/prefect+dask/dask.ipynb
-notebooks/tutorials/prefect+dask/prefect.ipynb
-notebooks/tutorials/prefect+dask/prefect_and_dask.ipynb
-
-# Ignore public demos that deal with HUGE real data
-notebooks/demos/stac2025/stac_2025_s1.ipynb
-notebooks/demos/stac2025/stac_2025_s3.ipynb
-notebooks/demos/stac2025/stac_2025_s3_prip.ipynb
-notebooks/demos/stac2025/stac_2026_s3_olci.ipynb
-notebooks/sprints/sprint25/675_convert_safe_to_zarr.ipynb
 
 # Notebooks that test parallel flows
 notebooks/sprints/sprint24/100_python_flows/test_parallel_flows.ipynb

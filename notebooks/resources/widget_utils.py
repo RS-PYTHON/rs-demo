@@ -331,14 +331,3 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict) -> State | 
         module = inspect.getmodule(py_func)
         py_func = getattr(module, py_func.fn.__name__)
         return await py_func(**params)
-
-
-##########################
-# Shutdown Dask clusters #
-##########################
-
-shutdown_checkbox = widgets.Checkbox(
-    value=False,
-    description="Shutdown the dask clusters",
-    indent=False,
-)

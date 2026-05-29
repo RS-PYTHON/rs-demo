@@ -54,6 +54,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          # Checkout branch not pr (so we get changes from build-env-external-data-sources)
+          ref: ${{ case(github.event_name == 'pull_request', github.head_ref, '') }}
           submodules: true
 
       - name: Log into Docker registry
