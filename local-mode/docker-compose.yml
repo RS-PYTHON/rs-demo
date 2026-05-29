@@ -288,7 +288,7 @@ services:
   # image: ghcr.io/rs-python/dask/s1ard/localcluster
   # ...
   rs-dpr-service_py3.11.7-2024.5.2:
-    image: ghcr.io/rs-python/rs-dpr-service_py3.11.7-2024.5.2:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/rs-dpr-service_py3.11.7-2024.5.2:latest
     container_name: rs-dpr-service_py3.11.7-2024.5.2
     ports:
       - 6003:8000
@@ -308,7 +308,7 @@ services:
       # RSPY_COOKIE_SECRET: secret
 
   rs-dpr-service_py3.11.7-2026.1.2:
-    image: ghcr.io/rs-python/rs-dpr-service_py3.11.7-2026.1.2:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/rs-dpr-service_py3.11.7-2026.1.2:latest
     container_name: rs-dpr-service_py3.11.7-2026.1.2
     ports:
       - 6004:8000
@@ -318,7 +318,7 @@ services:
       - .env
 
   rs-dpr-service_py3.13.12-2026.1.2:
-    image: ghcr.io/rs-python/rs-dpr-service_py3.13.12-2026.1.2:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/rs-dpr-service_py3.13.12-2026.1.2:latest
     container_name: rs-dpr-service_py3.13.12-2026.1.2
     ports:
       - 6005:8000
@@ -550,7 +550,7 @@ services:
   ########
 
   dask-cpm2:
-    image: ghcr.io/rs-python/dask/cpm2/local:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/dask/cpm2/local:latest
     environment:
       PYTHONPATH: /opt/rs-demo-ext
     volumes:
@@ -563,7 +563,7 @@ services:
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
 
   dask-cpm3:
-    image: ghcr.io/rs-python/dask/cpm3/local:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/dask/cpm3/local:latest
     environment:
       PYTHONPATH: /opt/rs-demo-ext
     volumes:
@@ -605,7 +605,7 @@ services:
       --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
 
   dask-s1ard:
-    image: ghcr.io/rs-python/dask/s1ard/local:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/dask/s1ard/local:latest
     environment:
       PYTHONPATH: /opt/rs-demo-ext
     volumes:
@@ -728,7 +728,7 @@ services:
   # The logs will show shomething like: http://127.0.0.1:8888/lab?token=<token-value> in your terminal.
   # Open (ctrl-click) this link to open the Jupyter web client (=Jupyter Notebook) in your browser.
   jupyter:
-    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:feat-rspy1044-multiple-dask-versions
+    image: ghcr.io/rs-python/jupyter/rs-client-libraries/local:latest
     container_name: jupyter
     ports:
       - 8888:8888
