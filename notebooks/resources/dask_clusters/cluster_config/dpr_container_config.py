@@ -12,4 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Dask pod configuration, see: https://github.com/RS-PYTHON/rs-infra-core/blob/develop/docs/how-to/Dask-gateway.md"""
+"""Extra configuration for the DPR scheduler and worker containers"""
+
+dpr_container_config = {
+    "volumeMounts": [
+        {
+            "name": "rspython-dev-cs-01",
+            "mountPath": "/mnt/share/cs-01",
+            "readOnly": False,
+        },
+    ],
+}

@@ -1,4 +1,3 @@
-#!/opt/conda/envs/py3.13.12-2026.1.2/bin/python
 # Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pod affinity for staging scheduler"""
+"""Extra configuration for the staging worker pods"""
 
-staging_scheduler_affinity = {
+staging_worker_pod_config = {
     "affinity": {
         "nodeAffinity": {
             "requiredDuringSchedulingIgnoredDuringExecution": {

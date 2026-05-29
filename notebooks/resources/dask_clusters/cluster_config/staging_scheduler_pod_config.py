@@ -1,4 +1,3 @@
-#!/opt/conda/envs/py3.13.12-2026.1.2/bin/python
 # Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pod affinity for DPR scheduler"""
+"""Extra configuration for the staging scheduler pods"""
 
-dpr_scheduler_affinity = {
+staging_scheduler_pod_config = {
     "affinity": {
         "nodeAffinity": {
             "requiredDuringSchedulingIgnoredDuringExecution": {
@@ -23,7 +22,7 @@ dpr_scheduler_affinity = {
                     {
                         "matchExpressions": [
                             {
-                                "key": "node-role.kubernetes.io/dask_scheduler",
+                                "key": "node-role.kubernetes.io/access_csc",
                                 "operator": "Exists",
                             },
                         ],
@@ -36,7 +35,7 @@ dpr_scheduler_affinity = {
         {
             "key": "role",
             "operator": "Equal",
-            "value": "dask_scheduler",
+            "value": "access_csc",
             "effect": "NoSchedule",
         },
     ],
