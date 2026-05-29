@@ -23,7 +23,7 @@ from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
 
-# Use this str from notebooks to tell that this notebook must be kept open (alive) when called from
+# Use this str in notebooks to tell that the notebook must be kept open (alive) when called from
 # command line so the cluster local variables are not garbage collected and the cluster stays up in local mode.
 KEEP_THIS_NOTEBOOK_OPEN = "Keep this notebook open (when called from command line)"
 
@@ -89,6 +89,8 @@ def get_existing_cluster(
         ) from exception
 
 
+# Checkbox asking the user if they want to shutdown the clusters
+# (used to avoid shutting down the clusters by mistake)
 shutdown_checkbox = widgets.Checkbox(
     value=False,
     description="Shutdown the dask clusters",

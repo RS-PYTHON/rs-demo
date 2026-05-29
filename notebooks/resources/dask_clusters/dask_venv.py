@@ -15,7 +15,7 @@
 """
 Init dask clusters from Jupyter virtual environment kernels.
 
-Main env --calls--> papermill (in venv) --calls--> notebook to init cluster --calls--> this module.
+Main env --calls--> papermill --calls--> (in venv) notebook to init cluster --calls--> this module.
 """
 
 import inspect
@@ -28,7 +28,6 @@ from dask_gateway import Gateway
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
 from IPython import get_ipython
-from resources.dask_clusters.cluster_config import *  # note: imports are defined in cluster_config.__init__
 from resources.dask_clusters.dask_utils import (
     OWNER_ID,
     cluster_mode,
