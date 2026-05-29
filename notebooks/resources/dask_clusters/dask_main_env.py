@@ -33,20 +33,29 @@ NOTEBOOK_DIR = Path(__file__) / "../../../init-dask-clusters"
 ##########################
 
 
-async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
+async def _init_dask_cluster_main_env(
+    notebook_path: Path,
+    kwargs: dict = {},
+) -> ClusterInfo:
     """
     From the main Jupyter environment kernel, we call a notebook (in command line) that will
     read an existing or create a new dask cluster.
+
+    Args:
+        notebook_path: Notebook to read
+        kwargs: parameters to pass to the notebook (https://papermill.readthedocs.io/en/latest/usage-parameterize.html)
     """
     notebook_path = notebook_path.resolve()
 
     # Use papermill to call the notebook in a subprocess.
     # It will use the venv kernel that is defined in the notebook.
+    params = [e for key, value in kwargs.items() for e in ["-p", key, str(value)]]
     cmd = [
         "papermill",
         str(notebook_path),
         f"{Path.home()}/.papermill.ipynb",
         "--log-output",
+        *params,
     ]
 
     # Display markdown link to the notebook
@@ -122,50 +131,57 @@ async def _init_dask_cluster_main_env(notebook_path: Path) -> ClusterInfo:
 ###############################
 
 
-async def init_dask_cluster_cpm2():
+async def init_dask_cluster_cpm2(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_cpm2.ipynb",
+        kwargs,
     )
 
 
-async def init_dask_cluster_cpm3():
+async def init_dask_cluster_cpm3(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_cpm3.ipynb",
+        kwargs,
     )
 
 
-async def init_dask_cluster_mockup():
+async def init_dask_cluster_mockup(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_mockup.ipynb",
+        kwargs,
     )
 
 
-async def init_dask_cluster_l0():
+async def init_dask_cluster_l0(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_l0.ipynb",
+        kwargs,
     )
 
 
-async def init_dask_cluster_s1ard():
+async def init_dask_cluster_s1ard(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_s1ard.ipynb",
+        kwargs,
     )
 
 
-async def init_dask_cluster_s3olci():
+async def init_dask_cluster_s3olci(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_s3olci.ipynb",
+        kwargs,
     )
 
 
-async def init_dask_cluster_staging():
+async def init_dask_cluster_staging(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
         NOTEBOOK_DIR / "init_dask_cluster_staging.ipynb",
+        kwargs,
     )

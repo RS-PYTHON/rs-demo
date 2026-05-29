@@ -18,6 +18,8 @@ Init dask clusters from Jupyter virtual environment kernels.
 Main env --calls--> papermill (in venv) --calls--> notebook to init cluster --calls--> this module.
 """
 
+import inspect
+import json
 import os
 import sys
 import time
@@ -107,13 +109,17 @@ def _init_dask_cluster_venv(
     For worker_extra_pod_config=dpr_scheduler_pod_config and nodeAffinity=dask_scheduler
     we have max: 7 CPU, 58GB RAM, 1 node.
     """
+    # Print args passed to this function
+    sig, loc = inspect.signature(_init_dask_cluster_venv), locals()
+    args = {param.name: loc[param.name] for param in sig.parameters.values()}
+    printflush(json.dumps(args, indent=2))
+
     gateway_address = os.environ[
         "DASK_GATEWAY_ADDRESS" if cluster_mode else local_mode_address
     ]
     gateway_public = os.environ[
         "DASK_GATEWAY_PUBLIC" if cluster_mode else local_mode_address_public
     ]
-
     printflush(
         f"Connecting to dask gateway for {cluster_label!r}: {gateway_address} ...",
     )
@@ -233,22 +239,14 @@ def _init_dask_cluster_venv(
 
 
 def init_dask_cluster_cpm2_venv(
-    image: str = "ghcr.io/rs-python/dask/cpm2/k8s:latest",
+    image: str = "",
     cluster_label: str = "",
-    worker_extra_pod_config: dict = dpr_worker_pod_config,
-    scheduler_extra_pod_config: dict = dpr_scheduler_pod_config,
-    worker_extra_container_config=dpr_container_config,
-    scheduler_extra_container_config=dpr_container_config,
     **kwargs,
 ):
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-cpm2"),
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
         local_mode_address="DASK_GATEWAY_CPM2_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_CPM2_PUBLIC",
         **kwargs,
@@ -256,91 +254,59 @@ def init_dask_cluster_cpm2_venv(
 
 
 def init_dask_cluster_cpm3_venv(
-    image: str = "ghcr.io/rs-python/dask/cpm3/k8s:latest",
+    image: str = "",
     cluster_label: str = "",
-    worker_extra_pod_config: dict = dpr_worker_pod_config,
-    scheduler_extra_pod_config: dict = dpr_scheduler_pod_config,
-    worker_extra_container_config=dpr_container_config,
-    scheduler_extra_container_config=dpr_container_config,
     **kwargs,
 ):
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-cpm3"),
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
         local_mode_address="DASK_GATEWAY_CPM3_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_CPM3_PUBLIC",
         **kwargs,
     )
 
 
-def init_dask_cluster_mockup_venv(
-    image: str = "ghcr.io/rs-python/dask/mockup/k8s:latest",
-    cluster_label: str = "",
-    worker_extra_pod_config: dict = dpr_worker_pod_config,
-    scheduler_extra_pod_config: dict = dpr_scheduler_pod_config,
-    worker_extra_container_config=dpr_container_config,
-    scheduler_extra_container_config=dpr_container_config,
-    **kwargs,
-):
-    """Read existing or create new dask cluster."""
-    return _init_dask_cluster_venv(
-        image=image,
-        cluster_label=cluster_label or dpr_label(image, "dask-eopf-mockup"),
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
-        local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
-        **kwargs,
-    )
-
-
 def init_dask_cluster_l0_venv(
-    image: str = "ghcr.io/rs-python/dask/l0/k8s:latest",
+    image: str = "",
     cluster_label: str = "",
-    worker_extra_pod_config: dict = dpr_worker_pod_config,
-    scheduler_extra_pod_config: dict = dpr_scheduler_pod_config,
-    worker_extra_container_config=dpr_container_config,
-    scheduler_extra_container_config=dpr_container_config,
     **kwargs,
 ):
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-l0"),
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
         local_mode_address="DASK_GATEWAY_L0_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_L0_PUBLIC",
         **kwargs,
     )
 
 
-def init_dask_cluster_s1ard_venv(
-    image: str = "ghcr.io/rs-python/dask/s1ard/k8s:latest",
+def init_dask_cluster_mockup_venv(
+    image: str = "",
     cluster_label: str = "",
-    worker_extra_pod_config: dict = dpr_worker_pod_config,
-    scheduler_extra_pod_config: dict = dpr_scheduler_pod_config,
-    worker_extra_container_config=dpr_container_config,
-    scheduler_extra_container_config=dpr_container_config,
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        cluster_label=cluster_label or dpr_label(image, "dask-eopf-mockup"),
+        local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
+        local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
+        **kwargs,
+    )
+
+
+def init_dask_cluster_s1ard_venv(
+    image: str = "",
+    cluster_label: str = "",
     **kwargs,
 ):
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-s1ard"),
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
         local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_S1ARD_PUBLIC",
         **kwargs,
@@ -348,22 +314,14 @@ def init_dask_cluster_s1ard_venv(
 
 
 def init_dask_cluster_s3olci_venv(
-    image: str = "ghcr.io/rs-python/dask/s3olci/k8s:latest",
+    image: str = "",
     cluster_label: str = "",
-    worker_extra_pod_config: dict = dpr_worker_pod_config,
-    scheduler_extra_pod_config: dict = dpr_scheduler_pod_config,
-    worker_extra_container_config=dpr_container_config,
-    scheduler_extra_container_config=dpr_container_config,
     **kwargs,
 ):
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-s3olci"),
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
         local_mode_address="DASK_GATEWAY_S3OLCI_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_S3OLCI_PUBLIC",
         **kwargs,
@@ -371,23 +329,14 @@ def init_dask_cluster_s3olci_venv(
 
 
 def init_dask_cluster_staging_venv(
-    image: str = "ghcr.io/rs-python/dask/staging/k8s:latest",
+    image: str = "",
     cluster_label: str = "",
-    worker_extra_pod_config: dict = staging_worker_pod_config,
-    scheduler_extra_pod_config: dict = staging_scheduler_pod_config,
-    worker_extra_container_config={},
-    scheduler_extra_container_config={},
     **kwargs,
 ):
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
-        # Same staging cluster for all users
         cluster_label=cluster_label or os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
-        worker_extra_pod_config=worker_extra_pod_config,
-        scheduler_extra_pod_config=scheduler_extra_pod_config,
-        worker_extra_container_config=worker_extra_container_config,
-        scheduler_extra_container_config=scheduler_extra_container_config,
         local_mode_address="DASK_GATEWAY_STAGING_ADDRESS",
         local_mode_address_public="DASK_GATEWAY_STAGING_PUBLIC",
         **kwargs,
