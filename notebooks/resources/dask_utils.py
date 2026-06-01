@@ -110,6 +110,7 @@ def init_dask_cluster(
     print(f"Connecting to dask gateway for {cluster_label!r}: {address} ...")
     if cluster_mode:
         namespace = os.getenv("DASK_GATEWAY_NAMESPACE", namespace)
+    print(f"Connecting to dask gateway on namespace: {namespace} ...")
 
     gateway = get_dask_gateway(address)
 
