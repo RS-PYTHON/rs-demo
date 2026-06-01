@@ -46,7 +46,7 @@ def get_ip_address() -> str:
     return socket.gethostbyname(socket.gethostname())
 
 
-async def read_jupyter_token():
+def read_jupyter_token():
     """
     Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks,
     to use the same authentication in Jupyter, rs-server-staging, rs-client-libraries, ...

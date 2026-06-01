@@ -24,6 +24,7 @@ from prefect.blocks.system import Secret
 # Prefect block names
 BLOCK_NAME_ENV_GLOBAL: str = "env-vars"
 
+# WARNING: JUPYTERHUB_API_TOKEN only exists in cluster mode, not local mode
 token = Secret.load(BLOCK_NAME_ENV_GLOBAL).get()["JUPYTERHUB_API_TOKEN"]
 
 print(token)
