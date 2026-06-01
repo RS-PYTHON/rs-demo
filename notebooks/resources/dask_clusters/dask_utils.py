@@ -16,20 +16,19 @@
 
 import os
 import socket
+import subprocess
+import sys
+from pathlib import Path
 
 import ipywidgets as widgets
 from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
-from prefect.blocks.system import Secret
 
 # Use this str in notebooks to tell that the notebook must be kept open (alive) when called from
 # command line so the cluster local variables are not garbage collected and the cluster stays up in local mode.
 KEEP_THIS_NOTEBOOK_OPEN = "Keep this notebook open (when called from command line)"
-
-# Prefect block names
-BLOCK_NAME_ENV_GLOBAL: str = "env-vars"
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -55,9 +54,24 @@ async def read_jupyter_token():
     This is needed only in cluster mode.
     """
     if cluster_mode:
-        os.environ["JUPYTERHUB_API_TOKEN"] = (
-            await Secret.load(BLOCK_NAME_ENV_GLOBAL)
-        ).get()["JUPYTERHUB_API_TOKEN"]
+
+        # Call the local module/app in command line
+        app = str((Path(__file__).parent / "read_jupyter_token.py").resolve())
+        print(f"Call: {app!r}")
+
+        try:
+            result = subprocess.run(  # nosec B603
+                app,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            token = result.stdout
+        except subprocess.CalledProcessError as e:
+            print(e.stderr, file=sys.stderr)
+            raise
+
+        os.environ["JUPYTERHUB_API_TOKEN"] = token
 
 
 def get_dask_gateway(
