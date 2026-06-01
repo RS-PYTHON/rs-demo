@@ -22,10 +22,14 @@ from dask_gateway import Gateway
 from dask_gateway.auth import BasicAuth, JupyterHubAuth
 from dask_gateway.client import GatewayCluster
 from distributed.client import Client as DaskClient
+from prefect.blocks.system import Secret
 
 # Use this str in notebooks to tell that the notebook must be kept open (alive) when called from
 # command line so the cluster local variables are not garbage collected and the cluster stays up in local mode.
 KEEP_THIS_NOTEBOOK_OPEN = "Keep this notebook open (when called from command line)"
+
+# Prefect block names
+BLOCK_NAME_ENV_GLOBAL: str = "env-vars"
 
 # In local mode, all your services are running locally.
 # In cluster mode, we use the services deployed on the RS-Server website.
@@ -41,6 +45,19 @@ OWNER_ID = (
 def get_ip_address() -> str:
     """Return IP address, see: https://stackoverflow.com/a/166520"""
     return socket.gethostbyname(socket.gethostname())
+
+
+async def read_jupyter_token():
+    """
+    Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks,
+    to use the same authentication in Jupyter, rs-server-staging, rs-client-libraries, ...
+
+    This is needed only in cluster mode.
+    """
+    if cluster_mode:
+        os.environ["JUPYTERHUB_API_TOKEN"] = (
+            await Secret.load(BLOCK_NAME_ENV_GLOBAL)
+        ).get()["JUPYTERHUB_API_TOKEN"]
 
 
 def get_dask_gateway(
