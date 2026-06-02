@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Extra configuration for the staging scheduler pods"""
+"""Extra configuration for the staging scheduler and worker pods"""
 
-staging_scheduler_pod_config = {
+staging_pod_config = {
     "affinity": {
         "nodeAffinity": {
             "requiredDuringSchedulingIgnoredDuringExecution": {

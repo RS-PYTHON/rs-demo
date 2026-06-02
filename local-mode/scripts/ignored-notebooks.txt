@@ -51,3 +51,6 @@ notebooks/sprints/sprint33/796_create_prefect_secret_block.ipynb
 
 # Ignore the adf conversion, the script runs only with real inputs
 notebooks/sprints/sprint36/adf_conversion_flow/adf_conversion_flow.ipynb
+
+# Does not work in the ci/cd because all processors are not run
+notebooks/sprints/sprint37/several_python_dask.ipynb

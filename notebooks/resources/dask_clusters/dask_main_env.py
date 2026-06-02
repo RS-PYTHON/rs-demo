@@ -99,9 +99,8 @@ async def _init_dask_cluster_main_env(
     # It will be killed when you restart your Jupyter kernel.
 
     # Read ClusterInfo value as a IPython variable
-    # NOTE: this is not thread-safe, maybe we should use a more specific variable name.
-    ipython = get_ipython()
-    _cluster_info = ipython.db["cluster_info"]
+    share_values = get_ipython().db.pop(str(proc.pid))
+    _cluster_info = share_values["cluster_info"]
     cluster_info = ClusterInfo(**_cluster_info)
 
     # Set environment for payload (=job order) files.
@@ -113,14 +112,15 @@ async def _init_dask_cluster_main_env(
         # To be confirmed.
         if local_mode:
             os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[
-                ipython.db["local_mode_address"]
+                share_values["local_mode_address"]
             ]
             os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[
-                ipython.db["local_mode_address_public"]
+                share_values["local_mode_address_public"]
             ]
 
             # Refresh Prefect blocks to pass these env vars to the dask workers
-            # NOTE: this is not thread-safe, these variables will be overridden if we init several clusters from the same demo.
+            # NOTE: this is not thread-safe, these variables will be overridden if we init
+            # several clusters from the same demo.
             utils.init_prefect_blocks(_sync=True)
 
     return cluster_info
