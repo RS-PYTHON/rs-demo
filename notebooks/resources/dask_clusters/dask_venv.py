@@ -79,7 +79,7 @@ def read_jupyter_token():
                 capture_output=True,
                 text=True,
             )
-            os.environ["JUPYTERHUB_API_TOKEN"] = result.stdout
+            os.environ["JUPYTERHUB_API_TOKEN"] = str(result.stdout).strip()
         except subprocess.CalledProcessError as e:
             print(e.stderr, file=sys.stderr)
             raise
@@ -241,19 +241,25 @@ def _init_dask_cluster_venv(
 
     # Save ClusterInfo value as a IPython variable, so it is shared with other notebooks,
     # even from different kernels.
-    # NOTE: this is not thread-safe, maybe we should use a more specific variable name.
     cluster_info = {
         "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
         "cluster_label": cluster_label,
         "cluster_instance": cluster.name,
     }
-    ipython = get_ipython()
-    ipython.db["cluster_info"] = cluster_info
+    share_values = {"cluster_info": cluster_info}
 
     # Save other vars to be read from main env
     if local_mode:
-        ipython.db["local_mode_address"] = local_mode_address
-        ipython.db["local_mode_address_public"] = local_mode_address_public
+        share_values.update(
+            {
+                "local_mode_address": local_mode_address,
+                "local_mode_address_public": local_mode_address_public,
+            },
+        )
+
+    # Save it under a key = id of the parent of the current process = the papermill subprocess,
+    # when run from the main env.
+    get_ipython().db[str(os.getppid())] = share_values
 
     return gateway, cluster, client
 
