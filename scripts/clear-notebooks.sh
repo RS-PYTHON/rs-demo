@@ -30,9 +30,6 @@ for notebook in $(find $ROOT_DIR/notebooks -type f -name "*.ipynb" -not -path "*
 
         # Clear notebook outputs
         jupyter nbconvert --clear-output --inplace "$notebook"
-
-        # Clear the python sub-version number
-        sed -i "s|\"version\": \"3\.*\..*\"|\"version\": \"3\.13\.9\"|g" "$notebook"
     )
 
 done
