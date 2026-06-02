@@ -16,7 +16,11 @@
 """
 This module is a command-line application, always run from the main Jupyter env (see the first line of this module:
 #!/opt/conda/bin/python) that is used by the sub-venvs/kernels (that do not have prefect) to read the
-# JUPYTERHUB_API_TOKEN from the Prefect block.
+JUPYTERHUB_API_TOKEN from the Prefect block.
+
+This same common token value is used in rs-server-staging and in the rs-client-libraries Prefect flows.
+
+This is not the JUPYTERHUB_API_TOKEN that is initialized automatically at the Jupyter session startup.
 """
 
 from prefect.blocks.system import Secret

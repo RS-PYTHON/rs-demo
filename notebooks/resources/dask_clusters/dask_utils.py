@@ -16,9 +16,6 @@
 
 import os
 import socket
-import subprocess
-import sys
-from pathlib import Path
 
 import ipywidgets as widgets
 from dask_gateway import Gateway
@@ -46,34 +43,6 @@ def get_ip_address() -> str:
     return socket.gethostbyname(socket.gethostname())
 
 
-def read_jupyter_token():
-    """
-    Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks,
-    to use the same authentication in Jupyter, rs-server-staging, rs-client-libraries, ...
-
-    This is needed only in cluster mode.
-    """
-    if cluster_mode:
-
-        # Call the local module/app in command line
-        app = str((Path(__file__).parent / "read_jupyter_token.py").resolve())
-        print(f"Call: {app!r}")
-
-        try:
-            result = subprocess.run(  # nosec B603
-                app,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            token = result.stdout
-        except subprocess.CalledProcessError as e:
-            print(e.stderr, file=sys.stderr)
-            raise
-
-        os.environ["JUPYTERHUB_API_TOKEN"] = token
-
-
 def get_dask_gateway(
     address: str,
 ) -> Gateway:
@@ -81,14 +50,10 @@ def get_dask_gateway(
 
     if cluster_mode:
         try:
-            # NOTE: JUPYTERHUB_API_TOKEN is the token that was used to setup the Dask clusters.
-            # It is saved and read in the Prefect block "env-vars".
-            # This is not the JUPYTERHUB_API_TOKEN that is initialized automatically at the Jupyter session startup.
-            jupyter_token = os.environ["JUPYTERHUB_API_TOKEN"]
-            print(
-                f"JUPYTERHUB_API_TOKEN: '{jupyter_token[:8]}...' <- this common token is set in Prefect block",
-            )
-            auth = JupyterHubAuth(jupyter_token)
+            # NOTE: this should be the common token read from the Prefect block
+            token = os.environ["JUPYTERHUB_API_TOKEN"]
+            print(f"JUPYTERHUB_API_TOKEN: '{token[:8]}...'")
+            auth = JupyterHubAuth(token)
         except KeyError as error:
             raise KeyError(
                 "JUPYTERHUB_API_TOKEN environment variable is missing",

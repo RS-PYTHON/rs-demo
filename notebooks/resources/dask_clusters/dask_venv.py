@@ -21,8 +21,10 @@ Main env --calls--> papermill --calls--> (in venv) notebook to init cluster --ca
 import inspect
 import json
 import os
+import subprocess
 import sys
 import time
+from pathlib import Path
 
 from dask_gateway import Gateway
 from dask_gateway.client import GatewayCluster
@@ -57,6 +59,30 @@ def dpr_label(image: str, base_label: str) -> str:
         final_label += f".{splits[-1]}"
 
     return final_label
+
+
+def read_jupyter_token():
+    """
+    Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks.
+    This is needed only in cluster mode.
+    """
+    if cluster_mode:
+
+        # Call the local module/app in command line
+        app = str((Path(__file__).parent / "read_jupyter_token.py").resolve())
+        print(f"Call: {app!r}")
+
+        try:
+            result = subprocess.run(  # nosec B603
+                app,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            os.environ["JUPYTERHUB_API_TOKEN"] = result.stdout
+        except subprocess.CalledProcessError as e:
+            print(e.stderr, file=sys.stderr)
+            raise
 
 
 def _init_dask_cluster_venv(
