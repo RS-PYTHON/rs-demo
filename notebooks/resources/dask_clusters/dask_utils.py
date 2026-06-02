@@ -52,7 +52,7 @@ def get_dask_gateway(
         try:
             # NOTE: this should be the common token read from the Prefect block
             token = os.environ["JUPYTERHUB_API_TOKEN"]
-            print(f"JUPYTERHUB_API_TOKEN: '{token[:8]}...'")
+            print(f"JUPYTERHUB_API_TOKEN: '{token[:8]}***'")
             auth = JupyterHubAuth(token)
         except KeyError as error:
             raise KeyError(
