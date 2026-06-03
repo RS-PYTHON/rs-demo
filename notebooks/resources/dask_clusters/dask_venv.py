@@ -248,6 +248,12 @@ def _init_dask_cluster_venv(
     }
     share_values = {"cluster_info": cluster_info}
 
+    printflush(
+        f"ClusterInfo(jupyter_token='{cluster_info['jupyter_token'][:8]}***', "
+        f"cluster_label='{cluster_info['cluster_label']}', "
+        f"cluster_instance='{cluster_info['cluster_instance']}')",
+    )
+
     # Save other vars to be read from main env
     if local_mode:
         share_values.update(
