@@ -50,10 +50,10 @@ def get_dask_gateway(
 
     if cluster_mode:
         try:
-            # NOTE: JUPYTERHUB_API_TOKEN is the token that was used to setup the Dask clusters.
-            # It is saved and read in the Prefect block "env-vars".
-            # This is not the JUPYTERHUB_API_TOKEN that is initialized automatically at the Jupyter session startup.
-            auth = JupyterHubAuth(os.environ["JUPYTERHUB_API_TOKEN"])
+            # NOTE: this should be the common token read from the Prefect block
+            token = os.environ["JUPYTERHUB_API_TOKEN"]
+            print(f"JUPYTERHUB_API_TOKEN: '{token[:8]}***'")
+            auth = JupyterHubAuth(token)
         except KeyError as error:
             raise KeyError(
                 "JUPYTERHUB_API_TOKEN environment variable is missing",

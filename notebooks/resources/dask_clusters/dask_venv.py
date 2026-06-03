@@ -21,8 +21,10 @@ Main env --calls--> papermill --calls--> (in venv) notebook to init cluster --ca
 import inspect
 import json
 import os
+import subprocess
 import sys
 import time
+from pathlib import Path
 
 from dask_gateway import Gateway
 from dask_gateway.client import GatewayCluster
@@ -57,6 +59,30 @@ def dpr_label(image: str, base_label: str) -> str:
         final_label += f".{splits[-1]}"
 
     return final_label
+
+
+def read_jupyter_token():
+    """
+    Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks.
+    This is needed only in cluster mode.
+    """
+    if cluster_mode:
+
+        # Call the local module/app in command line
+        app = str((Path(__file__).parent / "read_jupyter_token.py").resolve())
+        print(f"Call: {app!r}")
+
+        try:
+            result = subprocess.run(  # nosec B603
+                app,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            os.environ["JUPYTERHUB_API_TOKEN"] = str(result.stdout).strip()
+        except subprocess.CalledProcessError as e:
+            print(e.stderr, file=sys.stderr)
+            raise
 
 
 def _init_dask_cluster_venv(
@@ -215,19 +241,31 @@ def _init_dask_cluster_venv(
 
     # Save ClusterInfo value as a IPython variable, so it is shared with other notebooks,
     # even from different kernels.
-    # NOTE: this is not thread-safe, maybe we should use a more specific variable name.
     cluster_info = {
         "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
         "cluster_label": cluster_label,
         "cluster_instance": cluster.name,
     }
-    ipython = get_ipython()
-    ipython.db["cluster_info"] = cluster_info
+    share_values = {"cluster_info": cluster_info}
+
+    printflush(
+        f"ClusterInfo(jupyter_token='{cluster_info['jupyter_token'][:8]}***', "
+        f"cluster_label='{cluster_info['cluster_label']}', "
+        f"cluster_instance='{cluster_info['cluster_instance']}')",
+    )
 
     # Save other vars to be read from main env
     if local_mode:
-        ipython.db["local_mode_address"] = local_mode_address
-        ipython.db["local_mode_address_public"] = local_mode_address_public
+        share_values.update(
+            {
+                "local_mode_address": local_mode_address,
+                "local_mode_address_public": local_mode_address_public,
+            },
+        )
+
+    # Save it under a key = id of the parent of the current process = the papermill subprocess,
+    # when run from the main env.
+    get_ipython().db[str(os.getppid())] = share_values
 
     return gateway, cluster, client
 
