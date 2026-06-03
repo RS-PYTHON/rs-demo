@@ -111,12 +111,8 @@ async def _init_dask_cluster_main_env(
         # NOTE: not sure this is used in fact. Maybe this info is already calculated by rs-dpr-service.
         # To be confirmed.
         if local_mode:
-            os.environ["DASK_GATEWAY_ADDRESS"] = os.environ[
-                share_values["local_mode_address"]
-            ]
-            os.environ["DASK_GATEWAY_PUBLIC"] = os.environ[
-                share_values["local_mode_address_public"]
-            ]
+            os.environ["DASK_GATEWAY_ADDRESS"] = share_values["gateway_address"]
+            os.environ["DASK_GATEWAY_PUBLIC"] = share_values["gateway_public"]
 
             # Refresh Prefect blocks to pass these env vars to the dask workers
             # NOTE: this is not thread-safe, these variables will be overridden if we init

@@ -611,6 +611,8 @@ services:
     volumes:
       - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
       - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
+    ports:
+      - 1234:8000
     # Change memory per worker with e.g. DASK_MEMORY_EOPF=4G DASK_CORES_EOPF=4 docker compose up # ...
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
