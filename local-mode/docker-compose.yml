@@ -24,7 +24,7 @@ services:
 
   # Redirections to all rs-server services
   nginx:
-    image: nginx:alpine
+    image: nginx:1.31.1-alpine
     container_name: nginx
     ports:
       - 80:80 # just access it with http://localhost (without port)
