@@ -31,11 +31,11 @@ deployments:
   work_pool: *prefect_work_pool_eopf
   entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
 
-- name: Stage Auxip
+- name: Stage Aux
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
   work_pool: *prefect_work_pool_eopf
-  entrypoint: ./rs_workflows/auxip_flow.py:auxip_staging
+  entrypoint: ./rs_workflows/auxip_flow.py:aux_staging
 
 - name: Stage Cadip
   version: "todo-version"
