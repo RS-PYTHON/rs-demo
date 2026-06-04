@@ -65,13 +65,5 @@ os.environ["POSTGRES_HOST"] = "localhost"
 # prefect
 os.environ["PREFECT_URL"] = os.environ["RSPY_PREFECT_URL"] = "http://localhost:4200"
 os.environ["PREFECT_API_URL"] = os.environ["PREFECT_URL"] + "/api"
-# dask
-os.environ["DASK_GATEWAY_STAGING_ADDRESS"] = os.environ["DASK_GATEWAY_STAGING_PUBLIC"]
-os.environ["DASK_GATEWAY_EOPF_MOCKUP_ADDRESS"] = os.environ[
-    "DASK_GATEWAY_EOPF_MOCKUP_PUBLIC"
-]
-os.environ["DASK_GATEWAY_L0_ADDRESS"] = os.environ["DASK_GATEWAY_L0_PUBLIC"]
-os.environ["DASK_GATEWAY_S1ARD_ADDRESS"] = os.environ["DASK_GATEWAY_S1ARD_PUBLIC"]
-os.environ["DASK_GATEWAY_S3OLCI_ADDRESS"] = os.environ["DASK_GATEWAY_S3OLCI_PUBLIC"]
 
 os.environ["RSPY_OAUTH2_COOKIE"] = "dummy-cookie"

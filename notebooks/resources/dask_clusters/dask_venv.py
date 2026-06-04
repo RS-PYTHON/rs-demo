@@ -21,6 +21,7 @@ Main env --calls--> papermill --calls--> (in venv) notebook to init cluster --ca
 import inspect
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -97,7 +98,6 @@ def _init_dask_cluster_venv(
     worker_extra_container_config: dict,
     scheduler_extra_container_config: dict,
     local_mode_address: str,
-    local_mode_address_public: str,
     gateway_namespace=os.getenv("DASK_GATEWAY_NAMESPACE", "dask-gateway"),
     **kwargs,
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
@@ -116,7 +116,6 @@ def _init_dask_cluster_venv(
         worker_extra_container_config: any extra configuration for the worker container
         scheduler_extra_container_config: any extra configuration for the scheduler container
         local_mode_address: name of the env var that contains the dask gateway url in local mode
-        local_mode_address_public: name of the env var that contains the public dask gateway url in local mode
         gateway_namespace: dask gateway namespace
         kwargs: additional keywoard arguments to pass to the method "gateway.new_cluster"
 
@@ -142,13 +141,18 @@ def _init_dask_cluster_venv(
     gateway_address = os.environ[
         "DASK_GATEWAY_ADDRESS" if cluster_mode else local_mode_address
     ]
-    gateway_public = os.environ[
-        "DASK_GATEWAY_PUBLIC" if cluster_mode else local_mode_address_public
-    ]
     printflush(
         f"Connecting to dask gateway for {cluster_label!r}: {gateway_address} ...",
     )
     gateway = get_dask_gateway(gateway_address)
+
+    if cluster_mode:
+        gateway_public = os.environ["DASK_GATEWAY_PUBLIC"]
+    else:
+        # In local mode, the gateway address configured in .env) is like http://dask-<proc>:8000
+        # The corresponding public address (configured in nginx.conf) is: http://localhost/dask/<proc>
+        pattern = re.compile(r"dask-([^:]+):\d+")
+        gateway_public = pattern.sub(r"localhost/dask/\1", gateway_address)
 
     # Sort the clusters by newest first
     clusters = sorted(
@@ -248,18 +252,17 @@ def _init_dask_cluster_venv(
     }
     share_values = {"cluster_info": cluster_info}
 
-    printflush(
-        f"ClusterInfo(jupyter_token='{cluster_info['jupyter_token'][:8]}***', "
-        f"cluster_label='{cluster_info['cluster_label']}', "
-        f"cluster_instance='{cluster_info['cluster_instance']}')",
-    )
+    obfuscated_info = cluster_info | {
+        "jupyter_token": f"{cluster_info['jupyter_token'][:8]}***",
+    }
+    printflush(json.dumps(obfuscated_info, indent=2))
 
     # Save other vars to be read from main env
     if local_mode:
         share_values.update(
             {
-                "local_mode_address": local_mode_address,
-                "local_mode_address_public": local_mode_address_public,
+                "gateway_address": gateway_address,
+                "gateway_public": gateway_public,
             },
         )
 
@@ -285,7 +288,6 @@ def init_dask_cluster_cpm2_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-cpm2"),
         local_mode_address="DASK_GATEWAY_CPM2_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_CPM2_PUBLIC",
         **kwargs,
     )
 
@@ -300,7 +302,6 @@ def init_dask_cluster_cpm3_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-cpm3"),
         local_mode_address="DASK_GATEWAY_CPM3_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_CPM3_PUBLIC",
         **kwargs,
     )
 
@@ -315,7 +316,6 @@ def init_dask_cluster_l0_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-l0"),
         local_mode_address="DASK_GATEWAY_L0_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_L0_PUBLIC",
         **kwargs,
     )
 
@@ -330,7 +330,6 @@ def init_dask_cluster_mockup_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-eopf-mockup"),
         local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_EOPF_MOCKUP_PUBLIC",
         **kwargs,
     )
 
@@ -345,7 +344,6 @@ def init_dask_cluster_s1ard_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-s1ard"),
         local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_S1ARD_PUBLIC",
         **kwargs,
     )
 
@@ -360,7 +358,6 @@ def init_dask_cluster_s3olci_venv(
         image=image,
         cluster_label=cluster_label or dpr_label(image, "dask-s3olci"),
         local_mode_address="DASK_GATEWAY_S3OLCI_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_S3OLCI_PUBLIC",
         **kwargs,
     )
 
@@ -375,6 +372,5 @@ def init_dask_cluster_staging_venv(
         image=image,
         cluster_label=cluster_label or os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
         local_mode_address="DASK_GATEWAY_STAGING_ADDRESS",
-        local_mode_address_public="DASK_GATEWAY_STAGING_PUBLIC",
         **kwargs,
     )
