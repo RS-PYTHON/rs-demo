@@ -31,7 +31,7 @@ deployments:
   work_pool: *prefect_work_pool_eopf
   entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
 
-- name: Stage Aux
+- name: Stage AUX
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
   work_pool: *prefect_work_pool_eopf
