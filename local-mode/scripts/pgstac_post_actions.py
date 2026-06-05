@@ -175,7 +175,7 @@ with conn.cursor() as cur:
         conn.commit()
     except UniqueViolation:
         pass
-    
+
     # Add 'format' and 'pattern' for expires to have better timestamp queries
     try:
         cur.execute(
