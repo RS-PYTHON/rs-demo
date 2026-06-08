@@ -45,6 +45,7 @@ notebooks/sprints/sprint30/test_s3_l0/test_s3_l0.ipynb
 notebooks/sprints/sprint31/test_s1_l0/test_s1_l0.ipynb
 notebooks/sprints/sprint35/test_s3_l1olci/test_s3_l1olci.ipynb
 notebooks/sprints/sprint36/safe_conversion/safe_conversion_flow.ipynb
+notebooks/processor-integration/processor_integration.ipynb
 
 # Ignore the prefect block notebook, the values inside must be completed before running it
 notebooks/sprints/sprint33/796_create_prefect_secret_block.ipynb
@@ -53,4 +54,4 @@ notebooks/sprints/sprint33/796_create_prefect_secret_block.ipynb
 notebooks/sprints/sprint36/adf_conversion_flow/adf_conversion_flow.ipynb
 
 # Does not work in the ci/cd because all processors are not run
-notebooks/sprints/sprint37/several_python_dask.ipynb
+notebooks/sprints/sprint37/1044_several_python_dask.ipynb
