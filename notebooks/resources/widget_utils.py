@@ -79,6 +79,8 @@ def get_pipeline_unit_radio():
                 "geocoding",
                 "mosaicking",
             ]
+        case DprProcessor.S3L1OLCI.value:
+            pipelines = ["ol1_eo"]
 
     # Text and dict entry used in radio buttons for each pipeline or unit
     options = []
