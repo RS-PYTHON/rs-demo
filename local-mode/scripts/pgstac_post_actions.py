@@ -175,3 +175,22 @@ with conn.cursor() as cur:
         conn.commit()
     except UniqueViolation:
         pass
+
+    # Add 'format' and 'pattern' for expires to have better timestamp queries
+    try:
+        cur.execute(
+            """
+            UPDATE queryables
+            SET definition = '{
+                "type": "string",
+                "format": "date-time",
+                "pattern": "(\\\\+00:00|Z)$"
+            }'::jsonb
+            WHERE name = 'expires';
+            """,
+        )
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
