@@ -55,7 +55,7 @@ I/O:
   input_products:
 
   - id: S1ACADUS
-    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/s1l0/CADUs_partial
+    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/s1l0/CADUs_full
     store_type: cadu
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -103,7 +103,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20250611050700059594.partial
+    path: ${OUTPUT_DIR}/S1A_20250611050700059594.full
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     opening_mode: "CREATE_OVERWRITE"
