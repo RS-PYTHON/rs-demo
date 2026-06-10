@@ -21,6 +21,10 @@ general_configuration:
   triggering__wait_before_exit: 10
   triggering__use_default_filename: false
 
+external_modules:
+- name : l0.cadu_processing.cadu_store
+  nested : true
+
 workflow:
 - name: s1_l0_processor
   # Activate or not this unit, if not active its outputs will not be available
