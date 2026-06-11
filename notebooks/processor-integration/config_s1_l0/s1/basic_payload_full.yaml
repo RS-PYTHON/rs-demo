@@ -103,7 +103,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20250611050700059594.full
+    path: ${OUTPUT_DIR}/s1l0/S1A_20250611050700059594
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     opening_mode: "CREATE_OVERWRITE"
