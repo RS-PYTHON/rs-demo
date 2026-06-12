@@ -34,6 +34,7 @@ NOTEBOOK_DIR = Path(__file__) / "../../../init-dask-clusters"
 
 
 async def _init_dask_cluster_main_env(
+    name: str,
     notebook_path: Path,
     kwargs: dict = {},
 ) -> ClusterInfo:
@@ -42,6 +43,7 @@ async def _init_dask_cluster_main_env(
     read an existing or create a new dask cluster.
 
     Args:
+        name: Dask cluster user-friendly identifier
         notebook_path: Notebook to read
         kwargs: parameters to pass to the notebook (https://papermill.readthedocs.io/en/latest/usage-parameterize.html)
     """
@@ -65,7 +67,7 @@ async def _init_dask_cluster_main_env(
         Markdown(f"### Run notebook: [{relative_from_home}]({relative_from_current})"),
     )
 
-    print(f"Command line: {' '.join(cmd)!r}")
+    print(f"[{name}] Command line: {' '.join(cmd)!r}")
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=subprocess.PIPE,
@@ -81,7 +83,7 @@ async def _init_dask_cluster_main_env(
 
         # Print line if not empty
         if line := line.rstrip():
-            print(line)
+            print(f"[{name}] {line}")
 
         # The notebook will hit this line after it has finished initializing the dask cluster
         if dask_utils.KEEP_THIS_NOTEBOOK_OPEN in line:
@@ -90,7 +92,7 @@ async def _init_dask_cluster_main_env(
 
     # Test subprocess status code when it ends (if we don't keep it alive)
     if (not keep_open) and (status_code := await proc.wait()):
-        print("=== AN ERROR OCCURRED ===")
+        print(f"[{name}] === AN ERROR OCCURRED ===")
         raise RuntimeError(
             f"Dask cluster initialization failed with status: {status_code}",
         )
@@ -130,6 +132,7 @@ async def _init_dask_cluster_main_env(
 async def init_dask_cluster_cpm2(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "cpm2",
         NOTEBOOK_DIR / "init_dask_cluster_cpm2.ipynb",
         kwargs,
     )
@@ -138,6 +141,7 @@ async def init_dask_cluster_cpm2(**kwargs):
 async def init_dask_cluster_cpm3(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "cpm3",
         NOTEBOOK_DIR / "init_dask_cluster_cpm3.ipynb",
         kwargs,
     )
@@ -146,6 +150,7 @@ async def init_dask_cluster_cpm3(**kwargs):
 async def init_dask_cluster_mockup(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "mockup",
         NOTEBOOK_DIR / "init_dask_cluster_mockup.ipynb",
         kwargs,
     )
@@ -154,6 +159,7 @@ async def init_dask_cluster_mockup(**kwargs):
 async def init_dask_cluster_l0(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "l0",
         NOTEBOOK_DIR / "init_dask_cluster_l0.ipynb",
         kwargs,
     )
@@ -162,6 +168,7 @@ async def init_dask_cluster_l0(**kwargs):
 async def init_dask_cluster_s1ard(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "s1ard",
         NOTEBOOK_DIR / "init_dask_cluster_s1ard.ipynb",
         kwargs,
     )
@@ -170,6 +177,7 @@ async def init_dask_cluster_s1ard(**kwargs):
 async def init_dask_cluster_s3olci(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "s3olci",
         NOTEBOOK_DIR / "init_dask_cluster_s3olci.ipynb",
         kwargs,
     )
@@ -178,6 +186,7 @@ async def init_dask_cluster_s3olci(**kwargs):
 async def init_dask_cluster_staging(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(
+        "staging",
         NOTEBOOK_DIR / "init_dask_cluster_staging.ipynb",
         kwargs,
     )
