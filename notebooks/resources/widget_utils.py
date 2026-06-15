@@ -210,7 +210,7 @@ async def deploy_prefect(
             f"Deploy flows from {local_path!r} to 's3://{code_bucket.bucket_name}/{code_bucket.bucket_folder}'",
         )
 
-        # Upload local workflows package contents
+        # Upload local workflows package contents, then the client and config folders
         await code_bucket.put_directory(local_path=local_path, to_path="rs_workflows")
         await code_bucket.put_directory(
             local_path=osp.realpath(osp.join(local_path, "..", "rs_client")),
