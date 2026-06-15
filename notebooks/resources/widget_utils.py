@@ -212,6 +212,10 @@ async def deploy_prefect(
 
         # Upload local workflows package contents
         await code_bucket.put_directory(local_path=local_path, to_path="rs_workflows")
+        await code_bucket.put_directory(
+            local_path=osp.realpath(osp.join(local_path, "..", "rs_client")),
+            to_path="rs_client",
+        )
 
         # Also upload the config folder
         local_config = osp.realpath(osp.join(local_path, "..", "config"))
