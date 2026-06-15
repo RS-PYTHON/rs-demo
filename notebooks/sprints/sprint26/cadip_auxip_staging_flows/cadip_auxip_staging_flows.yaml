@@ -30,7 +30,7 @@ deployments:
   entrypoint: ./rs_workflows/cadip_flow.py:on_demand_cadip_staging
   work_pool: *my_work_pool
 
-- name: On-demand Auxip staging
+- name: On-demand AUX staging
   tags: ["demo", "sprint 26"]
-  entrypoint: ./rs_workflows/auxip_flow.py:on_demand_auxip_staging
+  entrypoint: ./rs_workflows/aux_flow.py:on_demand_aux_staging
   work_pool: *my_work_pool
