@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# NOTE: taken from https://gitlab.eopf.copernicus.eu/L0/validation/-/blob/238a291d0114c3dac7680ada752613d4871c5cbd/s3/payloads/s3_basic_payload.yaml
+# NOTE: taken from https://gitlab.eopf.copernicus.eu/L0/validation/-/blob/main/s3/S3_D_TDS_1/basic_payload.yaml
 
 general_configuration:
   logging:
@@ -28,12 +28,6 @@ general_configuration:
    # FORCE_WRITE mode : Same as WRITE but overload existing breakpoint
    # RETRIEVE mode: replace the computed output of the ProcessingUnit by a disc read product
    # SKIP mode: do nothing
-
-external_modules:
-- name : l0.cadu_processing.cadu_store
-  nested : true
-- name : l0.s3.s3_cache_store
-  nested : true
 
 
 workflow:
@@ -137,8 +131,7 @@ secret:
   - ../secrets.json
 
 # Any logging file(s) to load to the EOLogging facility
-logging:
-  - ../logging_config.yaml
+logging: ../logging_config.yaml
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
   - ./s3_default_configuration.yaml
