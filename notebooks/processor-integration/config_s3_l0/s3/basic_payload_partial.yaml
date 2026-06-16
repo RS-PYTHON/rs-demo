@@ -27,6 +27,9 @@ general_configuration:
    # RETRIEVE mode: replace the computed output of the ProcessingUnit by a disc read product
    # SKIP mode: do nothing
 
+external_modules:
+- name : l0.cadu_processing.cadu_store
+  nested : true
 
 workflow:
 - name: s3_l0_processor
@@ -55,7 +58,7 @@ I/O:
   # input products descriptions and access parameters
   input_products:
   - id: S3ACADUS
-    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/s3l0/3A_20200121061417020455.short
+    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop-2/S3_D_TDS_1/CADUs/S3A_20200121061417020455.short
     store_type: cadu
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -68,7 +71,7 @@ I/O:
 
   adfs:
   - id: OSF
-    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s3l0/3A_AX___OSF_AX_20160216T192404_99991231T235959_20170322T163046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0002.EOF
+    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20170322T163046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0002.EOF
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
@@ -79,7 +82,7 @@ I/O:
           region_name: ${S3_REGION_CLUSTER}
 
   - id: FRO
-    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s3l0/S3A_AX___FRO_AX_20200117T000000_20200127T000000_20200120T065046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20200117T000000_20200127T000000_0001.EOF
+    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___FRO_AX_20200117T000000_20200127T000000_20200120T065046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20200117T000000_20200127T000000_0001.EOF
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
