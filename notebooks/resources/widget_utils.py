@@ -34,6 +34,7 @@ import prefect
 import rs_workflows
 import yaml
 from prefect.client.orchestration import get_client
+from prefect.client.schemas.objects import FlowRun
 from prefect.flows import Flow, State
 from resources import utils
 from rs_client.ogcapi.dpr_client import DprProcessor
@@ -334,4 +335,15 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict) -> State | 
         # Make sure to call the python function from its reloaded module
         module = inspect.getmodule(py_func)
         py_func = getattr(module, py_func.fn.__name__)
-        return await py_func(**params)
+
+        def custom_completion(flow: Flow, _flow_run: FlowRun, state: State):
+            """On completion, save the state as a Flow instance field"""
+            flow.custom_state = state
+
+        py_func.on_completion(custom_completion)
+
+        # Call the python function
+        await py_func(**params)
+
+        # py_func is a Flow instance that has been updated with its last state
+        return py_func.custom_state
