@@ -21,6 +21,9 @@ set -euo pipefail
 # This script is run from the ci/cd
 export RSPY_FROM_CICD=1
 
+OUTPUT_DIR="/tmp/notebook-outputs"
+mkdir -p "${OUTPUT_DIR}"
+
 all_ok=
 all_errors=
 all_ignored=
@@ -52,7 +55,8 @@ for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*
     # Run the notebook in a new shell.
     # In case of error, save the notebook path relative to the root project.
     # NOTE: you can add '--log-output' to view outputs.
-    (set -x && cd "$_dirname" && time papermill "$_filename" /tmp/out.ipynb) && \
+    _outname="${_relative//\//__}"
+    (set -x && cd "${_dirname}" && time papermill "${_filename}" "${OUTPUT_DIR}/${_outname}") && \
     all_ok="${all_ok:-}  - '$_relative'\n" || \
     all_errors="${all_errors:-}  - '$_relative'\n"
 done
