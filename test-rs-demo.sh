@@ -82,6 +82,12 @@ NOTEBOOKS_STATUS=$?
 set -e
 
 #############################
+# Copy notebook logs from container
+#############################
+
+docker cp jupyter:/tmp/notebook-outputs/ ./notebook-outputs/ 2>/dev/null || true
+
+#############################
 # Handle failure
 #############################
 
