@@ -41,8 +41,8 @@ dpr_scheduler_pod_config = {
     ],
     "volumes": [
         {
-            "name": "rspython-dev-cs-01",
-            "persistentVolumeClaim": {"claimName": "rspython-dev-cs-01"},
+            "name": "rspython-ops-ads-01",
+            "persistentVolumeClaim": {"claimName": "rspython-ops-ads-01"},
         },
     ],
 }

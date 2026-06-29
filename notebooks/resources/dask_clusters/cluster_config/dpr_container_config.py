@@ -17,8 +17,8 @@
 dpr_container_config = {
     "volumeMounts": [
         {
-            "name": "rspython-dev-cs-01",
-            "mountPath": "/mnt/share/cs-01",
+            "name": "rspython-ops-ads-01",
+            "mountPath": "/mnt/share/ads-01",
             "readOnly": False,
         },
     ],
