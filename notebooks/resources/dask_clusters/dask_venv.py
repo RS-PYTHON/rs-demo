@@ -25,10 +25,11 @@ import re
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 from dask_gateway import Gateway
-from dask_gateway.client import GatewayCluster
+from dask_gateway.client import ClusterStatus, GatewayCluster
 from distributed.client import Client as DaskClient
 from IPython import get_ipython
 from resources.dask_clusters.dask_utils import (
@@ -161,7 +162,11 @@ def _init_dask_cluster_venv(
         reverse=True,
     )
     for cluster in clusters:
-        printflush(f"image = {cluster.name}")
+        printflush(
+            f"cluster = [{cluster.status.name:8s}] {cluster.start_time}"
+            f"  {cluster.name}"
+            f"  {cluster.options.get('cluster_name', '')}",
+        )
 
     # Get existing dask cluster name, if any.
     existing = None
@@ -181,15 +186,23 @@ def _init_dask_cluster_venv(
 
         # In cluster mode, also check the docker image name and cluster name
         else:
-            existing = next(
-                (
-                    report.name
-                    for report in clusters
-                    if (report.options.get("image") == image)
-                    and (report.options.get("cluster_name") == cluster_label)
-                ),
-                None,
-            )
+            for report in clusters:
+                if (
+                    report.options.get("image") != image
+                    or report.options.get("cluster_name") != cluster_label
+                ):
+                    continue
+                pending_minutes = (
+                    datetime.now() - report.start_time
+                ).total_seconds() / 60
+                if report.status == ClusterStatus.PENDING and pending_minutes > 30:
+                    print(
+                        f"Cluster {report.name} has been PENDING for {pending_minutes} minutes, shutting it down and creating a new one",
+                    )
+                    gateway.stop_cluster(report.name)
+                    continue
+                existing = report.name
+                break
 
     # If a cluster has already been initialized, retrieve it
     if existing:
