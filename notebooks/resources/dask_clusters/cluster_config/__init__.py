@@ -17,4 +17,5 @@
 from .dpr_container_config import *
 from .dpr_scheduler_pod_config import *
 from .dpr_worker_pod_config import *
+from .dpr_olci_worker_pod_config import *
 from .staging_pod_config import *
