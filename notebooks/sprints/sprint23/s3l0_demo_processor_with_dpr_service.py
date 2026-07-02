@@ -563,7 +563,7 @@ async def eopf_aux_data_search(
     dpr_client = RsClient(rs_server_href).get_dpr_client()
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    init_opentelemetry.init_traces("rs.client.dask", logger)
+    init_opentelemetry.init_traces("rs.client.dask")
     with init_opentelemetry.start_span(
         __name__,
         "eopf_aux_data_search",
@@ -595,7 +595,7 @@ async def dpr_service(
     os.environ["OUTPUT_DIR"] = output_data_dir
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    init_opentelemetry.init_traces("rs.client.dask", logger)
+    init_opentelemetry.init_traces("rs.client.dask")
     with init_opentelemetry.start_span(__name__, "main_dask_task", flow_span_context):
 
         # Output report dir

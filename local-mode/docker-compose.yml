@@ -37,7 +37,7 @@ services:
       - rs-server-staging
       - rs-dpr-service_py3.11.7-2024.5.2
       - rs-dpr-service_py3.11.7-2026.1.2
-      - rs-dpr-service_py3.13.12-2026.1.2
+      - rs-dpr-service_py3.13.12-2026.3.0
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
@@ -317,9 +317,9 @@ services:
     env_file:
       - .env
 
-  rs-dpr-service_py3.13.12-2026.1.2:
-    image: ghcr.io/rs-python/rs-dpr-service_py3.13.12-2026.1.2:latest
-    container_name: rs-dpr-service_py3.13.12-2026.1.2
+  rs-dpr-service_py3.13.12-2026.3.0:
+    image: ghcr.io/rs-python/rs-dpr-service_py3.13.12-2026.3.0:latest
+    container_name: rs-dpr-service_py3.13.12-2026.3.0
     ports:
       - 6005:8000
     depends_on:
