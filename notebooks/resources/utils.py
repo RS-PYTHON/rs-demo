@@ -23,7 +23,6 @@ import logging
 import os
 import time
 from datetime import datetime
-from typing import Optional
 
 import boto3
 import requests
@@ -102,6 +101,33 @@ stop_date = datetime(2024, 1, 1)
 def pretty_print(any_dict: dict, indent=2):
     """Pretty print any dict e.g. JSON data."""
     print(json.dumps(any_dict, indent=2))
+
+
+def dict_diff(dict_a: dict, dict_b: dict):
+    """Print the differences between two dicts. See: https://stackoverflow.com/a/68861602"""
+
+    # Convert all keys and values to str
+    dict_a = {str(k): str(v) for k, v in dict_a.items()}
+    dict_b = {str(k): str(v) for k, v in dict_b.items()}
+
+    removed = "\n  - ".join(
+        [""] + [f"{k} was {dict_a[k]!r}" for k in sorted(set(dict_a) - set(dict_b))],
+    )
+    added = "\n  - ".join(
+        [""] + [f"{k} is {dict_b[k]!r}" for k in sorted(set(dict_b) - set(dict_a))],
+    )
+
+    common_keys = sorted(set(dict_a) & set(dict_b))
+    diffs = "\n  - ".join(
+        [""]
+        + [
+            f"{k} was {dict_a[k]!r}, becomes {dict_b[k]!r}"
+            for k in common_keys
+            if dict_a[k] != dict_b[k]
+        ],
+    )
+
+    return f"Removed values:{removed}\nAdded values:{added}\nChanged values:{diffs}"
 
 
 def get_buckets_from_config_file() -> list:
