@@ -59,6 +59,9 @@ def dpr_label(image: str, base_label: str) -> str:
     if len(splits := image.split(":")) > 1:
         final_label += f".{splits[-1]}"
 
+    if len(final_label) > 63:
+        final_label = final_label[:63].rstrip("-_.")
+
     return final_label
 
 
