@@ -14,8 +14,9 @@
 
 # Ignore notebooks from the ci/cd. Wildcards are allowed.
 
-# These notebooks are used only by the user to init dask clusters
+# These notebooks are run only manually
 notebooks/init-dask-clusters/*
+notebooks/init-prefect/*
 
 # Ignore public demos that deal with HUGE real data
 notebooks/demos/*
@@ -38,6 +39,7 @@ notebooks/sprints/sprint24/100_deployments/100_flows_with_deployments.ipynb
 # Ignore those for osam, which run only in cluster mode
 notebooks/sprints/sprint24/604_s3_rights.ipynb
 notebooks/sprints/sprint25/605_606_osam_s3_user_access_policy.ipynb
+notebooks/sprints/sprint38/1095_reduce_size_of_userpolicy_file_generated_by_osam.ipynb
 
 # These should be run in the cluster only
 notebooks/sprints/sprint29/test_s1_ard/test_s1_ard.ipynb

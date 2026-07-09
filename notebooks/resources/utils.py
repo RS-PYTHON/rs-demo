@@ -21,12 +21,15 @@ import csv
 import json
 import logging
 import os
+import sys
 import time
 from datetime import datetime
-from typing import Optional
 
+import _pytest
 import boto3
 import requests
+from _pytest.assertion import pytest_assertrepr_compare
+from _pytest.terminal import TerminalReporter
 from pystac import (
     Collection,
     Extent,
@@ -101,7 +104,36 @@ stop_date = datetime(2024, 1, 1)
 
 def pretty_print(any_dict: dict, indent=2):
     """Pretty print any dict e.g. JSON data."""
-    print(json.dumps(any_dict, indent=2))
+    print(json.dumps(any_dict, indent=indent))
+
+
+def sort_dict_or_list(obj: dict | list) -> dict | list:
+    """Sort a nested dict or list, recursively"""
+    if isinstance(obj, dict):
+        return {key: sort_dict_or_list(value) for key, value in sorted(obj.items())}
+    if isinstance(obj, list):
+        return [sort_dict_or_list(item) for item in obj]
+    return obj
+
+
+def compare_dict(old_values: dict, new_values: dict) -> str:
+    """Compare two dicts, return differences as a string (or empty string if no differences)"""
+    if old_values == new_values:
+        return ""
+
+    # Use this nice feature from pytest
+    config = _pytest.config.get_config()
+    config.parse(["-v"])  # verbose
+    reporter = TerminalReporter(config, sys.stdout)
+    config.pluginmanager.register(reporter, "terminalreporter")
+
+    lines = pytest_assertrepr_compare(
+        config,
+        "==",
+        sort_dict_or_list(new_values),
+        sort_dict_or_list(old_values),
+    )
+    return "\n".join(lines) if lines else ""
 
 
 def get_buckets_from_config_file() -> list:
