@@ -111,10 +111,9 @@ def sort_dict_or_list(obj: dict | list) -> dict | list:
     """Sort a nested dict or list, recursively"""
     if isinstance(obj, dict):
         return {key: sort_dict_or_list(value) for key, value in sorted(obj.items())}
-    elif isinstance(obj, list):
+    if isinstance(obj, list):
         return [sort_dict_or_list(item) for item in obj]
-    else:
-        return obj
+    return obj
 
 
 def compare_dict(old_values: dict, new_values: dict) -> str:
