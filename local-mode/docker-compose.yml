@@ -530,8 +530,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-    volumes:
-      - ./config/storage_configuration.json:/etc/storage_configuration.json
 
   prefect-worker-general:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
