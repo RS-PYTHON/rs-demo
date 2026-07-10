@@ -4,3 +4,5 @@ __pycache__
 .idea
 *.orig
 tmp
+# Macos FinderView
+.DS_Store
