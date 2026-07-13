@@ -249,7 +249,8 @@ def _init_dask_cluster_venv(
     # Save ClusterInfo value as a IPython variable, so it is shared with other notebooks,
     # even from different kernels.
     cluster_info = {
-        "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
+        "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"],
+        "dask_gateway_address": os.environ["DASK_GATEWAY_ADDRESS"],
         "cluster_label": cluster_label,
         "cluster_instance": cluster.name,
     }
