@@ -21,11 +21,26 @@ pull:
 
 definitions:
     work_pools:
-        my_work_pool: &my_work_pool
-            name: "{{ PREFECT_WORK_POOL_MONITORING }}"
+        prefect_work_pool_integrated: &prefect_work_pool_integrated
+            name: "{{ PREFECT_WORK_POOL_INTEGRATED }}"
+        prefect_work_pool_sandbox: &prefect_work_pool_sandbox
+            name: "{{ PREFECT_WORK_POOL_SANDBOX }}"
 
 deployments:
-- name: Initialize PI DB
-  tags: ["demo", "sprint 27"]
-  entrypoint: ./rs_workflows/init_pi_db_flow.py:init_pi_database
-  work_pool: *my_work_pool
+- name: Process Generic
+  version: "todo-version"
+  tags: ["dpr", "sprint 30"]
+  work_pool: *prefect_work_pool_sandbox
+  entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
+
+- name: Stage Auxip
+  version: "todo-version"
+  tags: ["dpr", "sprint 30"]
+  work_pool: *prefect_work_pool_integrated
+  entrypoint: ./rs_workflows/aux_flow.py:aux_staging
+
+- name: Stage Cadip
+  version: "todo-version"
+  tags: ["dpr", "sprint 30"]
+  work_pool: *prefect_work_pool_integrated
+  entrypoint: ./rs_workflows/cadip_flow.py:on_demand_cadip_staging

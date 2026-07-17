@@ -22,7 +22,7 @@ pull:
 definitions:
     work_pools:
         my_work_pool: &my_work_pool
-            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+            name: "{{ PREFECT_WORK_POOL_INTEGRATED }}"
 
 deployments:
 - name: On-demand Cadip staging

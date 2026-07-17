@@ -21,12 +21,12 @@ pull:
 
 definitions:
     work_pools:
-        prefect_work_pool_eopf: &prefect_work_pool_eopf
-            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+        prefect_work_pool_sandbox: &prefect_work_pool_sandbox
+            name: "{{ PREFECT_WORK_POOL_SANDBOX }}"
 
 deployments:
 - name: SAFE conversion
   version: "todo-version"
   tags: ["adf", "on-demand"]
-  work_pool: *prefect_work_pool_eopf
+  work_pool: *prefect_work_pool_sandbox
   entrypoint: ./rs_workflows/on_demand_conversion.py:on_demand_conversion

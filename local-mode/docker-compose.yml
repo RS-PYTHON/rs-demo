@@ -505,19 +505,19 @@ services:
       interval: 2s
       retries: 30
 
-  prefect-worker-staging:
+  prefect-worker-integrated:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
     env_file:
       - .env
-    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_STAGING", "--type", "process"]
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_INTEGRATED", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 1
 
-  prefect-worker-eopf:
+  prefect-worker-monitoring:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
@@ -526,19 +526,19 @@ services:
       - .env
     environment:
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
-    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_EOPF", "--type", "process"]
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_MONITORING", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 1
 
-  prefect-worker-general:
+  prefect-worker-sandbox:
     image: ghcr.io/rs-python/prefect/rs-client-libraries/local:latest
     depends_on:
       prefect-server:
         condition: service_healthy
     env_file:
       - .env
-    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_GENERAL", "--type", "process"]
+    command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_SANDBOX", "--type", "process"]
     deploy:
       mode: replicated
       replicas: 1
@@ -817,9 +817,9 @@ services:
       - lta-station
       - prip-station
       - prefect-server
-      - prefect-worker-staging
-      - prefect-worker-eopf
-      - prefect-worker-general
+      - prefect-worker-integrated
+      - prefect-worker-monitoring
+      - prefect-worker-sandbox
       - dask-staging
       - dask-eopf-mockup
       - postgres
