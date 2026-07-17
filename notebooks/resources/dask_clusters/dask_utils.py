@@ -102,14 +102,14 @@ def shutdown_dask_clusters(gateway: Gateway, name: str | None):
     """
     Shutdown the given gateway cluster, or all clusters if the name is None.
     """
-    for cluster_info in gateway.list_clusters():
+    for cluster in gateway.list_clusters():
         try:
-            if (name is None) or (name == cluster_info.name):
-                cluster = gateway.connect(cluster_info.name)
+            if (name is None) or (name == cluster.name):
+                cluster = gateway.connect(cluster.name)
                 cluster.shutdown()
-                print(f"Shutting down cluster {cluster_info.name!r} ...")
+                print(f"Shutting down cluster {cluster.name!r} ...")
         except Exception as e:
-            print(f"Error shutting down cluster {cluster_info.name!r}: {e}")
+            print(f"Error shutting down cluster {cluster.name!r}: {e}")
 
 
 def close_dask_clusters(gateway, cluster, client):

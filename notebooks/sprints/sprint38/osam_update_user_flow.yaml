@@ -21,12 +21,12 @@ pull:
 
 definitions:
     work_pools:
-        prefect_work_pool_eopf: &prefect_work_pool_eopf
-            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+        prefect_work_pool_monitoring: &prefect_work_pool_monitoring
+            name: "{{ PREFECT_WORK_POOL_MONITORING }}"
 
 deployments:
 - name: OSAM Update User
   version: "todo-version"
   tags: ["osam", "on-demand"]
-  work_pool: *prefect_work_pool_eopf
+  work_pool: *prefect_work_pool_monitoring
   entrypoint: ./rs_workflows/operation/osam_flows.py:osam_update_user
