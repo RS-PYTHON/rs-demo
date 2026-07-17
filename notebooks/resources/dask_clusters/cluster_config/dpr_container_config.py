@@ -85,3 +85,4 @@ def resolve_dpr_container_config() -> dict:
 
 
 dpr_container_config = resolve_dpr_container_config()
+print(f"[dpr_container_config] Resolved configuration: {dpr_container_config}")
