@@ -22,7 +22,7 @@ pull:
 definitions:
     work_pools:
         my_work_pool: &my_work_pool
-            name: "{{ PREFECT_WORK_POOL_GENERAL }}"
+            name: "{{ PREFECT_WORK_POOL_MONITORING }}"
 
 deployments:
 - name: Initialize PI DB
