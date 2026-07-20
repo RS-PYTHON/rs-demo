@@ -625,11 +625,10 @@ async def dpr_service(
         with open(payload_abs_path) as payload_data:
             data = yaml.safe_load(payload_data)
 
-        # Create cluster info from JUPYTERHUB_API_TOKEN env var (only in cluster mode) and Dask cluster label.
+        # Create cluster info
         cluster_info = ClusterInfo(
-            jupyter_token=(
-                os.environ["JUPYTERHUB_API_TOKEN"] if prefect_utils.cluster_mode else ""
-            ),
+            jupyter_token=os.environ["JUPYTERHUB_API_TOKEN"],
+            dask_gateway_address=os.environ["DASK_GATEWAY_ADDRESS"],
             cluster_label=cluster_label,
         )
 
