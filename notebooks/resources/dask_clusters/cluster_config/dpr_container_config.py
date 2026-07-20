@@ -15,36 +15,85 @@
 """Extra configuration for the DPR scheduler and worker containers."""
 
 import asyncio
+import inspect
+import json
+import os
+from concurrent.futures import ThreadPoolExecutor
 
-try:
-    from prefect.variables import Variable
-except ImportError:
-    Variable = None
+var_name = "processing-storage-configuration"
 
-async def get_prefect_variable_values() -> dict:
-    """Read the Prefect variable that stores the storage configuration."""
-    var_name = "processing-storage-configuration"
-    
+
+def _get_prefect_values_from_env() -> dict:
+    """
+    Read the prefect payloads passed through the environment.
+    This is the case when this file is imported inside a subprocess that is spawned by the 
+    main Jupyter environment kernel (see dask_main_env.py in function _init_dask_cluster_main_env).
+    """
+    raw_values = os.getenv("DPR_CONTAINER_CONFIG_PREFECT_VALUES")
+    if not raw_values:
+        raise RuntimeError("DPR_CONTAINER_CONFIG_PREFECT_VALUES is not set")
+
     try:
-        existing_values = await Variable.get(var_name)            
-    except AttributeError as exc:
-        raise RuntimeError(
-            f"Prefect variable {var_name!r} is missing or unreadable",
-        ) from exc
+        parsed_values = json.loads(raw_values)
+    except Exception as exc:
+        raise RuntimeError("DPR_CONTAINER_CONFIG_PREFECT_VALUES is not valid JSON") from exc
+
+    if not isinstance(parsed_values, dict):
+        raise RuntimeError("DPR_CONTAINER_CONFIG_PREFECT_VALUES must decode to a dictionary")
+
+    return parsed_values
+
+
+def _run_awaitable_sync(result):
+    """Resolve an awaitable without re-entering a currently running event loop."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(result)
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        return executor.submit(asyncio.run, result).result()
+
+
+def _load_prefect_values_from_variable() -> dict:
+    """Load values directly from the Prefect variable service."""
+    try:
+        from prefect.variables import Variable
+    except ImportError as exc:
+        raise RuntimeError("Prefect is required to resolve DPR container config values") from exc
+
+    try:
+        result = Variable.get(var_name)
     except Exception as exc:
         raise RuntimeError(
-            f"Prefect variable {var_name!r} is missing or unreadable",
-        ) from exc    
+            f"Unable to load Prefect variable {var_name!r} and no environment payload was available",
+        ) from exc
 
-    if isinstance(existing_values, dict):
-        return existing_values
+    if inspect.isawaitable(result):
+        result = _run_awaitable_sync(result)
 
-    raise RuntimeError(f"Prefect variable {var_name!r} must contain a dictionary")
+    if not isinstance(result, dict):
+        raise RuntimeError(f"Prefect variable {var_name!r} must contain a dictionary")
+
+    return result
+
+
+def _get_prefect_values_sync() -> dict:
+    """Load Prefect values from the environment first, then from the Prefect variable."""
+    try:
+        return _get_prefect_values_from_env()
+    except RuntimeError:
+        pass
+
+    return _load_prefect_values_from_variable()
 
 
 def extract_shared_disk_mounts(prefect_values: dict | None = None) -> list[dict]:
     """Extract shared-disk mounts from a storage_configuration payload."""
-    values = prefect_values if prefect_values is not None else asyncio.run(get_prefect_variable_values())
+    values = prefect_values if prefect_values is not None else _get_prefect_values_sync()
+
+    if not isinstance(values, dict):
+        return []
 
     storage_configuration = values.get("storage_configuration")
     if not isinstance(storage_configuration, list):
@@ -75,7 +124,7 @@ def extract_shared_disk_mounts(prefect_values: dict | None = None) -> list[dict]
 
 def resolve_dpr_container_config() -> dict:
     """Return the DPR container config with shared-disk mounts from Prefect."""
-    prefect_values = asyncio.run(get_prefect_variable_values())
+    prefect_values = _get_prefect_values_sync()
     shared_disk_mounts = extract_shared_disk_mounts(prefect_values)
 
     if shared_disk_mounts:

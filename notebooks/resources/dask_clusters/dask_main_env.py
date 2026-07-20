@@ -15,6 +15,7 @@
 """Init dask clusters from the main Jupyter environment kernel."""
 
 import asyncio
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -25,6 +26,11 @@ from resources import utils
 from resources.dask_clusters import dask_utils
 from resources.dask_clusters.dask_utils import local_mode
 from rs_client.ogcapi.dpr_client import ClusterInfo
+
+try:
+    from prefect.variables import Variable as PrefectVariable
+except ImportError:
+    PrefectVariable = None
 
 NOTEBOOK_DIR = Path(__file__) / "../../../init-dask-clusters"
 
@@ -67,13 +73,23 @@ async def _init_dask_cluster_main_env(
         Markdown(f"### Run notebook: [{relative_from_home}]({relative_from_current})"),
     )
 
+    if PrefectVariable is not None:
+        try:
+            prefect_values = await PrefectVariable.get("processing-storage-configuration")
+        except Exception as exc:
+            raise RuntimeError("Could not get the prefect processing-storage-configuration "
+                               "variable. Exception") from exc
+
+        if isinstance(prefect_values, dict):
+            os.environ["DPR_CONTAINER_CONFIG_PREFECT_VALUES"] = json.dumps(prefect_values)
+
     print(f"[{name}] Command line: {' '.join(cmd)!r}")
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
-
+        
     # Read papermill output line by line
     keep_open = False
     while proc.stdout:
