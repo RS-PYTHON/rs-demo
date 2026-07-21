@@ -22,7 +22,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 var_name = "processing-storage-configuration"
 
-
 def _get_prefect_values_from_env() -> dict:
     """
     Read the prefect payloads passed through the environment.
@@ -44,17 +43,6 @@ def _get_prefect_values_from_env() -> dict:
     return parsed_values
 
 
-def _run_awaitable_sync(result):
-    """Resolve an awaitable without re-entering a currently running event loop."""
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(result)
-
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        return executor.submit(asyncio.run, result).result()
-
-
 def _load_prefect_values_from_variable() -> dict:
     """Load values directly from the Prefect variable service."""
     try:
@@ -70,7 +58,13 @@ def _load_prefect_values_from_variable() -> dict:
         ) from exc
 
     if inspect.isawaitable(result):
-        result = _run_awaitable_sync(result)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            result = asyncio.run(result)
+        else:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                result = executor.submit(asyncio.run, result).result()
 
     if not isinstance(result, dict):
         raise RuntimeError(f"Prefect variable {var_name!r} must contain a dictionary")
@@ -110,12 +104,16 @@ def extract_shared_disk_mounts(prefect_values: dict | None = None) -> list[dict]
             continue
         if not entry.get("name") or not entry.get("absolute_path"):
             continue
+        read_only = True
+        opening_mode = entry.get("opening_mode")
+        if opening_mode is not None and opening_mode.upper() == "CREATE_OVERWRITE":
+            read_only = False        
 
         mounts.append(
             {
                 "name": str(entry["name"]),
                 "mountPath": str(entry["absolute_path"]),
-                "readOnly": False,
+                "readOnly": read_only,
             },
         )
 
