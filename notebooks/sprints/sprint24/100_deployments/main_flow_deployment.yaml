@@ -28,7 +28,7 @@ deployments:
   tags: ["demo"]
   entrypoint: ./main_flow.py:main_flow_deployment
   work_pool:
-    name: "{{ PREFECT_WORK_POOL_EOPF }}"
+    name: "{{ PREFECT_WORK_POOL_SANDBOX }}"
     job_variables:
         env:
             # Copy env vars from client environment
