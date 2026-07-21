@@ -14,6 +14,8 @@
 
 """Extra configuration for the DPR worker pods"""
 
+from load_prefect_variable import resolve_volumes
+
 dpr_worker_pod_config = {
     "affinity": {
         "nodeAffinity": {
@@ -39,10 +41,5 @@ dpr_worker_pod_config = {
             "effect": "NoSchedule",
         },
     ],
-    "volumes": [
-        {
-            "name": "rspython-dev-cs-01",
-            "persistentVolumeClaim": {"claimName": "rspython-dev-cs-01"},
-        },
-    ],
+    "volumes": resolve_volumes(),
 }

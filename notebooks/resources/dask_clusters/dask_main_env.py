@@ -75,13 +75,22 @@ async def _init_dask_cluster_main_env(
 
     if PrefectVariable is not None:
         try:
-            prefect_values = await PrefectVariable.get("processing-storage-configuration")
+            print(
+                "Fetching values from processing-storage-configuration prefect variable...",
+            )
+            prefect_values = await PrefectVariable.get(
+                "processing-storage-configuration",
+            )
         except Exception as exc:
-            raise RuntimeError("Could not get the prefect processing-storage-configuration "
-                               "variable. Exception") from exc
+            raise RuntimeError(
+                "Could not get the prefect processing-storage-configuration "
+                "variable. Exception",
+            ) from exc
 
         if isinstance(prefect_values, dict):
-            os.environ["DPR_CONTAINER_CONFIG_PREFECT_VALUES"] = json.dumps(prefect_values)
+            os.environ["DPR_CONTAINER_CONFIG_PREFECT_VALUES"] = json.dumps(
+                prefect_values,
+            )
 
     print(f"[{name}] Command line: {' '.join(cmd)!r}")
     proc = await asyncio.create_subprocess_exec(
@@ -89,7 +98,7 @@ async def _init_dask_cluster_main_env(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
-        
+
     # Read papermill output line by line
     keep_open = False
     while proc.stdout:

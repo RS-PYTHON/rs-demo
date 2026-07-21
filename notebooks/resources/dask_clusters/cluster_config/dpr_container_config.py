@@ -14,121 +14,15 @@
 
 """Extra configuration for the DPR scheduler and worker containers."""
 
-import asyncio
-import inspect
-import json
-import os
-from concurrent.futures import ThreadPoolExecutor
-
-var_name = "processing-storage-configuration"
-
-def _get_prefect_values_from_env() -> dict:
-    """
-    Read the prefect payloads passed through the environment.
-    This is the case when this file is imported inside a subprocess that is spawned by the 
-    main Jupyter environment kernel (see dask_main_env.py in function _init_dask_cluster_main_env).
-    """
-    raw_values = os.getenv("DPR_CONTAINER_CONFIG_PREFECT_VALUES")
-    if not raw_values:
-        raise RuntimeError("DPR_CONTAINER_CONFIG_PREFECT_VALUES is not set")
-
-    try:
-        parsed_values = json.loads(raw_values)
-    except Exception as exc:
-        raise RuntimeError("DPR_CONTAINER_CONFIG_PREFECT_VALUES is not valid JSON") from exc
-
-    if not isinstance(parsed_values, dict):
-        raise RuntimeError("DPR_CONTAINER_CONFIG_PREFECT_VALUES must decode to a dictionary")
-
-    return parsed_values
-
-
-def _load_prefect_values_from_variable() -> dict:
-    """Load values directly from the Prefect variable service."""
-    try:
-        from prefect.variables import Variable
-    except ImportError as exc:
-        raise RuntimeError("Prefect is required to resolve DPR container config values") from exc
-
-    try:
-        result = Variable.get(var_name)
-    except Exception as exc:
-        raise RuntimeError(
-            f"Unable to load Prefect variable {var_name!r} and no environment payload was available",
-        ) from exc
-
-    if inspect.isawaitable(result):
-        try:
-            asyncio.get_running_loop()
-        except RuntimeError:
-            result = asyncio.run(result)
-        else:
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                result = executor.submit(asyncio.run, result).result()
-
-    if not isinstance(result, dict):
-        raise RuntimeError(f"Prefect variable {var_name!r} must contain a dictionary")
-
-    return result
-
-
-def _get_prefect_values_sync() -> dict:
-    """Load Prefect values from the environment first, then from the Prefect variable."""
-    try:
-        return _get_prefect_values_from_env()
-    except RuntimeError:
-        pass
-
-    return _load_prefect_values_from_variable()
-
-
-def extract_shared_disk_mounts(prefect_values: dict | None = None) -> list[dict]:
-    """Extract shared-disk mounts from a storage_configuration payload."""
-    values = prefect_values if prefect_values is not None else _get_prefect_values_sync()
-
-    if not isinstance(values, dict):
-        return []
-
-    storage_configuration = values.get("storage_configuration")
-    if not isinstance(storage_configuration, list):
-        storage_configuration = values if isinstance(values, list) else []
-
-    if not isinstance(storage_configuration, list):
-        return []
-
-    mounts = []
-    for entry in storage_configuration:
-        if not isinstance(entry, dict):
-            continue
-        if entry.get("kind") != "shared_disk":
-            continue
-        if not entry.get("name") or not entry.get("absolute_path"):
-            continue
-        read_only = True
-        opening_mode = entry.get("opening_mode")
-        if opening_mode is not None and opening_mode.upper() == "CREATE_OVERWRITE":
-            read_only = False        
-
-        mounts.append(
-            {
-                "name": str(entry["name"]),
-                "mountPath": str(entry["absolute_path"]),
-                "readOnly": read_only,
-            },
-        )
-
-    return mounts
+from load_prefect_variable import extract_shared_disk_mounts, get_prefect_values_sync
 
 
 def resolve_dpr_container_config() -> dict:
     """Return the DPR container config with shared-disk mounts from Prefect."""
-    prefect_values = _get_prefect_values_sync()
+    prefect_values = get_prefect_values_sync()
     shared_disk_mounts = extract_shared_disk_mounts(prefect_values)
 
-    if shared_disk_mounts:
-        return {"volumeMounts": shared_disk_mounts}
-
-    return {"volumeMounts": []}
+    return {"volumeMounts": shared_disk_mounts}
 
 
 dpr_container_config = resolve_dpr_container_config()
