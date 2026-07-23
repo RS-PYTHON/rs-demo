@@ -14,7 +14,7 @@
 
 """Extra configuration for the DPR worker pods"""
 
-from load_prefect_variable import resolve_volumes
+from .load_prefect_variable import resolve_volumes
 
 dpr_worker_pod_config = {
     "affinity": {

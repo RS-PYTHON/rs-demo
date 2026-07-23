@@ -14,7 +14,7 @@
 
 """Extra configuration for the DPR scheduler and worker containers."""
 
-from load_prefect_variable import extract_shared_disk_mounts, get_prefect_values_sync
+from .load_prefect_variable import extract_shared_disk_mounts, get_prefect_values_sync
 
 
 def resolve_dpr_container_config() -> dict:

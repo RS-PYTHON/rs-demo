@@ -14,7 +14,7 @@
 
 """Extra configuration for the DPR OLCI worker pods, with big resources enabled."""
 
-from load_prefect_variable import resolve_volumes
+from .load_prefect_variable import resolve_volumes
 
 dpr_olci_worker_pod_config = {
     "affinity": {

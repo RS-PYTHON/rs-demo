@@ -14,7 +14,7 @@
 
 """Extra configuration for the DPR scheduler pods"""
 
-from load_prefect_variable import resolve_volumes
+from .load_prefect_variable import resolve_volumes
 
 dpr_scheduler_pod_config = {
     "affinity": {
