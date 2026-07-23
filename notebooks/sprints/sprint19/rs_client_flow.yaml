@@ -34,7 +34,7 @@ deployments:
   #     active: true
   # flow_name: sprint19-rs-client
   work_pool:
-    name: "{{ PREFECT_WORK_POOL_STAGING }}"
+    name: "{{ PREFECT_WORK_POOL_INTEGRATED }}"
     job_variables:
         env:
             # Copy env vars from client environment

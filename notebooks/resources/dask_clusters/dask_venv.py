@@ -66,27 +66,27 @@ def dpr_label(image: str, base_label: str) -> str:
 
 
 def read_jupyter_token():
-    """
-    Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks.
-    This is needed only in cluster mode.
-    """
-    if cluster_mode:
+    """Read the JUPYTERHUB_API_TOKEN environment variable from the Prefect blocks."""
+    # It is used only in cluster mode. In local mode we set an empty value.
+    if local_mode:
+        os.environ["JUPYTERHUB_API_TOKEN"] = ""
+        return
 
-        # Call the local module/app in command line
-        app = str((Path(__file__).parent / "read_jupyter_token.py").resolve())
-        print(f"Call: {app!r}")
+    # Call the local module/app in command line
+    app = str((Path(__file__).parent / "read_jupyter_token.py").resolve())
+    print(f"Call: {app!r}")
 
-        try:
-            result = subprocess.run(  # nosec B603
-                app,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            os.environ["JUPYTERHUB_API_TOKEN"] = str(result.stdout).strip()
-        except subprocess.CalledProcessError as e:
-            print(e.stderr, file=sys.stderr)
-            raise
+    try:
+        result = subprocess.run(  # nosec B603
+            app,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        os.environ["JUPYTERHUB_API_TOKEN"] = str(result.stdout).strip()
+    except subprocess.CalledProcessError as e:
+        print(e.stderr, file=sys.stderr)
+        raise
 
 
 def _init_dask_cluster_venv(
@@ -140,6 +140,9 @@ def _init_dask_cluster_venv(
     sig, loc = inspect.signature(_init_dask_cluster_venv), locals()
     args = {param.name: loc[param.name] for param in sig.parameters.values()}
     printflush(json.dumps(args, indent=2))
+
+    # Read the JUPYTERHUB_API_TOKEN env var from the Prefect blocks
+    read_jupyter_token()
 
     gateway_address = os.environ[
         "DASK_GATEWAY_ADDRESS" if cluster_mode else local_mode_address
@@ -249,7 +252,8 @@ def _init_dask_cluster_venv(
     # Save ClusterInfo value as a IPython variable, so it is shared with other notebooks,
     # even from different kernels.
     cluster_info = {
-        "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"] if cluster_mode else "",
+        "jupyter_token": os.environ["JUPYTERHUB_API_TOKEN"],
+        "dask_gateway_address": gateway_address,
         "cluster_label": cluster_label,
         "cluster_instance": cluster.name,
     }
