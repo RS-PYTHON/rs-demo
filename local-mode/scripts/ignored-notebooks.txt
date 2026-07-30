@@ -46,5 +46,3 @@ notebooks/sprints/sprint36/adf_conversion_flow/adf_conversion_flow.ipynb
 
 # Does not work in the ci/cd because all processors are not run
 notebooks/sprints/sprint37/1044_several_python_dask.ipynb
-
-notebooks/sprints/sprint38/dpr_processing_flow/dpr_processing_flow.ipynb
