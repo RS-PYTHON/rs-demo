@@ -104,7 +104,9 @@ jobs:
           repo: RS-PYTHON/rs-workflow-env
           ref: develop
           inputs: '{
-            "build_base_image": false
+            "build_base_image": false,
+            "caller_name": "rs-client-libraries",
+            "caller_url": "${{ env.THIS_URL }}"
             }'
           token: '${{ secrets.TRIGGER_WORKFLOWS }}'
           wait-for-completion: true
