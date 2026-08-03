@@ -91,3 +91,28 @@ jobs:
           name: notebook-outputs
           path: local-mode/notebook-outputs/
           if-no-files-found: ignore
+
+  trigger-rs-workflow-env:
+    runs-on: ubuntu-latest
+    name: Trigger rs-workflow-env # to build the jupyter image for cluster mode with the latest rs-demo changes
+    if: (github.event_name == 'push') && (github.ref_name == 'develop') # Only when we push to develop
+    steps:
+      - name: Trigger rs-workflow-env
+        # Link to the URL of this current github actions run
+        env:
+          THIS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        uses: benc-uk/workflow-dispatch@ba9b031f598534deb29873396ef7b0acf17aa94a
+        with:
+          workflow: build-jupyter.yml
+          repo: RS-PYTHON/rs-workflow-env
+          ref: develop
+          inputs: '{
+            "build_base_image": false,
+            "caller_name": "rs-demo",
+            "caller_url": "${{ env.THIS_URL }}",
+            "caller_reason": "Build the Jupyter image for cluster mode with the latest rs-demo."
+            }'
+          token: '${{ secrets.TRIGGER_WORKFLOWS }}'
+          wait-for-completion: true
+          wait-timeout-seconds: 3600
+          sync-status: true
