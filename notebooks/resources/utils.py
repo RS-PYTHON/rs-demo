@@ -18,18 +18,15 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import csv
+import difflib
 import json
 import logging
 import os
-import sys
 import time
 from datetime import datetime
 
-import _pytest
 import boto3
 import requests
-from _pytest.assertion import pytest_assertrepr_compare
-from _pytest.terminal import TerminalReporter
 from pystac import (
     Collection,
     Extent,
@@ -117,23 +114,21 @@ def sort_dict_or_list(obj: dict | list) -> dict | list:
 
 
 def compare_dict(old_values: dict, new_values: dict) -> str:
-    """Compare two dicts, return differences as a string (or empty string if no differences)"""
+    """Compare two dicts, return differences as a unified diff string (or empty string if none)"""
     if old_values == new_values:
         return ""
-
-    # Use this nice feature from pytest
-    config = _pytest.config.get_config()
-    config.parse(["-v"])  # verbose
-    reporter = TerminalReporter(config, sys.stdout)
-    config.pluginmanager.register(reporter, "terminalreporter")
-
-    lines = pytest_assertrepr_compare(
-        config,
-        "==",
-        sort_dict_or_list(new_values),
-        sort_dict_or_list(old_values),
+    return "".join(
+        difflib.unified_diff(
+            json.dumps(sort_dict_or_list(old_values), indent=2).splitlines(
+                keepends=True,
+            ),
+            json.dumps(sort_dict_or_list(new_values), indent=2).splitlines(
+                keepends=True,
+            ),
+            fromfile="old_values",
+            tofile="new_values",
+        ),
     )
-    return "\n".join(lines) if lines else ""
 
 
 def get_buckets_from_config_file() -> list:
