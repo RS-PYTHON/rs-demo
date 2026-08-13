@@ -21,6 +21,10 @@ general_configuration:
   triggering__wait_before_exit: 10
   triggering__use_default_filename: false
 
+external_modules:
+- name : l0.cadu_processing.cadu_store
+  nested : true
+
 workflow:
 - name: s1_l0_processor
   # Activate or not this unit, if not active its outputs will not be available
@@ -30,7 +34,7 @@ workflow:
   processing_unit: S1L0Processor
   # input products IDs
   inputs:
-    CADUS: S1ACADU
+    CADUS: S1ACADUS
 
   outputs:
     .*: output_folder
@@ -38,6 +42,7 @@ workflow:
   adfs:
     osf: OSF
     fro: FRO
+    calibration: calibration
 
   parameters:
     streaming_mode: false
@@ -49,8 +54,8 @@ I/O:
   # input products descriptions and access parameters
   input_products:
 
-  - id: S1ACADU
-    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/S1A_20250611050700059594${SHORT_SUFFIX}
+  - id: S1ACADUS
+    path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/s1l0/CADUs_full
     store_type: cadu
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
@@ -64,7 +69,7 @@ I/O:
   adfs:
 
   - id: OSF
-    path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0027.EOF
+    path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s1l0/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0026.EOF
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
@@ -75,7 +80,18 @@ I/O:
           region_name: ${S3_REGION_CLUSTER}
 
   - id: FRO
-    path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S1A_OPER_MPL_ORBPRE_20250612T021934_20250619T021933_0001.EOF
+    path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s1l0/S1A_OPER_MPL_ORBPRE_20240404T021403_20240411T021403_0001.EOF
+    store_params:
+      # s3_secret_alias: s3_cluster # see secrets.json
+      storage_options:
+        key: ${S3_ACCESSKEY_CLUSTER}
+        secret: ${S3_SECRETKEY_CLUSTER}
+        client_kwargs:
+          endpoint_url: ${S3_ENDPOINT_CLUSTER}
+          region_name: ${S3_REGION_CLUSTER}
+
+  - id: calibration
+    path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s1l0/s1a-aux-cal.zarr
     store_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
@@ -87,7 +103,7 @@ I/O:
 
   output_products:
   - id: output_folder
-    path: ${OUTPUT_DIR}/S1A_20250611050700059594${SHORT_SUFFIX}
+    path: ${OUTPUT_DIR}/s1l0/S1A_20250611050700059594
     # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
     opening_mode: "CREATE_OVERWRITE"
@@ -104,7 +120,8 @@ I/O:
           region_name: ${S3_REGION}
 
 # Any logging file(s) to load to the EOLogging facility
-logging: ../logging_config.yaml
+logging:
+- ../logging_config.yaml
 
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
