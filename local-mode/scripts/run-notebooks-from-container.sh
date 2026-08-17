@@ -23,6 +23,9 @@ set -uo pipefail
 # This script is run from the ci/cd
 export RSPY_FROM_CICD=1
 
+OUTPUT_DIR="/tmp/notebook-outputs"
+mkdir -p "${OUTPUT_DIR}"
+
 all_ignored=
 
 # Arrays to track background jobs: parallel pids and their notebook paths
@@ -39,7 +42,15 @@ for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*
     # if [[ "$_relative" != "notebooks/sprints/sprintxx/yyy.ipynb" ]]; then continue; fi
 
     # Ignore these notebooks
-    if grep -q "$_relative" "/scripts/ignored-notebooks.txt"; then
+    ignore=false
+    while IFS= read -r line; do
+        if [[ $_relative == $line ]]; then
+            ignore=true
+            break
+        fi
+    done < "/scripts/ignored-notebooks.txt"
+
+    if [[ $ignore == true ]]; then
         all_ignored="${all_ignored:-} - '$_relative'\n"
         continue
     fi
@@ -53,7 +64,8 @@ for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*
         set -e
         set -x
         cd "$_dirname"
-        time papermill "$_filename" /tmp/out_$(basename "$_dirname")_${_filename%.ipynb}.ipynb
+        _outname="${_relative//\//__}"
+        time papermill "${_filename}" "${OUTPUT_DIR}/${_outname}"
     ) &
 
     pids+=($!)

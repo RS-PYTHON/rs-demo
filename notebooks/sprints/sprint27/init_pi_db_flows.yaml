@@ -22,10 +22,10 @@ pull:
 definitions:
     work_pools:
         my_work_pool: &my_work_pool
-            name: "{{ PREFECT_WORK_POOL_GENERAL }}"
+            name: "{{ PREFECT_WORK_POOL_MONITORING }}"
 
 deployments:
-- name: PI db init
+- name: Initialize PI DB
   tags: ["demo", "sprint 27"]
   entrypoint: ./rs_workflows/init_pi_db_flow.py:init_pi_database
   work_pool: *my_work_pool

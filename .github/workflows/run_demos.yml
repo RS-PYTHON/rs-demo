@@ -19,28 +19,44 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: 3.13.12
   DOCKER_REGISTRY: ghcr.io
 
 jobs:
-  test:
+  build-env-external-data-sources:
+    name: Build env for external data sources
     runs-on: ubuntu-latest
-    name: Run all demos
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
         with:
-          submodules: true
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          # Checkout branch not pr (needed by git push)
+          ref: ${{ case(github.event_name == 'pull_request', github.head_ref, '') }}
+      - run: |
+          set -x
+          # This script creates .env-external-data-sources in local-mode/
+          python local-mode/scripts/export_vars.py local-mode/config/rs-server.yaml
 
-      - name: Run pre-commit
-        run: >
-          echo
-          ":information_source: This job checks that you have run \`pre-commit run --all-files\` in
-          your local git repository before committing."
-          >> $GITHUB_STEP_SUMMARY
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd
+          # Commit the file if it changed
+          to_commit="local-mode/.env-external-data-sources"
+          if [[ -n $(git status -s $to_commit) ]]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add $to_commit
+            git commit -m "Updated env for external data sources"
+            git push
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    name: Run all demos
+    needs: build-env-external-data-sources
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Checkout branch not pr (so we get changes from build-env-external-data-sources)
+          ref: ${{ case(github.event_name == 'pull_request', github.head_ref, '') }}
+          submodules: true
 
       - name: Log into Docker registry
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2
@@ -67,3 +83,36 @@ jobs:
           # Run all demos
           ./test-rs-demo.sh
         shell: bash
+
+      - name: Upload executed notebooks
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: notebook-outputs
+          path: local-mode/notebook-outputs/
+          if-no-files-found: ignore
+
+  trigger-rs-workflow-env:
+    runs-on: ubuntu-latest
+    name: Trigger rs-workflow-env # to build the jupyter image for cluster mode with the latest rs-demo changes
+    if: (github.event_name == 'push') && (github.ref_name == 'develop') # Only when we push to develop
+    steps:
+      - name: Trigger rs-workflow-env
+        # Link to the URL of this current github actions run
+        env:
+          THIS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        uses: benc-uk/workflow-dispatch@ba9b031f598534deb29873396ef7b0acf17aa94a
+        with:
+          workflow: build-jupyter.yml
+          repo: RS-PYTHON/rs-workflow-env
+          ref: develop
+          inputs: '{
+            "build_base_image": false,
+            "caller_name": "rs-demo",
+            "caller_url": "${{ env.THIS_URL }}",
+            "caller_reason": "Build the Jupyter image for cluster mode with the latest rs-demo."
+            }'
+          token: '${{ secrets.TRIGGER_WORKFLOWS }}'
+          wait-for-completion: true
+          wait-timeout-seconds: 3600
+          sync-status: true

@@ -18,12 +18,12 @@ WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
 import csv
+import difflib
 import json
 import logging
 import os
 import time
 from datetime import datetime
-from typing import Optional
 
 import boto3
 import requests
@@ -105,7 +105,34 @@ stop_date = datetime(2024, 1, 1)
 
 def pretty_print(any_dict: dict, indent=2):
     """Pretty print any dict e.g. JSON data."""
-    print(json.dumps(any_dict, indent=2))
+    print(json.dumps(any_dict, indent=indent))
+
+
+def sort_dict_or_list(obj: dict | list) -> dict | list:
+    """Sort a nested dict or list, recursively"""
+    if isinstance(obj, dict):
+        return {key: sort_dict_or_list(value) for key, value in sorted(obj.items())}
+    if isinstance(obj, list):
+        return [sort_dict_or_list(item) for item in obj]
+    return obj
+
+
+def compare_dict(old_values: dict, new_values: dict) -> str:
+    """Compare two dicts, return differences as a unified diff string (or empty string if none)"""
+    if old_values == new_values:
+        return ""
+    return "".join(
+        difflib.unified_diff(
+            json.dumps(sort_dict_or_list(old_values), indent=2).splitlines(
+                keepends=True,
+            ),
+            json.dumps(sort_dict_or_list(new_values), indent=2).splitlines(
+                keepends=True,
+            ),
+            fromfile="old_values",
+            tofile="new_values",
+        ),
+    )
 
 
 def get_buckets_from_config_file() -> list:

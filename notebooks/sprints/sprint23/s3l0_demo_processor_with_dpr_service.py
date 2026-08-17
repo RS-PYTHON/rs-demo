@@ -563,7 +563,7 @@ async def eopf_aux_data_search(
     dpr_client = RsClient(rs_server_href).get_dpr_client()
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    init_opentelemetry.init_traces("rs.client.dask", logger)
+    init_opentelemetry.init_traces("rs.client.dask")
     with init_opentelemetry.start_span(
         __name__,
         "eopf_aux_data_search",
@@ -595,7 +595,7 @@ async def dpr_service(
     os.environ["OUTPUT_DIR"] = output_data_dir
 
     # Init opentelemetry and record all task in an Opentelemetry span
-    init_opentelemetry.init_traces("rs.client.dask", logger)
+    init_opentelemetry.init_traces("rs.client.dask")
     with init_opentelemetry.start_span(__name__, "main_dask_task", flow_span_context):
 
         # Output report dir
@@ -625,11 +625,10 @@ async def dpr_service(
         with open(payload_abs_path) as payload_data:
             data = yaml.safe_load(payload_data)
 
-        # Create cluster info from JUPYTERHUB_API_TOKEN env var (only in cluster mode) and Dask cluster label.
+        # Create cluster info
         cluster_info = ClusterInfo(
-            jupyter_token=(
-                os.environ["JUPYTERHUB_API_TOKEN"] if prefect_utils.cluster_mode else ""
-            ),
+            jupyter_token=os.environ["JUPYTERHUB_API_TOKEN"],
+            dask_gateway_address=os.environ["DASK_GATEWAY_ADDRESS"],
             cluster_label=cluster_label,
         )
 

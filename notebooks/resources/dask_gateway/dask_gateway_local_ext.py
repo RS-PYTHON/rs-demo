@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from dask_gateway_server.backends.local import LocalClusterConfig
+from dask_gateway_server.traitlets import Command
 from traitlets import Unicode
 
 
@@ -23,4 +24,20 @@ class NamedLocalClusterConfig(LocalClusterConfig):
         "",
         config=True,
         help="Logical name supplied by the client",
+    )
+
+    # Fix for a dask-gateway bug in version 2026.3.0 - TO BE REMOVED WHEN FIXED
+    # In the original config (here: https://github.com/dask/dask-gateway/blob/82efdfabf723b0ff382255898a2671ebc57583be/dask-gateway-server/dask_gateway_server/backends/base.py#L244), # pylint: disable=line-too-long
+    # the scheduler_cmd and worker_cmd use a deprecated command as a default value.
+    # We set the correct command here until it's fixed in dask-gateway
+    scheduler_cmd = Command(
+        ["dask", "scheduler"],
+        config=True,
+        help="Shell command to start a dask scheduler.",
+    )
+
+    worker_cmd = Command(
+        ["dask", "worker"],
+        config=True,
+        help="Shell command to start a dask worker.",
     )

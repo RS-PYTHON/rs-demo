@@ -22,7 +22,7 @@ In this page, we will see how to run the Jupyter notebooks on cluster, local and
 
       * RS-Server website (Swagger/OpenAPI):
 
-          * <http://localhost:8000/docs> (frontend, only for visualization, not functional)
+          * <http://localhost/docs> (frontend, only for visualization, not functional)
           * <http://localhost:8001/docs> (auxip)
           * <http://localhost:8002/docs> (cadip)
           * <http://localhost:8003/catalog/api.html> (catalog)
@@ -293,7 +293,7 @@ The [docker-compose.yml](local-mode/docker-compose.yml) file uses Docker images 
     * Built from the CI/CD: <https://github.com/RS-PYTHON/rs-server/actions/workflows/publish-binaries.yml>
     * Available in the ghcr.io: <https://github.com/orgs/RS-PYTHON/packages>
   * The AUXIP, CADIP ... station mockups:
-    * Built from the CI/CD: <https://github.com/RS-PYTHON/rs-testmeans/actions/workflows/publish-docker.yml>
+    * Built from the CI/CD: <https://github.com/RS-PYTHON/rs-testmeans/actions/workflows/publish-binaries.yml>
     * Also available in the ghcr.io
   * STAC PostgreSQL database
   * SeaweedFS S3 bucket server

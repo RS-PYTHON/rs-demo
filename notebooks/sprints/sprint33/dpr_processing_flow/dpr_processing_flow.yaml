@@ -21,24 +21,26 @@ pull:
 
 definitions:
     work_pools:
-        prefect_work_pool_eopf: &prefect_work_pool_eopf
-            name: "{{ PREFECT_WORK_POOL_EOPF }}"
+        prefect_work_pool_integrated: &prefect_work_pool_integrated
+            name: "{{ PREFECT_WORK_POOL_INTEGRATED }}"
+        prefect_work_pool_sandbox: &prefect_work_pool_sandbox
+            name: "{{ PREFECT_WORK_POOL_SANDBOX }}"
 
 deployments:
-- name: DPR processing
+- name: Process Generic
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
-  work_pool: *prefect_work_pool_eopf
+  work_pool: *prefect_work_pool_sandbox
   entrypoint: ./rs_workflows/on_demand_processing.py:dpr_processing
 
-- name: Auxip staging
+- name: Stage AUX
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
-  work_pool: *prefect_work_pool_eopf
-  entrypoint: ./rs_workflows/auxip_flow.py:auxip_staging
+  work_pool: *prefect_work_pool_integrated
+  entrypoint: ./rs_workflows/aux_flow.py:aux_staging
 
-- name: Cadip staging
+- name: Stage Cadip
   version: "todo-version"
   tags: ["dpr", "sprint 30"]
-  work_pool: *prefect_work_pool_eopf
+  work_pool: *prefect_work_pool_integrated
   entrypoint: ./rs_workflows/cadip_flow.py:on_demand_cadip_staging

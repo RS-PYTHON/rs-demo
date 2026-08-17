@@ -127,4 +127,5 @@ secret:
   - ../secrets.json
 
 # Any logging file(s) to load to the EOLogging facility
-logging: ../logging_config.yaml
+logging:
+  - ../logging_config.yaml
