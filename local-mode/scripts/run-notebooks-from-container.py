@@ -41,8 +41,8 @@ os.environ["RSPY_FROM_CICD"] = "1"
 OUTPUT_DIR = "/tmp/notebook-outputs"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-MAX_WORKERS = 100  # max concurrent subprocesses
-STATUS_INTERVAL = 10  # print status every n seconds
+MAX_WORKERS = 10  # max concurrent subprocesses
+STATUS_INTERVAL = 5  # print status every n seconds
 
 HOME = Path.home()
 
@@ -58,15 +58,15 @@ class Notebook:
         self.relative: str = str(path.relative_to(HOME))
 
 
-def print_bullet(input: list[str] | dict[str, any]) -> str:
+def print_bullet(input: list[str] | set[str] | dict[str, any]) -> str:
     """Print a dict with bullet points"""
     if not input:
         return "(none)"
-    if isinstance(input, list):
-        l = input
-    else:
+    if isinstance(input, dict):
         input = dict(sorted(input.items()))
         l = [f"{key} -> {value}" for key, value in input.items()]
+    else:
+        l = list(input)
     return "\n  - ".join([""] + l)
 
 
@@ -136,7 +136,6 @@ def do_work(notebook: Notebook) -> str:
         outname = notebook.relative.replace("/", "__")
         cmd = ["papermill", notebook.filename, f"{OUTPUT_DIR}/{outname}"]
         print(f"'{" ".join(cmd)}'", flush=True)
-        # subprocess.run(cmd, cwd=notebook.dirname, check=True, stderr=subprocess.STDOUT)
         subprocess.check_output(cmd, cwd=notebook.dirname, stderr=subprocess.STDOUT)
 
         # Return execution time in seconds
@@ -155,7 +154,7 @@ class PoolRunner:
         self.max_workers = max_workers
         self.status_interval = status_interval
         self.lock = threading.Lock()
-        self.running = {}  # task_id -> args (for display)
+        self.running = set()  # task_id
         self.finished = {}  # task_id -> result
         self.failed = {}  # task_id -> TaskError
         self._stop_monitor = threading.Event()
@@ -164,7 +163,7 @@ class PoolRunner:
         def cb(result):
             _, value = result
             with self.lock:
-                self.running.pop(task_id, None)
+                self.running.remove(task_id)
                 self.finished[task_id] = value
 
         return cb
@@ -172,7 +171,7 @@ class PoolRunner:
     def _on_error(self, task_id):
         def cb(exc):
             with self.lock:
-                self.running.pop(task_id, None)
+                self.running.remove(task_id)
                 self.failed[task_id] = exc
             # Print the full original stack trace, but keep going.
             if isinstance(exc, TaskError):
@@ -208,7 +207,7 @@ class PoolRunner:
                 for notebook in notebooks:
                     task_id = notebook.relative
                     with self.lock:
-                        self.running[task_id] = ""  # notebook
+                        self.running.add(task_id)  # notebook
                     ar = pool.apply_async(
                         _run_task,
                         args=(task_id, do_work, (notebook,), {}),
@@ -236,7 +235,7 @@ if __name__ == "__main__":
     files = sorted(
         p
         for p in notebooks_dir.rglob("*.ipynb")
-        if p.is_file() and "checkpoints" not in p.parts
+        if p.is_file() and ".ipynb_checkpoints" not in p.parts
     )
     notebooks = [Notebook(f) for f in files]
 

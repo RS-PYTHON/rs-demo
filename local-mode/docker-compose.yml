@@ -640,6 +640,8 @@ services:
     entrypoint: > # don't use '|' it doesn't work
       tini -g -- dask-gateway-server
       -f /opt/rs-demo-ext/dask_gateway_config.py
+      --ClusterConfig.worker_memory="16G"
+      --ClusterConfig.worker_cores="4"
 
   #############
   # DATABASES #
