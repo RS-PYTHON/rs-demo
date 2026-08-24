@@ -17,6 +17,7 @@
 WARNING: AFTER EACH MODIFICATION, RESTART THE JUPYTER NOTEBOOK KERNEL !
 """
 
+import asyncio
 import inspect
 import json
 import os
@@ -273,7 +274,12 @@ run_prefect_radio = widgets.RadioButtons(
 )
 
 
-async def run_prefect(deploy_name: str, py_func: Flow, params: dict) -> State | None:
+async def run_prefect(
+    deploy_name: str,
+    py_func: Flow | None,
+    params: dict,
+    flow_run_name: str | None = None,
+) -> State | None:
     """Run prefect flow"""
 
     deployment_url = f"{os.environ['RSPY_PREFECT_URL']}/deployments"
@@ -286,66 +292,87 @@ async def run_prefect(deploy_name: str, py_func: Flow, params: dict) -> State | 
 
     # Using command line
     if run_prefect_radio.value == "cmd":
-        cmd = [
-            "prefect",
-            "deployment",
-            "run",
-            deploy_name,
-            "--params",
-            json.dumps(params),
-            "--watch",
-        ]
-        print(f"""Run flow from command line:\n'{"' '".join(cmd)}'""")
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-        )
-        flow_run_id = None
-        uuid_regex = re.compile(r"UUID:\s*([0-9a-fA-F-]{36})")
-
-        for line in process.stdout:
-            print(line, end="")  # keep standard output
-            if flow_run_id is None:
-                match = uuid_regex.search(line)
-                if match:
-                    flow_run_id = match.group(1)
-
-        process.wait()
-
-        if flow_run_id is None:
-            raise RuntimeError("Unable to extract flow_run_id from Prefect CLI output")
-
-        async with get_client() as client:
-            flow_run = await client.read_flow_run(flow_run_id)
-
-        return flow_run.state
+        return await run_prefect_flow_cmd(deploy_name, params, flow_run_name)
 
     # By calling directly the python code
+    elif py_func:
+        return await run_prefect_flow_python(py_func, params)
+
     else:
-        print("Run flow from python code")
-        # Reload all rs-client-libraries modules
-        for module in list(sys.modules.values()):
-            if any(
-                module.__name__.startswith(prefix)
-                for prefix in ["rs_client.", "rs_common.", "rs_workflows."]
-            ):
-                reload(module)
+        return None
 
-        # Make sure to call the python function from its reloaded module
-        module = inspect.getmodule(py_func)
-        py_func = getattr(module, py_func.fn.__name__)
 
-        def custom_completion(flow: Flow, _flow_run: FlowRun, state: State):
-            """On completion, save the state as a Flow instance field"""
-            flow.custom_state = state
+async def run_prefect_flow_cmd(
+    deploy_name: str,
+    params: dict,
+    flow_run_name: str | None = None,
+) -> State | None:
+    """Run prefect flow using command line"""
+    cmd = [
+        "prefect",
+        "deployment",
+        "run",
+        deploy_name,
+        "--params",
+        json.dumps(params),
+        "--watch",
+    ]
+    if flow_run_name:
+        cmd.extend(["--flow-run-name", flow_run_name])
+    print(f"""Run flow from command line:\n'{"' '".join(cmd)}'""")
+    flow_run_id = None
+    uuid_regex = re.compile(r"UUID:\s*([0-9a-fA-F-]{36})")
 
-        py_func.on_completion(custom_completion)
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+    )
 
-        # Call the python function
-        await py_func(**params)
+    async for raw_line in process.stdout:
+        line = raw_line.decode()
+        print(line, end="")  # keep standard output
+        if flow_run_id is None:
+            match = uuid_regex.search(line)
+            if match:
+                flow_run_id = match.group(1)
 
-        # py_func is a Flow instance that has been updated with its last state
-        return py_func.custom_state
+    returncode = await process.wait()
+
+    if flow_run_id is None:
+        raise RuntimeError(
+            f"Unable to extract flow_run_id from Prefect CLI output (return code: {returncode})",
+        )
+
+    async with get_client() as client:
+        flow_run = await client.read_flow_run(flow_run_id)
+
+    return flow_run.state
+
+
+async def run_prefect_flow_python(py_func: Flow, params: dict) -> State | None:
+    """Run prefect flow by calling directly the python code"""
+    print("Run flow from python code")
+    # Reload all rs-client-libraries modules
+    for module in list(sys.modules.values()):
+        if any(
+            module.__name__.startswith(prefix)
+            for prefix in ["rs_client.", "rs_common.", "rs_workflows."]
+        ):
+            reload(module)
+
+    # Make sure to call the python function from its reloaded module
+    module = inspect.getmodule(py_func)
+    py_func = getattr(module, py_func.fn.__name__)
+
+    def custom_completion(flow: Flow, _flow_run: FlowRun, state: State):
+        """On completion, save the state as a Flow instance field"""
+        flow.custom_state = state
+
+    py_func.on_completion(custom_completion)
+
+    # Call the python function
+    await py_func(**params)
+
+    # py_func is a Flow instance that has been updated with its last state
+    return py_func.custom_state
