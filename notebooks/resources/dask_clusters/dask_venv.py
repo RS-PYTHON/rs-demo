@@ -92,6 +92,7 @@ def read_jupyter_token():
 def _init_dask_cluster_venv(
     scale: int,
     image: str,
+    python_packages: list[str],
     cluster_label: str,
     worker_cores: int,
     worker_memory: float,
@@ -110,6 +111,7 @@ def _init_dask_cluster_venv(
     Args:
         scale: number of dask workers to create
         image: docker image name to use for the workers. Only needed in cluster mode.
+        python_packages: show the version of these python packages in the logs
         cluster_label: custom label to identify the cluster e.g. "dask-proc"
         worker_cores: number of CPU per worker
         worker_memory: memory per worker in GB
@@ -264,6 +266,26 @@ def _init_dask_cluster_venv(
     }
     printflush(json.dumps(obfuscated_info, indent=2))
 
+    def pip_freeze(pkg_names: list[str]) -> list[str]:
+        """Run a pip freeze from inside a dask pod"""
+        from pip._internal.operations import freeze
+
+        return [
+            pkg
+            for pkg in freeze.freeze()
+            if any(
+                [
+                    pkg.startswith(f"{name}==") or pkg.startswith(f"{name} @")
+                    for name in pkg_names
+                ],
+            )
+        ]
+
+    pip_freeze_result = client.submit(pip_freeze, python_packages).result()
+    printflush(
+        f"Python package versions (pip freeze):\n{json.dumps(pip_freeze_result, indent=2)}",
+    )
+
     # Save other vars to be read from main env
     if local_mode:
         share_values.update(
@@ -293,6 +315,7 @@ def init_dask_cluster_cpm2_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["eopf"],
         cluster_label=cluster_label or dpr_label(image, "dask-cpm2"),
         local_mode_address="DASK_GATEWAY_CPM2_ADDRESS",
         **kwargs,
@@ -307,6 +330,7 @@ def init_dask_cluster_cpm3_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["eopf"],
         cluster_label=cluster_label or dpr_label(image, "dask-cpm3"),
         local_mode_address="DASK_GATEWAY_CPM3_ADDRESS",
         **kwargs,
@@ -321,6 +345,7 @@ def init_dask_cluster_l0_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["eopf", "l0"],
         cluster_label=cluster_label or dpr_label(image, "dask-l0"),
         local_mode_address="DASK_GATEWAY_L0_ADDRESS",
         **kwargs,
@@ -335,6 +360,7 @@ def init_dask_cluster_mockup_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["eopf"],
         cluster_label=cluster_label or dpr_label(image, "dask-eopf-mockup"),
         local_mode_address="DASK_GATEWAY_EOPF_MOCKUP_ADDRESS",
         **kwargs,
@@ -349,6 +375,7 @@ def init_dask_cluster_s1ard_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["eopf", "s1-ard"],
         cluster_label=cluster_label or dpr_label(image, "dask-s1ard"),
         local_mode_address="DASK_GATEWAY_S1ARD_ADDRESS",
         **kwargs,
@@ -363,6 +390,7 @@ def init_dask_cluster_s3olci_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["eopf", "s3olci"],
         cluster_label=cluster_label or dpr_label(image, "dask-s3olci"),
         local_mode_address="DASK_GATEWAY_S3OLCI_ADDRESS",
         **kwargs,
@@ -377,6 +405,7 @@ def init_dask_cluster_staging_venv(
     """Read existing or create new dask cluster."""
     return _init_dask_cluster_venv(
         image=image,
+        python_packages=["rs-server-common", "rs-server-staging"],
         cluster_label=cluster_label or os.environ["RSPY_DASK_STAGING_CLUSTER_NAME"],
         local_mode_address="DASK_GATEWAY_STAGING_ADDRESS",
         **kwargs,
