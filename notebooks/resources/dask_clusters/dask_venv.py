@@ -205,29 +205,38 @@ def _init_dask_cluster_venv(
         cluster = gateway.connect(existing)
 
     # Else create one
-    elif local_mode:
-        printflush("Create new dask cluster")
-        cluster = gateway.new_cluster(cluster_name=cluster_label)
+    else:
+        if local_mode:
+            printflush("Create new dask cluster")
+            options = {"cluster_name": cluster_label} | kwargs
 
-    else:  # cluster_mode
-        printflush(f"Create new dask cluster from docker image: {image!r}")
-        cluster = gateway.new_cluster(
-            worker_cores=worker_cores,
-            worker_memory=worker_memory,
-            cluster_max_workers=scale + 1,
-            cluster_max_cores=(scale + 1) * worker_cores,
-            cluster_max_memory=(scale + 1) * worker_memory * (2**30),  # from GB to B
-            scheduler_memory_limit=scheduler_memory_limit,
-            namespace=gateway_namespace,
-            image=image,
-            cluster_name=cluster_label,
-            scheduler_extra_pod_labels={"cluster_name": cluster_label},
-            worker_extra_pod_config=worker_extra_pod_config,
-            scheduler_extra_pod_config=scheduler_extra_pod_config,
-            worker_extra_container_config=worker_extra_container_config,
-            scheduler_extra_container_config=scheduler_extra_container_config,
-            **kwargs,
-        )
+        else:  # cluster_mode
+            printflush(f"Create new dask cluster from docker image: {image!r}")
+            options = {
+                "worker_cores": worker_cores,
+                "worker_memory": worker_memory,
+                "cluster_max_workers": scale + 1,
+                "cluster_max_cores": (scale + 1) * worker_cores,
+                "cluster_max_memory": (scale + 1)
+                * worker_memory
+                * (2**30),  # from GB to B
+                "scheduler_memory_limit": scheduler_memory_limit,
+                "namespace": gateway_namespace,
+                "image": image,
+                "cluster_name": cluster_label,
+                "scheduler_extra_pod_labels": {"cluster_name": cluster_label},
+                "worker_extra_pod_config": worker_extra_pod_config,
+                "scheduler_extra_pod_config": scheduler_extra_pod_config,
+                "worker_extra_container_config": worker_extra_container_config,
+                "scheduler_extra_container_config": scheduler_extra_container_config,
+            } | kwargs
+
+        valid_options = list(gateway.cluster_options())
+        discard = [o for o in options if o not in valid_options]
+        if discard:
+            printflush(f"Discard invalid gateway options: {json.dumps(discard)}")
+        options = {key: value for key, value in options.items() if key in valid_options}
+        cluster = gateway.new_cluster(**options)
 
     printflush(
         f"Dask dashboard for {cluster_label!r}: {cluster.dashboard_link.replace(gateway_address, gateway_public)}",
