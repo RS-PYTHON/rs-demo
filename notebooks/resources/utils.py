@@ -268,7 +268,10 @@ def create_test_collection(
     if not collection_id:
         collection_id = TEST_COLLECTION
     # Clean the existing collection, if any
-    catalog_client.remove_collection(collection_id = collection_id, timeout=COLLECTION_REMOVAL_TIMEOUT)
+    catalog_client.remove_collection(
+        collection_id=collection_id,
+        timeout=COLLECTION_REMOVAL_TIMEOUT,
+    )
 
     # Add new collection
     catalog_client.add_collection(
