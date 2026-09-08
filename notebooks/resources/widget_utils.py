@@ -83,6 +83,8 @@ def get_pipeline_unit_radio():
             ]
         case DprProcessor.S3L1OLCI.value:
             pipelines = ["ol1_eo"]
+        case DprProcessor.S3L2OLCI.value:
+            pipelines = ["ol2"]
 
     # Text and dict entry used in radio buttons for each pipeline or unit
     options = []
