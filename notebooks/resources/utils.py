@@ -47,6 +47,9 @@ from rs_client.stac.catalog_client import CatalogClient
 from rs_common.logging import Logging
 from rs_common.prefect_utils import init_prefect_blocks, save_bucket_credentials
 
+# In case of large files inside the collection to be deleted, we need to increase the default timeout for the requests library
+COLLECTION_REMOVAL_TIMEOUT = 360  # seconds
+
 # Variables
 # Set logger level to info
 Logging.level = logging.INFO
@@ -265,7 +268,10 @@ def create_test_collection(
     if not collection_id:
         collection_id = TEST_COLLECTION
     # Clean the existing collection, if any
-    catalog_client.remove_collection(collection_id)
+    catalog_client.remove_collection(
+        collection_id=collection_id,
+        timeout=COLLECTION_REMOVAL_TIMEOUT,
+    )
 
     # Add new collection
     catalog_client.add_collection(
