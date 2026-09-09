@@ -40,7 +40,7 @@ from prefect.flows import Flow, State
 from resources import utils
 from rs_client.ogcapi.dpr_client import DprProcessor
 from rs_common import prefect_utils
-from rs_workflows.flow_utils import AdfType
+from rs_workflows.flow_utils import AdfType, LoggingLevel
 
 #
 # Jupyter doc: https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20List.html
@@ -107,6 +107,17 @@ def get_pipeline_unit_radio():
 adf_proc_radio = widgets.RadioButtons(
     options=[(adf_type.name, adf_type.value) for adf_type in AdfType],
     description="ADF type in this demo:",
+    indent=False,
+)
+
+########################
+# Choose logging level #
+########################
+
+prefect_logging_level_radio = widgets.RadioButtons(
+    options=[(level.name, level.value) for level in LoggingLevel],
+    value=LoggingLevel.INFO.value,
+    description="Logging level for the Prefect flows:",
     indent=False,
 )
 
