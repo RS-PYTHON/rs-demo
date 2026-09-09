@@ -47,8 +47,8 @@ from rs_client.stac.catalog_client import CatalogClient
 from rs_common.logging import Logging
 from rs_common.prefect_utils import init_prefect_blocks, save_bucket_credentials
 
-# In case of large files inside the collection 
-# to be deleted, we need to increase the default 
+# In case of large files inside the collection
+# to be deleted, we need to increase the default
 # timeout for the catalog client
 COLLECTION_REMOVAL_TIMEOUT = 360  # seconds
 
