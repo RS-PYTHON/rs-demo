@@ -705,7 +705,7 @@ services:
 
   # Use seaweedfs for temp s3 storage
   seaweedfs-s3:
-    image: chrislusf/seaweedfs:4.43
+    image: chrislusf/seaweedfs:4.46
     environment:
       AWS_ACCESS_KEY_ID: ${S3_ACCESSKEY}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRETKEY}
