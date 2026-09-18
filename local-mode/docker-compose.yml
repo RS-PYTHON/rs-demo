@@ -188,6 +188,8 @@ services:
       POSTGRES_DB: ${PGSTAC_DB}
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
       RSPY_DATA_LIFECYCLE_PERIOD: "10"
+      # Presigned download URLs must be reachable from the host browser.
+      S3_PUBLIC_ENDPOINT: http://localhost:9100
 
       # RSPY_LOCAL_MODE: 0 # set to 0 to use the apikey-manager
       # RSPY_UAC_CHECK_URL: http://apikey-manager:8000/auth/check_key # optional
@@ -457,6 +459,7 @@ services:
       SB_catalogUrl: http://127.0.0.1:8003/catalog
       SB_detectLocaleFromBrowser: true
       SB_socialSharing: email,bsky,mastodon
+      SB_displayOverviewsForChildren: "true"
 
   # STAC browser on rs-server-prip
   stac-browser-prip:
