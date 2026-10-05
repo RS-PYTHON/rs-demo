@@ -44,7 +44,7 @@ with conn.cursor() as cur:
         INSERT INTO stac_extensions (url)
         VALUES
             ('https://stac-extensions.github.io/eo/v1.1.0/schema.json'),
-            ('https://stac-extensions.github.io/sat/v1.0.0/schema.json'),
+            ('https://stac-extensions.github.io/sat/v1.2.0/schema.json'),
             ('https://stac-extensions.github.io/projection/v1.1.0/schema.json'),
             ('https://stac-extensions.github.io/processing/v1.2.0/schema.json'),
             ('https://stac-extensions.github.io/product/v0.1.0/schema.json'),
