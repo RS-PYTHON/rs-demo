@@ -117,13 +117,13 @@ I/O:
   output_products:
   - id: ol1_product_fr
     path: /tmp/eopf_S03OLCEFR.zarr
-    type: filename
+    type: file
     opening_mode: CREATE
     store_type: zarr
     store_params: {}
   - id: ol1_product_rr
     path: /tmp/eopf_S03OLCERR.zarr
-    type: filename
+    type: file
     opening_mode: CREATE
     store_type: zarr
     store_params: {}

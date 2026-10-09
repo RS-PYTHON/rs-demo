@@ -109,14 +109,14 @@ I/O:
   output_products:
     - id: cslcs
       path: *cslcs_path
-      type: filename
+      type: file
       opening_mode: "CREATE_OVERWRITE"
       store_type: zarr
       store_params:
         consolidate: True
     - id: nrb
       path: *nrb_path
-      type: filename
+      type: file
       opening_mode: "CREATE_OVERWRITE"
       store_type: zarr
       store_params:

@@ -517,7 +517,6 @@ services:
       - .env
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_INTEGRATED", "--type", "process"]
     deploy:
-      mode: replicated
       replicas: 1
 
   prefect-worker-monitoring:
@@ -531,7 +530,6 @@ services:
       RSPY_HOST_OSAM: ${RSPY_HOST_OSAM}
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_MONITORING", "--type", "process"]
     deploy:
-      mode: replicated
       replicas: 1
 
   prefect-worker-sandbox:
@@ -543,7 +541,6 @@ services:
       - .env
     command: ["prefect", "worker", "start", "--pool", "$PREFECT_WORK_POOL_SANDBOX", "--type", "process"]
     deploy:
-      mode: replicated
       replicas: 1
 
   ########
