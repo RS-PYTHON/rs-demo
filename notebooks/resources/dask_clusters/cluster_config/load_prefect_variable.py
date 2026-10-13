@@ -121,16 +121,11 @@ def extract_shared_disk_mounts(prefect_values: dict | None = None) -> list[dict]
             continue
         if not entry.get("name") or not entry.get("absolute_path"):
             continue
-        read_only = True
-        opening_mode = entry.get("opening_mode")
-        if opening_mode is not None and opening_mode.upper() == "CREATE_OVERWRITE":
-            read_only = False
-
         mounts.append(
             {
                 "name": str(entry["name"]),
                 "mountPath": str(entry["absolute_path"]),
-                "readOnly": read_only,
+                "readOnly": False,
             },
         )
 
