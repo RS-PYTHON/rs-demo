@@ -237,6 +237,31 @@ cd ./local-mode
 docker compose pull
 ```
 
+If pulling an RS-DPR image fails with `manifest unknown` after a Python/Dask
+version change, check the RS-DPR
+[publication workflow](https://github.com/RS-PYTHON/rs-dpr-service/actions/workflows/publish-binaries.yml).
+Images built with the `latest-temp-cicd` tag are promoted to `latest` only after
+the demo tests pass. A failed demo test can therefore leave the new image without
+a `latest` tag; other pulls may report `context canceled` as a consequence.
+Keep the RS-DPR service names in [docker-compose.yml](./local-mode/docker-compose.yml)
+and upstream hostnames in [nginx.conf](./local-mode/nginx.conf) synchronized when
+changing these versions, then rerun the publication workflow after the fix is
+available on the demo branch used by CI.
+
+If demo CI itself is blocked by the missing `latest` image, manually dispatch the
+**Run all demos** workflow on the corrected demo branch with `dpr_image_tag` set
+to `latest-temp-cicd`. This tests the available candidate for
+`rs-dpr-service_py3.13.16-2026.3.0` only. If the local-mode Jupyter `latest` image
+also lacks the updated Python/Dask kernels, first rebuild and verify the Jupyter
+candidate, then set `jupyter_image_tag` to its tag (for example,
+`latest-temp-cicd`). This second input overrides only
+`ghcr.io/rs-python/jupyter/rs-client-libraries/local`; other images retain their
+normal tag selection. Both overrides change only the CI checkout, not the
+committed Compose configuration, and can be used independently. Leave both
+inputs empty for normal runs. After this bootstrap test passes and the correction
+is merged, rerun the relevant publication workflows to promote their candidate
+images to `latest`, then rerun demo CI without the overrides.
+
 Then to run the demos:
 
 ```shell
