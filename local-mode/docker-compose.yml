@@ -831,7 +831,7 @@ services:
       - jupyter
       # Use the rs-dpr-service container with same python and dask version as the
       # mockup DPR processor, which is the only processor used in the demos.
-      - rs-dpr-service_py3.13.16-2026.3.0
+      - rs-dpr-service_py3.11.7-2026.1.2
     entrypoint: tail # use this so this service stays alive
     command: -F anything
 
