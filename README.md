@@ -251,11 +251,16 @@ available on the demo branch used by CI.
 If demo CI itself is blocked by the missing `latest` image, manually dispatch the
 **Run all demos** workflow on the corrected demo branch with `dpr_image_tag` set
 to `latest-temp-cicd`. This tests the available candidate for
-`rs-dpr-service_py3.13.16-2026.3.0` only; other images retain their normal tag
-selection. The override changes only the CI checkout, not the committed Compose
-configuration. Leave the input empty for normal runs. After this bootstrap test
-passes and the correction is merged, rerun the RS-DPR publication workflow to
-promote its candidate images to `latest`, then rerun demo CI without the override.
+`rs-dpr-service_py3.13.16-2026.3.0` only. If the local-mode Jupyter `latest` image
+also lacks the updated Python/Dask kernels, first rebuild and verify the Jupyter
+candidate, then set `jupyter_image_tag` to its tag (for example,
+`latest-temp-cicd`). This second input overrides only
+`ghcr.io/rs-python/jupyter/rs-client-libraries/local`; other images retain their
+normal tag selection. Both overrides change only the CI checkout, not the
+committed Compose configuration, and can be used independently. Leave both
+inputs empty for normal runs. After this bootstrap test passes and the correction
+is merged, rerun the relevant publication workflows to promote their candidate
+images to `latest`, then rerun demo CI without the overrides.
 
 Then to run the demos:
 
