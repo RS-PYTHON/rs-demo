@@ -248,6 +248,15 @@ and upstream hostnames in [nginx.conf](./local-mode/nginx.conf) synchronized whe
 changing these versions, then rerun the publication workflow after the fix is
 available on the demo branch used by CI.
 
+If demo CI itself is blocked by the missing `latest` image, manually dispatch the
+**Run all demos** workflow on the corrected demo branch with `dpr_image_tag` set
+to `latest-temp-cicd`. This tests the available candidate for
+`rs-dpr-service_py3.13.16-2026.3.0` only; other images retain their normal tag
+selection. The override changes only the CI checkout, not the committed Compose
+configuration. Leave the input empty for normal runs. After this bootstrap test
+passes and the correction is merged, rerun the RS-DPR publication workflow to
+promote its candidate images to `latest`, then rerun demo CI without the override.
+
 Then to run the demos:
 
 ```shell
