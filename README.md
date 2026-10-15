@@ -237,6 +237,17 @@ cd ./local-mode
 docker compose pull
 ```
 
+If pulling an RS-DPR image fails with `manifest unknown` after a Python/Dask
+version change, check the RS-DPR
+[publication workflow](https://github.com/RS-PYTHON/rs-dpr-service/actions/workflows/publish-binaries.yml).
+Images built with the `latest-temp-cicd` tag are promoted to `latest` only after
+the demo tests pass. A failed demo test can therefore leave the new image without
+a `latest` tag; other pulls may report `context canceled` as a consequence.
+Keep the RS-DPR service names in [docker-compose.yml](./local-mode/docker-compose.yml)
+and upstream hostnames in [nginx.conf](./local-mode/nginx.conf) synchronized when
+changing these versions, then rerun the publication workflow after the fix is
+available on the demo branch used by CI.
+
 Then to run the demos:
 
 ```shell
