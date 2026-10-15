@@ -17,17 +17,6 @@ name: Run all demos
 on:
   push:
   workflow_dispatch:
-    inputs:
-      dpr_image_tag:
-        description: "Optional py3.13.16-2026.3.0 DPR image tag for bootstrap testing (e.g. latest-temp-cicd)"
-        required: false
-        default: ""
-        type: string
-      jupyter_image_tag:
-        description: "Optional local-mode Jupyter image tag for bootstrap testing (e.g. latest-temp-cicd)"
-        required: false
-        default: ""
-        type: string
 
 env:
   DOCKER_REGISTRY: ghcr.io
@@ -75,44 +64,6 @@ jobs:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Override DPR image for bootstrap testing
-        if: github.event_name == 'workflow_dispatch' && inputs.dpr_image_tag != ''
-        env:
-          DPR_IMAGE_TAG: ${{ inputs.dpr_image_tag }}
-        run: |
-          set -euo pipefail
-
-          if [[ ! "$DPR_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
-            echo "::error::Invalid DPR image tag"
-            exit 1
-          fi
-
-          image="ghcr.io/rs-python/rs-dpr-service_py3.13.16-2026.3.0"
-          docker manifest inspect "${image}:${DPR_IMAGE_TAG}" > /dev/null
-          compose_file="local-mode/docker-compose.yml"
-          grep -Fq "image: ${image}:latest" "$compose_file"
-          sed -i "s|^\([[:space:]]*image: ghcr[.]io/rs-python/rs-dpr-service_py3[.]13[.]16-2026[.]3[.]0:\)latest$|\1${DPR_IMAGE_TAG}|" "$compose_file"
-        shell: bash
-
-      - name: Override Jupyter image for bootstrap testing
-        if: github.event_name == 'workflow_dispatch' && inputs.jupyter_image_tag != ''
-        env:
-          JUPYTER_IMAGE_TAG: ${{ inputs.jupyter_image_tag }}
-        run: |
-          set -euo pipefail
-
-          if [[ ! "$JUPYTER_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
-            echo "::error::Invalid Jupyter image tag"
-            exit 1
-          fi
-
-          image="ghcr.io/rs-python/jupyter/rs-client-libraries/local"
-          docker manifest inspect "${image}:${JUPYTER_IMAGE_TAG}" > /dev/null
-          compose_file="local-mode/docker-compose.yml"
-          grep -Fq "image: ${image}:latest" "$compose_file"
-          sed -i "s|^\([[:space:]]*image: ghcr[.]io/rs-python/jupyter/rs-client-libraries/local:\)latest$|\1${JUPYTER_IMAGE_TAG}|" "$compose_file"
-        shell: bash
 
       - name: Run all demos in local mode
         env:
