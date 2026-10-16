@@ -525,19 +525,6 @@ services:
   # DASK #
   ########
 
-  dask-cpm2:
-    image: ghcr.io/rs-python/dask/cpm2/local:latest
-    environment:
-      PYTHONPATH: /opt/rs-demo-ext
-    volumes:
-      - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
-      - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
-    entrypoint: > # don't use '|' it doesn't work
-      tini -g -- dask-gateway-server
-      -f /opt/rs-demo-ext/dask_gateway_config.py
-      --ClusterConfig.worker_memory="${DASK_MEMORY_EOPF}"
-      --ClusterConfig.worker_cores="${DASK_CORES_EOPF}"
-
   dask-cpm3:
     image: ghcr.io/rs-python/dask/cpm3/local:latest
     environment:
