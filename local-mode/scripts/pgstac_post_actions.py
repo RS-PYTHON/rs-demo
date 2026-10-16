@@ -123,58 +123,35 @@ with conn.cursor() as cur:
     except UniqueViolation:
         pass
 
-    # Add externalIds support for CQL2 search:
-    # - Build a token array from externalIds (scheme:value, value, scheme)
-    # - Use a_overlaps() on the token array for fast matching
+    # Search by externalIds: rs-server-catalog finds the items with a jsonb
+    # containment (@>) query served by these indexes, see rs-server
+    # services/catalog/rs_server_catalog/data_management/external_ids.py.
+    # The index of queryable_index_template makes pgstac see it as an index of
+    # items, so that pgstac.maintain_partitions(dropindexes => true) never
+    # tries to drop it from the partitions.
     cur.execute(
         """
-        CREATE OR REPLACE FUNCTION pgstac.external_ids_tokens(ext jsonb) RETURNS jsonb AS $$
-            SELECT CASE
-                WHEN ext IS NULL OR jsonb_typeof(ext) <> 'array' THEN '[]'::jsonb
-                ELSE COALESCE(
-                    (
-                        SELECT jsonb_agg(DISTINCT token)
-                        FROM (
-                            SELECT CASE
-                                WHEN scheme IS NOT NULL AND scheme <> '' AND value IS NOT NULL AND value <> ''
-                                THEN scheme || ':' || value
-                            END AS token
-                            FROM jsonb_to_recordset(ext) AS x(scheme text, value text)
-                            UNION ALL
-                            SELECT value
-                            FROM jsonb_to_recordset(ext) AS x(scheme text, value text)
-                            WHERE value IS NOT NULL AND value <> ''
-                            UNION ALL
-                            SELECT scheme
-                            FROM jsonb_to_recordset(ext) AS x(scheme text, value text)
-                            WHERE scheme IS NOT NULL AND scheme <> ''
-                        ) tokens
-                        WHERE token IS NOT NULL AND token <> ''
-                    ),
-                    '[]'::jsonb
-                )
-            END;
-        $$ LANGUAGE SQL IMMUTABLE;
+        INSERT INTO queryables (name, definition)
+        SELECT 'externalIds', '{
+            "title": "externalIds",
+            "description": "externalIds",
+            "type": "string"
+        }'
+        WHERE NOT EXISTS (
+            SELECT 1 FROM queryables WHERE name = 'externalIds'
+        );
+        -- The pgstac < 0.10 queryable read the external_ids_tokens() tokens
+        UPDATE queryables SET property_path = NULL
+        WHERE name = 'externalIds' AND property_path IS NOT NULL;
+        DROP FUNCTION IF EXISTS pgstac.external_ids_tokens(jsonb);
+        CREATE INDEX IF NOT EXISTS queryable_index_template_external_ids_idx
+            ON pgstac.queryable_index_template
+            USING GIN ((content->'properties'->'externalIds') jsonb_path_ops);
+        CREATE INDEX IF NOT EXISTS items_external_ids_idx ON pgstac.items
+            USING GIN ((content->'properties'->'externalIds') jsonb_path_ops);
         """,
     )
     conn.commit()
-
-    try:
-        cur.execute(
-            """
-            INSERT INTO queryables (name, definition, property_path)
-            SELECT
-                'externalIds',
-                '{"title": "externalIds", "description": "externalIds", "type": "string"}',
-                'pgstac.external_ids_tokens(content->''properties''->''externalIds'')'
-            WHERE NOT EXISTS (
-                SELECT 1 FROM queryables WHERE name = 'externalIds'
-            );
-            """,
-        )
-        conn.commit()
-    except UniqueViolation:
-        pass
 
     # Add 'format' and 'pattern' for expires to have better timestamp queries
     try:
