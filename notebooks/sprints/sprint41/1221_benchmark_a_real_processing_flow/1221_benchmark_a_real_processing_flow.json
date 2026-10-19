@@ -15,14 +15,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3B_20260911093058043642",
+                            "item_id": "S3A_20260630132216053997",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-09-11T10:55:46.981476Z",
-                        "end_datetime": "2018-04-25T19:18:55Z",
-                        "satellite": "sentinel-3b "
+                        "start_datetime": "2026-30-06T13:22:16Z",
+                        "end_datetime": "2026-30-06T13:24:43Z",
+                        "satellite": "sentinel-3b"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -53,14 +53,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3B_20260911093058043642",
+                            "item_id": "S3A_20260630132216053997",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-09-11T10:55:46.981476Z",
-                        "end_datetime": "2018-04-25T19:18:55Z",
-                        "satellite": "sentinel-3b "
+                        "start_datetime": "2026-30-06T13:22:16Z",
+                        "end_datetime": "2026-30-06T13:24:43Z",
+                        "satellite": "sentinel-3b"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -95,14 +95,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3B_20260911093058043642",
+                            "item_id": "S3A_20260630132216053997",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-09-11T10:55:46.981476Z",
-                        "end_datetime": "2018-04-25T19:18:55Z",
-                        "satellite": "sentinel-3b "
+                        "start_datetime": "2026-30-06T13:22:16Z",
+                        "end_datetime": "2026-30-06T13:24:43Z",
+                        "satellite": "sentinel-3b"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -133,14 +133,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3B_20260911093058043642",
+                            "item_id": "S3A_20260630132216053997",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-09-11T10:55:46.981476Z",
-                        "end_datetime": "2018-04-25T19:18:55Z",
-                        "satellite": "sentinel-3b "
+                        "start_datetime": "2026-30-06T13:22:16Z",
+                        "end_datetime": "2026-30-06T13:24:43Z",
+                        "satellite": "sentinel-3b"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {

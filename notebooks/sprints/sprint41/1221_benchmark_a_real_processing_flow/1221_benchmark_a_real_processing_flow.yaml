@@ -25,6 +25,11 @@ definitions:
             name: "{{ PREFECT_WORK_POOL_SANDBOX }}"
 
 deployments:
+- name: Stage Cadip
+  tags: ["staging", "all"]
+  entrypoint: ./rs_workflows/cadip_flow.py:on_demand_cadip_staging
+  work_pool: *my_work_pool
+
 - name: Benchmark Processor
   tags: ["processing", "all", "benchmarking"]
   entrypoint: ./rs_workflows/benchmarking/benchmarking_flow.py:benchmark_processor
