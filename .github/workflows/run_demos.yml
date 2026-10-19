@@ -75,9 +75,10 @@ jobs:
           if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" ]]; then
             export DOCKER_TAG=latest
 
-          # Else, replace special characters by -
+          # Else, replace special characters by -, as the publication of the images
+          # (RS-PYTHON/actions set-binary-env) does
           else
-            export DOCKER_TAG=$(sed "s/[^a-zA-Z0-9]/-/g" <<< "$BRANCH_NAME")
+            export DOCKER_TAG=$(sed "s/[^a-zA-Z0-9\.\-\_]/-/g" <<< "$BRANCH_NAME")
           fi
 
           # Run all demos
