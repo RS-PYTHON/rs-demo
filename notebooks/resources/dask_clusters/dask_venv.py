@@ -102,7 +102,7 @@ def _init_dask_cluster_venv(
     worker_extra_container_config: dict,
     scheduler_extra_container_config: dict,
     local_mode_address: str,
-    gateway_namespace=os.getenv("DASK_GATEWAY_NAMESPACE", "dask-gateway"),
+    gateway_namespace=os.getenv("DASK_GATEWAY_NAMESPACE", "processing"),
     **kwargs,
 ) -> tuple[Gateway, GatewayCluster, DaskClient]:
     """
