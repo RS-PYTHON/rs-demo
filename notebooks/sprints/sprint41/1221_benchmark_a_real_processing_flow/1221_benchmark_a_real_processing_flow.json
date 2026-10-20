@@ -15,14 +15,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3A_20260630132216053997",
+                            "item_id": "S3A_20200121061417020456",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-30-06T13:22:16Z",
-                        "end_datetime": "2026-30-06T13:24:43Z",
-                        "satellite": "sentinel-3b"
+                        "start_datetime": "2020-01-21T06:14:17Z",
+                        "end_datetime": "2020-01-21T06:14:17Z",
+                        "satellite": "sentinel-3a"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -39,6 +39,11 @@
                             "name": "S03ISPS",
                             "product_type": "*",
                             "collection_name": "benchmarking-s3l0-output"
+                        },
+                        {
+                            "name": "S03CACHE",
+                            "product_type": "*",
+                            "collection_name": "benchmarking-s3l0-output"
                         }
                     ]
                 },
@@ -53,14 +58,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3A_20260630132216053997",
+                            "item_id": "S3A_20200121061417020456",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-30-06T13:22:16Z",
-                        "end_datetime": "2026-30-06T13:24:43Z",
-                        "satellite": "sentinel-3b"
+                        "start_datetime": "2020-01-21T06:14:17Z",
+                        "end_datetime": "2020-01-21T06:14:17Z",
+                        "satellite": "sentinel-3a"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -75,6 +80,11 @@
                     "generated_product_to_collection_identifier": [
                         {
                             "name": "S03ISPS",
+                            "product_type": "*",
+                            "collection_name": "benchmarking-s3l0-output"
+                        },
+                        {
+                            "name": "S03CACHE",
                             "product_type": "*",
                             "collection_name": "benchmarking-s3l0-output"
                         }
@@ -95,14 +105,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3A_20260630132216053997",
+                            "item_id": "S3A_20200121061417020456",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-30-06T13:22:16Z",
-                        "end_datetime": "2026-30-06T13:24:43Z",
-                        "satellite": "sentinel-3b"
+                        "start_datetime": "2026-06-30T13:22:16Z",
+                        "end_datetime": "2026-06-30T13:24:43Z",
+                        "satellite": "sentinel-3a"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -119,6 +129,11 @@
                             "name": "S03ISPS",
                             "product_type": "*",
                             "collection_name": "benchmarking-s3l0-output"
+                        },
+                        {
+                            "name": "S03CACHE",
+                            "product_type": "*",
+                            "collection_name": "benchmarking-s3l0-output"
                         }
                     ]
                 },
@@ -133,14 +148,14 @@
                     "input_products": [
                         {
                             "name": "S3ACADUS",
-                            "item_id": "S3A_20260630132216053997",
+                            "item_id": "S3A_20200121061417020456",
                             "collection_name": "benchmarking-s3l0-input"
                         }
                     ],
                     "external_variables": {
-                        "start_datetime": "2026-30-06T13:22:16Z",
-                        "end_datetime": "2026-30-06T13:24:43Z",
-                        "satellite": "sentinel-3b"
+                        "start_datetime": "2026-06-30T13:22:16Z",
+                        "end_datetime": "2026-06-30T13:24:43Z",
+                        "satellite": "sentinel-3a"
                     },
                     "auxiliary_product_to_collection_identifier": [
                         {
@@ -155,6 +170,11 @@
                     "generated_product_to_collection_identifier": [
                         {
                             "name": "S03ISPS",
+                            "product_type": "*",
+                            "collection_name": "benchmarking-s3l0-output"
+                        },
+                        {
+                            "name": "S03CACHE",
                             "product_type": "*",
                             "collection_name": "benchmarking-s3l0-output"
                         }
