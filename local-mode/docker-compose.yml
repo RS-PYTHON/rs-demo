@@ -147,6 +147,9 @@ services:
     depends_on:
       catalog-db:
         condition: service_healthy
+      # The catalog needs the pgstac customizations (queryables, externalIds operator and indexes...)
+      pgstac-post-actions:
+        condition: service_completed_successfully
       rs-server-osam:
         condition: service_started
     env_file:
@@ -689,7 +692,8 @@ services:
     container_name: pgstac-post-actions
     image: ghcr.io/stac-utils/pgstac-pypgstac:v0.10.0
     depends_on:
-      - catalog-db
+      catalog-db:
+        condition: service_healthy
     env_file:
       - .env
     environment: # set pgstac env vars, see: https://stac-utils.github.io/pgstac/pypgstac
