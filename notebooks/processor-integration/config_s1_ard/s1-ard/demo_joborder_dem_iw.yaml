@@ -52,19 +52,19 @@ workflow:
       dynamic_working_directory: *dynamic_working_directory
       spacing: { "x": 30, "y": 30 }
 
-I/O:
+io:
   input_products:
     - id: slcs
       path: /NOT_USED
-      store_params:
+      reader_params:
         chunks: {}
-      store_type: zarr
+      engine: cpm_zarr
 
   adfs:
 
     - id: CONFIG
       path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/CONFIG/ard.json
-      store_params:
+      adf_params:
         # s3_secret_alias: s3_cluster # see secrets.json
         storage_options:
           key: ${S3_ACCESSKEY_CLUSTER}
@@ -75,7 +75,7 @@ I/O:
 
     - id: S2_TILES
       path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/KML/S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml
-      store_params:
+      adf_params:
         # s3_secret_alias: s3_cluster # see secrets.json
         storage_options:
           key: ${S3_ACCESSKEY_CLUSTER}
@@ -86,7 +86,7 @@ I/O:
 
     - id: ETAD
       path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/BRESSO/ETAD
-      store_params:
+      adf_params:
         # s3_secret_alias: s3_cluster # see secrets.json
         storage_options:
           key: ${S3_ACCESSKEY_CLUSTER}
@@ -97,7 +97,7 @@ I/O:
 
     - id: DEM
       path: s3://rs-dev-cluster-temp/ARD_V2/ADFS/BRESSO/DEM
-      store_params:
+      adf_params:
         # s3_secret_alias: s3_cluster # see secrets.json
         storage_options:
           key: ${S3_ACCESSKEY_CLUSTER}
@@ -110,21 +110,16 @@ I/O:
     - id: cslcs
       path: *cslcs_path
       type: file
-      opening_mode: "CREATE_OVERWRITE"
-      store_type: zarr
-      store_params:
-        consolidate: True
+      engine: cpm_zarr
+      writer_params:
+        mode: "w"
     - id: nrb
       path: *nrb_path
       type: file
-      opening_mode: "CREATE_OVERWRITE"
-      store_type: zarr
-      store_params:
-        consolidate: True
+      engine: cpm_zarr
+      writer_params:
+        mode: "w"
 
 # Any secret files to be loaded in the secrets dictionary of EOConfiguration
 secret:
   - ../secrets.json
-
-# Any logging file(s) to load to the EOLogging facility
-logging: ../logging_config.yaml

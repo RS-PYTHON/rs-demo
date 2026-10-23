@@ -28,8 +28,8 @@ general_configuration:
    # SKIP mode: do nothing
 
 external_modules:
-- name : l0.cadu_processing.cadu_store
-  nested : true
+- name : l0.cadu_processing.cadu_reader
+  star_import: true
 
 workflow:
 - name: s3_l0_processor
@@ -54,13 +54,13 @@ workflow:
     acquisition_report_output_path: ./S3_D_TDS_1/output/default/Report/
     temporary_path: ./S3_D_TDS_1/output/tmp
 
-I/O:
+io:
   # input products descriptions and access parameters
   input_products:
   - id: S3ACADUS
     path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop-2/S3_D_TDS_1/CADUs/S3A_20200121061417020455.short
-    store_type: cadu
-    store_params:
+    engine: cadu
+    reader_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -72,7 +72,7 @@ I/O:
   adfs:
   - id: OSF
     path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20170322T163046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0002.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -83,7 +83,7 @@ I/O:
 
   - id: FRO
     path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop-2/S3_D_TDS_1/AUX/S3A_AX___FRO_AX_20200117T000000_20200127T000000_20200120T065046___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20200117T000000_20200127T000000_0001.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -97,9 +97,8 @@ I/O:
   - id: S03ISPS
     path: ${OUTPUT_DIR}/s3l0/L0_Products.short
     type: folder
-    opening_mode: "CREATE_OVERWRITE"
-    store_type: zarr
-    store_params:
+    engine: cpm_zarr
+    writer_params:
       # s3_secret_alias: s3_local_or_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -107,13 +106,13 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
+      mode: "w"
 
   - id: S03CACHE
     path: ${OUTPUT_DIR}/s3l0/CACHE.short
     type: folder
-    opening_mode: "CREATE_OVERWRITE"
-    store_type: zarr
-    store_params:
+    engine: cpm_zarr
+    writer_params:
       # s3_secret_alias: s3_local_or_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -121,14 +120,12 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
+      mode: "w"
 
 # Any secret files to be loaded in the secrets dictionary of EOConfiguration
 secret:
   - ../secrets.json
 
-# Any logging file(s) to load to the EOLogging facility
-logging:
-  - ../logging_config.yaml
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
   - ./s3_default_configuration.yaml

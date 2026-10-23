@@ -53,13 +53,13 @@ workflow:
     temporary_path: ./output_params/tmp
 
 
-I/O:
+io:
   # input products descriptions and access parameters
   input_products:
   - id: S3ACADUS
     path: s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/S3A_20250612034536048530/
-    store_type: cadu
-    store_params:
+    engine: cadu
+    reader_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -72,7 +72,7 @@ I/O:
 
   - id: OSF
     path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0007.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -83,7 +83,7 @@ I/O:
 
   - id: FRO
     path : s3://${PREFECT_BUCKET_NAME}/stations/ADGS/test-l0-develop/unzip/S3A_AX___FRO_AX_20250609T000000_20250619T000000_20250612T064635___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20250609T000000_20250619T000000_0001.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -94,7 +94,7 @@ I/O:
 
   # - id: SSI
   #   path : s3://${PREFECT_BUCKET_NAME}/stations/CADIP/test-l0-develop/...
-  #   store_params:
+  #   adf_params:
   #     # s3_secret_alias: s3_cluster # see secrets.json
   #     storage_options:
   #       key: ${S3_ACCESSKEY_CLUSTER}
@@ -108,9 +108,8 @@ I/O:
   - id: DORDOP
     path: ${OUTPUT_DIR}/S3A_20250612034536048530
     type: folder
-    store_type: zarr
-    opening_mode: "CREATE_OVERWRITE"
-    store_params:
+    engine: cpm_zarr
+    writer_params:
       # s3_secret_alias: s3_local_or_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -118,32 +117,31 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
+      mode: "w"
 
-breakpoints: []
+# Dask context configuration, see eopf.dask_utils.dask_context_manager
+context_managers:
+- module: eopf.dask_utils.dask_context_manager
+  context_manager: DaskContext
+  parameters:
+    cluster_type: gateway
+    cluster_config:
+      address: ${DASK_GATEWAY_ADDRESS}
+      reuse_cluster: ${DASK_CLUSTER_INSTANCE}
+      auth:
+        type: jupyterhub
+        api_token: ${JUPYTERHUB_API_TOKEN}
+      auth_local_mode: # auth for local mode
+        type: basic
+        username: ${LOCAL_DASK_USERNAME}
+        password: ${LOCAL_DASK_PASSWORD}
 
-# Dask context configuration, see eopf.daskconfig.dask_context_manager
-dask_context:
-  cluster_type: gateway
-  cluster_config:
-    address: ${DASK_GATEWAY_ADDRESS}
-    reuse_cluster: ${DASK_CLUSTER_INSTANCE}
-    auth:
-      type: jupyterhub
-      api_token: ${JUPYTERHUB_API_TOKEN}
-    auth_local_mode: # auth for local mode
-      type: basic
-      username: ${LOCAL_DASK_USERNAME}
-      password: ${LOCAL_DASK_PASSWORD}
-
-  # Activate the report file writing in this file
-  performance_report_file: ./reports/report.html
+    # Activate the report file writing in this file
+    performance_report_file: ./reports/report.html
 
 # Any secret files to be loaded in the secrets dictionary of EOConfiguration
 secret:
   - ../secrets.json
-
-# Any logging file(s) to load to the EOLogging facility
-logging: ../logging_config.yaml
 
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
