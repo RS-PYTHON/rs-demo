@@ -60,12 +60,13 @@ The [docker-compose.yml](https://github.com/RS-PYTHON/rs-demo/blob/develop/local
 |---|---|---|
 | `nginx` | <http://localhost> | Exposes the services behind a single address, like the Envoy Gateway in cluster mode. The Swagger page is at <http://localhost/docs> (for display only). |
 | `rs-server-*` | e.g. <http://localhost:8001/docs> (AUXIP), <http://localhost:8002/docs> (CADIP), <http://localhost:8003/catalog/api.html> (catalog), <http://localhost:8005/docs> (PRIP) | The rs-server services. |
-| `rs-dpr-service_py<python>-<dask>` | | rs-dpr-service, one container per Python and Dask version. |
+| `rs-dpr-service_py<python>-<dask>` | | rs-dpr-service, in a container named after its Python and Dask versions (currently `rs-dpr-service_py3.13.16-2026.7.1`, used for all the processors). |
 | `adgs-station`, `cadip-station`, `lta-station`, `prip-station` | | Mockups of the stations, from [rs-testmeans](https://github.com/RS-PYTHON/rs-testmeans). |
 | `stac-browser-*` | <http://localhost:8101> (AUXIP), <http://localhost:8102> (CADIP), <http://localhost:8103> (catalog), <http://localhost:8105> (PRIP) | The STAC browsers. |
 | `prefect-server`, `prefect-worker-*` | <http://localhost:4200> | The Prefect server and one worker per work pool. |
-| `dask-*` | | One container per Dask cluster (staging, Level-0, S1 ARD, S3 OLCI, mockup...). Each one runs its own Dask Gateway server, as there is no central Dask Gateway in local mode (see [Dask images](https://github.com/RS-PYTHON/rs-workflow-env/blob/develop/docs/dask_images.md)). |
+| `dask-*` | | One container per Dask cluster (staging, CPM3, Level-0, S1 ARD, S3 OLCI, mockup). Each one runs its own Dask Gateway server, as there is no central Dask Gateway in local mode (see [Dask images](https://github.com/RS-PYTHON/rs-workflow-env/blob/develop/docs/dask_images.md)). |
 | `postgres`, `catalog-db` | | The PostgreSQL databases: jobs, performance indicators, and the [pgstac](https://github.com/stac-utils/pgstac) catalog. |
+| `pgstac-post-actions` | | Runs `scripts/pgstac_post_actions.py` on `catalog-db` (queryables, search by externalIds, indexes...). `rs-server-catalog` starts only after it has completed successfully. |
 | `seaweedfs-s3` | <http://localhost:9101> | The [SeaweedFS](https://github.com/seaweedfs/seaweedfs) S3 object storage, with the `S3_ACCESSKEY` and `S3_SECRETKEY` credentials of the `.env` file. |
 | `jupyter` | <http://localhost:8888> | The Jupyter server. |
 
