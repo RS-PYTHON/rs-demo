@@ -315,7 +315,7 @@ async def run_prefect(
 
     # By calling directly the python code
     elif py_func:
-        return await run_prefect_flow_python(py_func, params)
+        return await run_prefect_flow_python(py_func, params, flow_run_name)
 
     else:
         return None
@@ -369,7 +369,11 @@ async def run_prefect_flow_cmd(
     return flow_run.state
 
 
-async def run_prefect_flow_python(py_func: Flow, params: dict) -> State | None:
+async def run_prefect_flow_python(
+    py_func: Flow,
+    params: dict,
+    flow_run_name: str | None = None,
+) -> State | None:
     """Run prefect flow by calling directly the python code"""
     print("Run flow from python code")
     # Reload all rs-client-libraries modules
@@ -383,6 +387,8 @@ async def run_prefect_flow_python(py_func: Flow, params: dict) -> State | None:
     # Make sure to call the python function from its reloaded module
     module = inspect.getmodule(py_func)
     py_func = getattr(module, py_func.fn.__name__)
+    if flow_run_name:
+        py_func = py_func.with_options(flow_run_name=flow_run_name)
 
     def custom_completion(flow: Flow, _flow_run: FlowRun, state: State):
         """On completion, save the state as a Flow instance field"""

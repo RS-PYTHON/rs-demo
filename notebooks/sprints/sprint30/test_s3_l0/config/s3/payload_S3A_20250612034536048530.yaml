@@ -51,13 +51,13 @@ workflow:
     temporary_path: ./output_params/tmp
 
 
-I/O:
+io:
   # input products descriptions and access parameters
   input_products:
   - id: S3ACADUS
     path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/S3A_20250612034536048530/
-    store_type: cadu
-    store_params:
+    engine: cadu
+    reader_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -69,7 +69,7 @@ I/O:
   adfs:
   - id: OSF
     path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S3A_AX___OSF_AX_20160216T192404_99991231T235959_20240624T085540___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBSCT_20160216T192404_99999999T999999_0007.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -80,7 +80,7 @@ I/O:
 
   - id: FRO
     path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/unzip/S3A_AX___FRO_AX_20250609T000000_20250619T000000_20250612T064635___________________EUM_O_AL_001.SEN3/S3A_OPER_MPL_ORBRES_20250609T000000_20250619T000000_0001.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -94,9 +94,8 @@ I/O:
   - id: ALL_OUTPUTS
     path: ${OUTPUT_DIR}/S3A_20250612034536048530
     type: folder
-    opening_mode: "CREATE_OVERWRITE"
-    store_type: zarr
-    store_params:
+    engine: cpm_zarr
+    writer_params:
       # s3_secret_alias: s3_local_or_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -104,15 +103,12 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
-
-breakpoints: []
+      mode: "w"
 
 # Any secret files to be loaded in the secrets dictionary of EOConfiguration
 secret:
   - ../secrets.json
 
-# Any logging file(s) to load to the EOLogging facility
-logging: ../logging_config.yaml
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
   - ./s3_default_configuration.yaml

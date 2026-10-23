@@ -22,8 +22,8 @@ general_configuration:
   triggering__use_default_filename: false
 
 external_modules:
-- name : l0.cadu_processing.cadu_store
-  nested : true
+- name : l0.cadu_processing.cadu_reader
+  star_import: true
 
 workflow:
 - name: s1_l0_processor
@@ -50,14 +50,14 @@ workflow:
     acquisition_report_output_path: ./output_params/s1
 
 
-I/O:
+io:
   # input products descriptions and access parameters
   input_products:
 
   - id: S1ACADUS
     path: s3://rs-dev-cluster-temp/stations/CADIP/test-l0-develop/s1l0/CADUs_full
-    store_type: cadu
-    store_params:
+    engine: cadu
+    reader_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -70,7 +70,7 @@ I/O:
 
   - id: OSF
     path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s1l0/S1A_OPER_MPL_ORBSCT_20140507T150704_99999999T999999_0026.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -81,7 +81,7 @@ I/O:
 
   - id: FRO
     path : s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s1l0/S1A_OPER_MPL_ORBPRE_20240404T021403_20240411T021403_0001.EOF
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -92,7 +92,7 @@ I/O:
 
   - id: calibration
     path: s3://rs-dev-cluster-temp/stations/ADGS/test-l0-develop/s1l0/s1a-aux-cal.zarr
-    store_params:
+    adf_params:
       # s3_secret_alias: s3_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY_CLUSTER}
@@ -104,13 +104,11 @@ I/O:
   output_products:
   - id: output_folder
     path: ${OUTPUT_DIR}/s1l0/S1A_20250611050700059594
-    # Type can be filename or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
+    # Type can be file or folder, in case of folder the product naming will depends on the triggering__use_default_filename EOConfiguration
     type: folder
-    opening_mode: "CREATE_OVERWRITE"
-    store_type: zarr
+    engine: cpm_zarr
 
-# Dask context configuration, see eopf.daskconfig.dask_context_manager
-    store_params:
+    writer_params:
       # s3_secret_alias: s3_local_or_cluster # see secrets.json
       storage_options:
         key: ${S3_ACCESSKEY}
@@ -118,10 +116,7 @@ I/O:
         client_kwargs:
           endpoint_url: ${S3_ENDPOINT}
           region_name: ${S3_REGION}
-
-# Any logging file(s) to load to the EOLogging facility
-logging:
-- ../logging_config.yaml
+      mode: "w"
 
 # Any config file(s) to load to the EOConfiguration facility, general_configuration and env variables will overload them
 config:
