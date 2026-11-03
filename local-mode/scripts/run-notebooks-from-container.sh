@@ -24,6 +24,26 @@ export RSPY_FROM_CICD=1
 OUTPUT_DIR="/tmp/notebook-outputs"
 mkdir -p "${OUTPUT_DIR}"
 
+# Run papermill with the IPC kernel transport instead of the default TCP one.
+# The kernel runs locally anyway, and over TCP ipykernel logs a warning
+# because the communication is not encrypted.
+# The IPC socket files go to a temporary directory: by default they are created
+# in the notebook directory, and notebooks that upload their directory fail on them.
+run_papermill() {
+    python - "$@" <<'PYTHON'
+import os
+import sys
+import tempfile
+
+import papermill
+from traitlets.config import Config
+
+with tempfile.TemporaryDirectory() as ipc_dir:
+    config = Config(KernelManager={"transport": "ipc", "ip": os.path.join(ipc_dir, "kernel")})
+    papermill.execute_notebook(sys.argv[1], sys.argv[2], config=config)
+PYTHON
+}
+
 all_ok=
 all_errors=
 all_ignored=
@@ -56,7 +76,7 @@ for notebook in $(find "${HOME}/notebooks" -type f -name "*.ipynb" -not -path "*
     # In case of error, save the notebook path relative to the root project.
     # NOTE: you can add '--log-output' to view outputs.
     _outname="${_relative//\//__}"
-    (set -x && cd "${_dirname}" && time papermill "${_filename}" "${OUTPUT_DIR}/${_outname}") && \
+    (set -x && cd "${_dirname}" && time run_papermill "${_filename}" "${OUTPUT_DIR}/${_outname}") && \
     all_ok="${all_ok:-}  - '$_relative'\n" || \
     all_errors="${all_errors:-}  - '$_relative'\n"
 done
