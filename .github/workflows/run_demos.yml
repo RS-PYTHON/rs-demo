@@ -51,6 +51,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Run all demos
     needs: build-env-external-data-sources
+    permissions:
+      contents: read # for actions/checkout
+      packages: read # to pull the Docker images
+      pull-requests: write # to report the notebooks in the pull request
     steps:
       - uses: actions/checkout@v6
         with:
@@ -66,6 +70,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run all demos in local mode
+        id: test-demo
         env:
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
@@ -86,12 +91,22 @@ jobs:
         shell: bash
 
       - name: Upload executed notebooks
+        id: upload-notebooks
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: notebook-outputs
           path: local-mode/notebook-outputs/
           if-no-files-found: ignore
+
+      - name: Report the notebooks in the pull request
+        if: ${{ !cancelled() }}
+        continue-on-error: true # the report must never fail the job
+        uses: RS-PYTHON/actions/.github/actions/report-notebooks@develop
+        with:
+          notebooks-dir: local-mode/notebook-outputs
+          outcome: ${{ steps.test-demo.outcome }}
+          artifact-url: ${{ steps.upload-notebooks.outputs.artifact-url }}
 
   trigger-rs-workflow-env:
     runs-on: ubuntu-latest

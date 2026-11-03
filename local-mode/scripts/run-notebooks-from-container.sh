@@ -29,18 +29,30 @@ mkdir -p "${OUTPUT_DIR}"
 # because the communication is not encrypted.
 # The IPC socket files go to a temporary directory: by default they are created
 # in the notebook directory, and notebooks that upload their directory fail on them.
+# When the error is not saved in the output notebook, e.g. when the kernel died,
+# save it in a '<output notebook>.error.txt' file, for the CI/CD report
+# (RS-PYTHON/actions report-notebooks).
 run_papermill() {
     python - "$@" <<'PYTHON'
 import os
 import sys
 import tempfile
+import traceback
 
 import papermill
+from papermill.exceptions import PapermillExecutionError
 from traitlets.config import Config
 
 with tempfile.TemporaryDirectory() as ipc_dir:
     config = Config(KernelManager={"transport": "ipc", "ip": os.path.join(ipc_dir, "kernel")})
-    papermill.execute_notebook(sys.argv[1], sys.argv[2], config=config)
+    try:
+        papermill.execute_notebook(sys.argv[1], sys.argv[2], config=config)
+    except PapermillExecutionError:
+        raise  # the error is saved in the output notebook
+    except Exception as exception:
+        with open(f"{sys.argv[2]}.error.txt", "w", encoding="utf-8") as error_file:
+            error_file.write("".join(traceback.format_exception_only(exception)))
+        raise
 PYTHON
 }
 
