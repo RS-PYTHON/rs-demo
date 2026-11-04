@@ -20,14 +20,25 @@
 # - always cleans up docker compose
 
 set -euo pipefail
-set -x
 
 #############################
 # Configuration
 #############################
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 COMPOSE_FILE="docker-compose-test-tag.yml"
 LOG_LINES=200
+
+# Output directory of the executed notebooks
+OUTPUT_DIR="${SCRIPT_DIR}/local-mode/notebook-outputs"
+rm -rf "${OUTPUT_DIR}"
+mkdir -p "${OUTPUT_DIR}"
+
+# Also write the log of this script in the output directory. If the run fails outside of the notebooks
+# (e.g. the docker images cannot be pulled), the CI/CD report displays the error from this log
+# (RS-PYTHON/actions report-notebooks).
+exec > >(tee "${OUTPUT_DIR}/test-rs-demo.log") 2>&1
+set -x
 
 #############################
 # Checkout branch
@@ -85,7 +96,8 @@ set -e
 # Copy notebook logs from container
 #############################
 
-docker cp jupyter:/tmp/notebook-outputs/ ./notebook-outputs/ 2>/dev/null || true
+# Copy the directory content ('/.'), not the directory itself, because the output directory already exists
+docker cp jupyter:/tmp/notebook-outputs/. "${OUTPUT_DIR}/" 2>/dev/null || true
 
 #############################
 # Handle failure
