@@ -28,9 +28,9 @@ pip install -U pip && \
 pip install ipykernel psycopg2 && \
 pip install -e /PATH/TO/rs-client-libraries && \
 pip install \
-    dask==2026.1.4 \
-    dask-gateway==2025.4.0 \
-    prefect[aws]==3.6.29 \
+    dask==2026.8.0 \
+    dask-gateway==2026.3.0 \
+    prefect[aws]==3.9.1 && \
 opentelemetry-bootstrap -a install
 """
 
