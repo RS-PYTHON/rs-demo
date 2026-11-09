@@ -545,6 +545,7 @@ services:
     image: ghcr.io/rs-python/dask/mockup/local:latest
     environment:
       PYTHONPATH: /opt/rs-demo-ext
+      AWS_ALLOW_HTTP: "true"
     volumes:
       - ../notebooks/resources/dask_gateway/dask_gateway_local_ext.py:/opt/rs-demo-ext/dask_gateway_local_ext.py:ro
       - ../notebooks/resources/dask_gateway/dask_gateway_config.py:/opt/rs-demo-ext/dask_gateway_config.py:ro
