@@ -167,6 +167,20 @@ with conn.cursor() as cur:
     )
     conn.commit()
 
+    # Prefix index on item id so `id LIKE '<id>.%'` (searching items without
+    # extension) uses an index scan even when the DB collation is not C (e.g.
+    # en_US.utf8). The queryable_index_template index ensures
+    # pgstac.maintain_partitions(dropindexes => true) keeps it on partitions.
+    cur.execute(
+        """
+        CREATE INDEX IF NOT EXISTS queryable_index_template_id_pattern_idx
+            ON pgstac.queryable_index_template (id text_pattern_ops);
+        CREATE INDEX IF NOT EXISTS items_id_pattern_idx
+            ON pgstac.items (id text_pattern_ops);
+        """,
+    )
+    conn.commit()
+
     # Add 'format' and 'pattern' for expires to have better timestamp queries
     try:
         cur.execute(
