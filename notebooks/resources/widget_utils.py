@@ -59,7 +59,7 @@ dpr_proc_radio = widgets.RadioButtons(
 
 
 def build_pipeline_radio(tasktable: dict) -> widgets.RadioButtons:
-    """Build the DPR pipeline selector without preselecting an option."""
+    """Build the DPR pipeline selector, preselecting the first pipeline only in CI."""
     entries = tasktable.get("pipelines")
     if not isinstance(entries, list):
         raise ValueError("Expected a 'pipelines' list in the DPR task table.")
@@ -76,7 +76,7 @@ def build_pipeline_radio(tasktable: dict) -> widgets.RadioButtons:
 
     return widgets.RadioButtons(
         options=options,
-        index=None,
+        index=0 if utils.from_cicd else None,
         description=f"Choose a pipeline for {dpr_proc_radio.value!r}:",
         indent=False,
     )
