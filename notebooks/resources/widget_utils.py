@@ -68,11 +68,15 @@ def build_pipeline_radio(tasktable: dict) -> widgets.RadioButtons:
     for entry in entries:
         name = entry.get("name") if isinstance(entry, dict) else None
         if not isinstance(name, str) or not name.strip():
-            raise ValueError("Expected a non-empty pipeline name in the DPR task table.")
+            raise ValueError(
+                "Expected a non-empty pipeline name in the DPR task table.",
+            )
         options.append(name)
 
     if not options:
-        raise ValueError("The DPR task table does not contain any selectable pipelines.")
+        raise ValueError(
+            "The DPR task table does not contain any selectable pipelines.",
+        )
 
     return widgets.RadioButtons(
         options=options,
