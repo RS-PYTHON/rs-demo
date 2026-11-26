@@ -58,31 +58,26 @@ dpr_proc_radio = widgets.RadioButtons(
 )
 
 
-def build_pipeline_unit_radio(tasktable: dict, *, default_pipeline: str | None = None) -> widgets.RadioButtons:
-    """Build the DPR selector from the task table returned by the processor."""
-    options: list[tuple[str, dict[str, str]]] = []
-    selected_index = 0
-    for section, kind, other in (("pipelines", "pipeline", "unit"), ("units", "unit", "pipeline")):
-        entries = tasktable.get(section)
-        if not isinstance(entries, list):
-            raise ValueError(f"Expected a {section!r} list in the DPR task table.")
-        for entry in entries:
-            name = entry.get("name") if isinstance(entry, dict) else None
-            if not isinstance(name, str) or not name.strip():
-                raise ValueError(f"Expected a non-empty name in DPR task table section {section!r}.")
-            if kind == "unit" and entry.get("active") is False:
-                continue
-            if kind == "pipeline" and name == default_pipeline:
-                selected_index = len(options)
-            options.append((f"{name} ({kind})", {kind: name, other: ""}))
+def build_pipeline_radio(tasktable: dict) -> widgets.RadioButtons:
+    """Build the DPR pipeline selector without preselecting an option."""
+    entries = tasktable.get("pipelines")
+    if not isinstance(entries, list):
+        raise ValueError("Expected a 'pipelines' list in the DPR task table.")
+
+    options: list[str] = []
+    for entry in entries:
+        name = entry.get("name") if isinstance(entry, dict) else None
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("Expected a non-empty pipeline name in the DPR task table.")
+        options.append(name)
 
     if not options:
-        raise ValueError("The DPR task table does not contain any selectable pipelines or units.")
+        raise ValueError("The DPR task table does not contain any selectable pipelines.")
 
     return widgets.RadioButtons(
         options=options,
-        index=selected_index,
-        description=f"Run {dpr_proc_radio.value!r} full pipeline or single processing unit:",
+        index=None,
+        description=f"Choose a pipeline for {dpr_proc_radio.value!r}:",
         indent=False,
     )
 
