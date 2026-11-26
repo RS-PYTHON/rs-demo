@@ -190,6 +190,15 @@ async def init_dask_cluster_l0(**kwargs):
     )
 
 
+async def init_dask_cluster_cri_l0(**kwargs):
+    """Read existing or create new dask cluster."""
+    return await _init_dask_cluster_main_env(
+        "cri-l0",
+        NOTEBOOK_DIR / "init_dask_cluster_cri_l0.ipynb",
+        kwargs,
+    )
+
+
 async def init_dask_cluster_s1ard(**kwargs):
     """Read existing or create new dask cluster."""
     return await _init_dask_cluster_main_env(

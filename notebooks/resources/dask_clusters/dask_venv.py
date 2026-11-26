@@ -361,6 +361,21 @@ def init_dask_cluster_l0_venv(
     )
 
 
+def init_dask_cluster_cri_l0_venv(
+    image: str = "",
+    cluster_label: str = "",
+    **kwargs,
+):
+    """Read existing or create new dask cluster."""
+    return _init_dask_cluster_venv(
+        image=image,
+        python_packages=["eopf", "cri_l0_dp"],
+        cluster_label=cluster_label or dpr_label(image, "dask-cristal-l0"),
+        local_mode_address="DASK_GATEWAY_CRIL0_ADDRESS",
+        **kwargs,
+    )
+
+
 def init_dask_cluster_mockup_venv(
     image: str = "",
     cluster_label: str = "",
