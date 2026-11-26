@@ -76,41 +76,8 @@ def build_pipeline_unit_radio(tasktable: dict, *, default_pipeline: str | None =
                 selected_index = len(options)
             options.append((f"{name} ({kind})", {kind: name, other: ""}))
 
-<<<<<<< Updated upstream
-    match dpr_proc_radio.value:
-        case "mockup":
-            pipelines = ["mockup_full"]
-        case DprProcessor.S1L0.value:
-            pipelines = ["s1_l0_full"]
-        case DprProcessor.CRIL0.value:
-            pipelines = ["cri_l0_full"]
-        case DprProcessor.S3L0.value:
-            pipelines = ["s3_l0_full"]
-        case DprProcessor.S1ARD.value:
-            pipelines = ["s1_ard_full"]
-            units = [
-                "calibration",
-                "reference_dem",
-                "reference_geometry",
-                "coregistration",
-                "geocoding",
-                "mosaicking",
-            ]
-        case DprProcessor.S3L1OLCI.value:
-            pipelines = ["ol1_eo"]
-        case DprProcessor.S3L2OLCI.value:
-            pipelines = ["ol2"]
-
-    # Text and dict entry used in radio buttons for each pipeline or unit
-    options = []
-    for p in pipelines:
-        options.append((f"{p} (pipeline) ", {"pipeline": p, "unit": ""}))
-    for u in units:
-        options.append((f"{u} (unit)", {"pipeline": "", "unit": u}))
-=======
     if not options:
         raise ValueError("The DPR task table does not contain any selectable pipelines or units.")
->>>>>>> Stashed changes
 
     return widgets.RadioButtons(
         options=options,
