@@ -69,6 +69,8 @@ def get_pipeline_unit_radio():
             pipelines = ["mockup_full"]
         case DprProcessor.S1L0.value:
             pipelines = ["s1_l0_full"]
+        case DprProcessor.CRIL0.value:
+            pipelines = ["cri_l0_full"]
         case DprProcessor.S3L0.value:
             pipelines = ["s3_l0_full"]
         case DprProcessor.S1ARD.value:
