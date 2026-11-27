@@ -58,46 +58,30 @@ dpr_proc_radio = widgets.RadioButtons(
 )
 
 
-def get_pipeline_unit_radio():
-    """Return radio buttons to chosse the DPR processor pipeline or processing unit"""
-    # Avaiable pipelines and processing units
-    pipelines = []
-    units = ["single_unit"]
+def build_pipeline_radio(tasktable: dict) -> widgets.RadioButtons:
+    """Build the DPR pipeline selector, preselecting the first pipeline only in CI."""
+    entries = tasktable.get("pipelines")
+    if not isinstance(entries, list):
+        raise ValueError("Expected a 'pipelines' list in the DPR task table.")
 
-    match dpr_proc_radio.value:
-        case "mockup":
-            pipelines = ["mockup_full"]
-        case DprProcessor.S1L0.value:
-            pipelines = ["s1_l0_full"]
-        case DprProcessor.CRIL0.value:
-            pipelines = ["cri_l0_full"]
-        case DprProcessor.S3L0.value:
-            pipelines = ["s3_l0_full"]
-        case DprProcessor.S1ARD.value:
-            pipelines = ["s1_ard_full"]
-            units = [
-                "calibration",
-                "reference_dem",
-                "reference_geometry",
-                "coregistration",
-                "geocoding",
-                "mosaicking",
-            ]
-        case DprProcessor.S3L1OLCI.value:
-            pipelines = ["ol1_eo"]
-        case DprProcessor.S3L2OLCI.value:
-            pipelines = ["ol2"]
+    options: list[str] = []
+    for entry in entries:
+        name = entry.get("name") if isinstance(entry, dict) else None
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError(
+                "Expected a non-empty pipeline name in the DPR task table.",
+            )
+        options.append(name)
 
-    # Text and dict entry used in radio buttons for each pipeline or unit
-    options = []
-    for p in pipelines:
-        options.append((f"{p} (pipeline) ", {"pipeline": p, "unit": ""}))
-    for u in units:
-        options.append((f"{u} (unit)", {"pipeline": "", "unit": u}))
+    if not options:
+        raise ValueError(
+            "The DPR task table does not contain any selectable pipelines.",
+        )
 
     return widgets.RadioButtons(
         options=options,
-        description=f"Run {dpr_proc_radio.value!r} full pipeline or single processing unit:",
+        index=0 if utils.from_cicd else None,
+        description=f"Choose a pipeline for {dpr_proc_radio.value!r}:",
         indent=False,
     )
 
